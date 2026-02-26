@@ -20,8 +20,34 @@ uri="http://java.sun.com/jsp/jstl/core"%>
         padding: 15px 30px;
         display: flex;
         align-items: center;
-        gap: 30px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      }
+      .nav-links {
+        display: flex;
+        gap: 30px;
+      }
+      .nav-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .nav-user {
+        color: #dce6f5;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .btn-logout {
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 14px;
+        transition: 0.2s;
+      }
+      .btn-logout:hover {
+        background: #d9534f;
       }
       .navbar h1 {
         color: #fff;
@@ -92,11 +118,17 @@ uri="http://java.sun.com/jsp/jstl/core"%>
   <body>
     <div class="navbar">
       <h1>📚 Library Manager</h1>
-      <a href="${pageContext.request.contextPath}/books">Books</a>
-      <a href="${pageContext.request.contextPath}/students">Students</a>
-      <a href="${pageContext.request.contextPath}/authors">Authors</a>
-      <a href="${pageContext.request.contextPath}/categories">Categories</a>
-      <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
+      <div class="nav-links">
+          <a href="${pageContext.request.contextPath}/books">Books</a>
+          <a href="${pageContext.request.contextPath}/students">Students</a>
+          <a href="${pageContext.request.contextPath}/authors">Authors</a>
+          <a href="${pageContext.request.contextPath}/categories">Categories</a>
+          <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
+      </div>
+      <div class="nav-right">
+          <span class="nav-user">Xin chào, ${sessionScope.staff.staffName}!</span>
+          <a class="btn-logout" href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
+      </div>
     </div>
     <div class="container">
       <div class="card">
