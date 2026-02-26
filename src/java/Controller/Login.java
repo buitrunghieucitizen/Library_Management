@@ -29,7 +29,7 @@ public class Login extends HttpServlet {
         // Nếu đã đăng nhập rồi thì chuyển về trang chủ
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("staff") != null) {
-            response.sendRedirect(request.getContextPath() + "/");
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
             return;
         }
         request.getRequestDispatcher("/login.jsp").forward(request, response);
@@ -57,7 +57,7 @@ public class Login extends HttpServlet {
                 }
                 session.setAttribute("roles", roleIds);
 
-                response.sendRedirect(request.getContextPath() + "/");
+                response.sendRedirect(request.getContextPath() + "/index.jsp");
             } else {
                 // Đăng nhập thất bại
                 request.setAttribute("error", "Sai tên đăng nhập hoặc mật khẩu!");
