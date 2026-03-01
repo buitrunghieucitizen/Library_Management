@@ -21,7 +21,7 @@
     </style>
 </head>
 <body>
-    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/">Trang chủ</a><a href="${pageContext.request.contextPath}/categories">Categories</a></div>
+    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/categories">Categories</a></div>
     <div class="container"><div class="card">
         <h2>✏️ Sửa Thể loại</h2>
         <form method="POST" action="${pageContext.request.contextPath}/categories?action=edit">
@@ -33,3 +33,4 @@
     </div></div>
 </body>
 </html>
+

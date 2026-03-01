@@ -27,7 +27,7 @@
 <body>
     <div class="navbar">
         <h1>📚 Library Manager</h1>
-        <a href="${pageContext.request.contextPath}/">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
         <a href="${pageContext.request.contextPath}/books">Books</a>
     </div>
     <div class="container">
@@ -56,3 +56,4 @@
     </div>
 </body>
 </html>
+

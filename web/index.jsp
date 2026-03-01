@@ -121,6 +121,7 @@ uri="http://java.sun.com/jsp/jstl/core"%>
       <div class="nav-links">
           <a href="${pageContext.request.contextPath}/books">Books</a>
           <a href="${pageContext.request.contextPath}/students">Students</a>
+          <a href="${pageContext.request.contextPath}/borrows">Borrow</a>
           <a href="${pageContext.request.contextPath}/authors">Authors</a>
           <a href="${pageContext.request.contextPath}/categories">Categories</a>
           <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
@@ -143,6 +144,10 @@ uri="http://java.sun.com/jsp/jstl/core"%>
         <a class="grid-item" href="${pageContext.request.contextPath}/students">
           <h3>🎓 Sinh viên</h3>
           <span>Quản lý sinh viên</span>
+        </a>
+        <a class="grid-item" href="${pageContext.request.contextPath}/borrows">
+          <h3>📚 Mượn trả</h3>
+          <span>Tạo phiếu mượn và trả sách</span>
         </a>
         <a class="grid-item" href="${pageContext.request.contextPath}/authors">
           <h3>✍️ Tác giả</h3>
