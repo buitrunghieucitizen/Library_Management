@@ -57,7 +57,12 @@ public class Login extends HttpServlet {
                 }
                 session.setAttribute("roles", roleIds);
 
-                response.sendRedirect(request.getContextPath() + "/index.jsp");
+                // Student role (RoleID=8) vao thang man hinh muon/tra.
+                if (roleIds.contains(8)) {
+                    response.sendRedirect(request.getContextPath() + "/borrows?action=list");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/index.jsp");
+                }
             } else {
                 // Đăng nhập thất bại
                 request.setAttribute("error", "Sai tên đăng nhập hoặc mật khẩu!");
