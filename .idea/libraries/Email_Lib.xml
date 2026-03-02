@@ -1,0 +1,25 @@
+<component name="libraryTable">
+  <library name="Email Lib">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/Email Lib/jaxb-api-2.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/gson-2.8.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/mail.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/commons-logging-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/mail-1.4.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/fluent-hc-4.5.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/sqljdbc42.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/httpcore-4.4.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/jakarta.servlet.jsp.jstl-api-2.0.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/javax.mail.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/activation-1.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/smtp.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/jakarta.servlet.jsp.jstl-2.0.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Email Lib/httpclient-4.5.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <excluded>
+      <root url="jar://$USER_HOME$/Downloads/sqljdbc_13.2.1.0_enu/sqljdbc_13.2/enu/jars/mssql-jdbc-13.2.1.jre11.jar!/" />
+    </excluded>
+  </library>
+</component>
