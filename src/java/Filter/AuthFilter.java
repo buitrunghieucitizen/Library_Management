@@ -50,7 +50,7 @@ public class AuthFilter implements Filter {
 
         boolean isAdmin = roles.contains(1);
         boolean isStaff = roles.contains(2) || roles.contains(4);
-        boolean isStudent = roles.contains(8);
+        boolean isStudent = roles.contains(8) || roles.contains(9);
 
         String servletPath = req.getServletPath();
 

@@ -1,4 +1,4 @@
-﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html>
@@ -82,7 +82,7 @@
             <c:if test="${roleId == 2 || roleId == 4}">
                 <c:set var="isStaff" value="true" />
             </c:if>
-            <c:if test="${roleId == 8}">
+            <c:if test="${roleId == 8 || roleId == 9}">
                 <c:set var="isStudent" value="true" />
             </c:if>
         </c:forEach>
@@ -111,7 +111,7 @@
           </c:choose>
       </div>
       <div class="nav-right">
-          <span class="nav-user">Xin chào, ${sessionScope.staff.staffName} (${isAdmin ? 'Admin' : (isStaff ? 'Staff' : 'Student')})</span>
+          <span class="nav-user">Xin chào, ${sessionScope.staff.staffName} (${isAdmin ? 'Admin' : (isStaff ? 'Staff' : (isStudent ? 'Student' : 'NoRole'))})</span>
           <a class="btn-logout" href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
       </div>
     </div>
@@ -131,6 +131,10 @@
                 <h2>Màn hình Học sinh</h2>
                 <p>Bạn có thể xem danh sách sách còn sẵn, mượn sách và gửi yêu cầu trả sách hoặc mua sách.</p>
             </c:when>
+            <c:otherwise>
+                <h2>Tài khoản chưa được gắn quyền</h2>
+                <p>Vui lòng gắn role trong bảng StaffRole rồi đăng nhập lại.</p>
+            </c:otherwise>
         </c:choose>
       </div>
 

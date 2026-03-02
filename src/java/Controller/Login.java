@@ -16,9 +16,14 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @WebServlet(name = "Login", urlPatterns = {"/LoginURL"})
 public class Login extends HttpServlet {
+
+    private static final int ROLE_ADMIN = 1;
+    private static final int ROLE_STAFF = 2;
+    private static final int ROLE_STUDENT = 8;
 
     private final DAOStaff daoStaff = new DAOStaff();
     private final DAOStaffRole daoStaffRole = new DAOStaffRole();
@@ -55,10 +60,15 @@ public class Login extends HttpServlet {
                 for (StaffRole sr : staffRoles) {
                     roleIds.add(sr.getRoleID());
                 }
+                ensureDefaultRoleIfMissing(staff, roleIds);
                 session.setAttribute("roles", roleIds);
 
-                // Student role (RoleID=8) vao thang man hinh muon/tra.
-                if (roleIds.contains(8)) {
+                boolean isAdmin = roleIds.contains(ROLE_ADMIN);
+                boolean isStaff = roleIds.contains(ROLE_STAFF) || roleIds.contains(4);
+                boolean isStudent = roleIds.contains(ROLE_STUDENT) || roleIds.contains(9);
+
+                // Chi tai khoan Student-only moi vao thang man hinh muon/tra.
+                if (isStudent && !isAdmin && !isStaff) {
                     response.sendRedirect(request.getContextPath() + "/borrows?action=list");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/index.jsp");
@@ -73,5 +83,45 @@ public class Login extends HttpServlet {
             request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
             request.getRequestDispatcher("/login.jsp").forward(request, response);
         }
+    }
+
+    private void ensureDefaultRoleIfMissing(Staff staff, List<Integer> roleIds) throws SQLException {
+        if (staff == null || roleIds == null || !roleIds.isEmpty()) {
+            return;
+        }
+
+        Integer inferredRole = inferRole(staff);
+        if (inferredRole == null) {
+            return;
+        }
+
+        daoStaffRole.insert(new StaffRole(staff.getStaffID(), inferredRole));
+        roleIds.add(inferredRole);
+    }
+
+    private Integer inferRole(Staff staff) {
+        String username = normalize(staff.getUsername());
+        String staffName = normalize(staff.getStaffName());
+
+        if ("admin".equals(username) || username.startsWith("admin") || staffName.contains("admin")) {
+            return ROLE_ADMIN;
+        }
+
+        if (username.startsWith("student") || staffName.contains("student")) {
+            return ROLE_STUDENT;
+        }
+
+        if (username.startsWith("staff") || username.startsWith("librarian") || staffName.contains("staff")) {
+            return ROLE_STAFF;
+        }
+
+        return null;
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.trim().toLowerCase(Locale.ROOT);
     }
 }

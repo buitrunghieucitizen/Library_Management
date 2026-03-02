@@ -34,6 +34,7 @@ public class BorrowController extends HttpServlet {
     private static final int ROLE_STAFF = 2;
     private static final int ROLE_STAFF_ALT = 4;
     private static final int ROLE_STUDENT = 8;
+    private static final int ROLE_STUDENT_ALT = 9;
     private static final int DEFAULT_STUDENT_BORROW_DAYS = 7;
 
     private final DAOStudent daoStudent = new DAOStudent();
@@ -441,7 +442,7 @@ public class BorrowController extends HttpServlet {
     }
 
     private boolean isStudentOnly(HttpServletRequest req) {
-        return hasRole(req, ROLE_STUDENT) && !hasRole(req, ROLE_ADMIN) && !hasRole(req, ROLE_STAFF) && !hasRole(req, ROLE_STAFF_ALT);
+        return (hasRole(req, ROLE_STUDENT) || hasRole(req, ROLE_STUDENT_ALT)) && !hasRole(req, ROLE_ADMIN) && !hasRole(req, ROLE_STAFF) && !hasRole(req, ROLE_STAFF_ALT);
     }
 
     private Integer resolveStudentIdForStaff(Staff staff) throws SQLException {

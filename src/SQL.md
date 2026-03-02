@@ -512,6 +512,7 @@ GO
 INSERT [dbo].[StaffRole] ([StaffID], [RoleID]) VALUES (1, 1)
 INSERT [dbo].[StaffRole] ([StaffID], [RoleID]) VALUES (2, 2)
 INSERT [dbo].[StaffRole] ([StaffID], [RoleID]) VALUES (3, 3)
+INSERT [dbo].[StaffRole] ([StaffID], [RoleID]) VALUES (10, 1)
 GO
 SET IDENTITY_INSERT [dbo].[Student] ON
 

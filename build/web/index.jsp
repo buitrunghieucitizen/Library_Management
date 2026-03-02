@@ -1,4 +1,4 @@
-﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html>
@@ -82,7 +82,7 @@
             <c:if test="${roleId == 2 || roleId == 4}">
                 <c:set var="isStaff" value="true" />
             </c:if>
-            <c:if test="${roleId == 8}">
+            <c:if test="${roleId == 8 || roleId == 9}">
                 <c:set var="isStudent" value="true" />
             </c:if>
         </c:forEach>
