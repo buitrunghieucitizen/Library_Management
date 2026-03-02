@@ -2,17 +2,18 @@ package Controller;
 
 import Entities.Book;
 import Entities.BorrowItem;
+import Entities.OrderDetail;
 import Entities.Staff;
 import Entities.Student;
 import Model.DAOBook;
 import Model.DAOStudent;
 import Model.DBConnection;
+import Utils.RoleUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -27,14 +28,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@WebServlet(name = "BorrowController", urlPatterns = { "/borrows" })
+@WebServlet(name = "BorrowController", urlPatterns = {"/borrows"})
 public class BorrowController extends HttpServlet {
 
-    private static final int ROLE_ADMIN = 1;
-    private static final int ROLE_STAFF = 2;
-    private static final int ROLE_STAFF_ALT = 4;
-    private static final int ROLE_STUDENT = 8;
-    private static final int ROLE_STUDENT_ALT = 9;
     private static final int DEFAULT_STUDENT_BORROW_DAYS = 7;
 
     private final DAOStudent daoStudent = new DAOStudent();
@@ -97,16 +93,16 @@ public class BorrowController extends HttpServlet {
     }
 
     private void showList(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        Staff staff = getLoggedStaff(req);
+        Staff staff = RoleUtils.getLoggedStaff(req);
         if (staff == null) {
             resp.sendRedirect(req.getContextPath() + "/LoginURL");
             return;
         }
 
-        if (isStudentOnly(req)) {
+        if (RoleUtils.isStudentOnly(req)) {
             Integer studentId = resolveStudentIdForStaff(staff);
             if (studentId == null) {
-                req.setAttribute("mappingError", "Không xác định được tài khoản sinh viên cho user hiện tại.");
+                req.setAttribute("mappingError", "Khong xac dinh duoc tai khoan sinh vien cho user hien tai.");
                 req.setAttribute("availableBooks", Collections.emptyList());
                 req.setAttribute("borrows", Collections.emptyList());
             } else {
@@ -118,14 +114,13 @@ public class BorrowController extends HttpServlet {
             return;
         }
 
-        // Admin và Staff thấy toàn bộ danh sách để xác nhận trả
         req.setAttribute("borrows", fetchBorrowRows());
         req.getRequestDispatcher("/WEB-INF/views/borrow/list.jsp").forward(req, resp);
     }
 
     private void showCreate(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        if (isStudentOnly(req)) {
-            redirectWithMessage(req, resp, "error", "Học sinh không được tạo phiếu mượn theo form quản trị.");
+        if (RoleUtils.isStudentOnly(req)) {
+            redirectWithMessage(req, resp, "error", "Hoc sinh khong duoc tao phieu muon theo form quan tri.");
             return;
         }
         loadCreateData(req);
@@ -136,9 +131,9 @@ public class BorrowController extends HttpServlet {
         List<Student> students = daoStudent.getAll();
         List<Book> books = daoBook.getAll();
         List<Book> borrowableBooks = new ArrayList<>();
-        for (Book b : books) {
-            if (b.getAvailable() > 0) {
-                borrowableBooks.add(b);
+        for (Book book : books) {
+            if (book.getAvailable() > 0) {
+                borrowableBooks.add(book);
             }
         }
         req.setAttribute("students", students);
@@ -146,12 +141,12 @@ public class BorrowController extends HttpServlet {
     }
 
     private void createBorrow(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        if (isStudentOnly(req)) {
+        if (RoleUtils.isStudentOnly(req)) {
             redirectWithMessage(req, resp, "error", "Hoc sinh khong duoc tao phieu muon theo form quan tri.");
             return;
         }
 
-        Staff staff = getLoggedStaff(req);
+        Staff staff = RoleUtils.getLoggedStaff(req);
         if (staff == null) {
             resp.sendRedirect(req.getContextPath() + "/LoginURL");
             return;
@@ -185,12 +180,12 @@ public class BorrowController extends HttpServlet {
     }
 
     private void borrowAsStudent(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (!isStudentOnly(req)) {
+        if (!RoleUtils.isStudentOnly(req)) {
             redirectWithMessage(req, resp, "error", "Chi tai khoan hoc sinh moi duoc muon sach nhanh.");
             return;
         }
 
-        Staff staff = getLoggedStaff(req);
+        Staff staff = RoleUtils.getLoggedStaff(req);
         if (staff == null) {
             resp.sendRedirect(req.getContextPath() + "/LoginURL");
             return;
@@ -222,15 +217,20 @@ public class BorrowController extends HttpServlet {
     }
 
     private void buyBookAsStudent(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (!isStudentOnly(req)) {
-            redirectWithMessage(req, resp, "error", "Chỉ tài khoản học sinh mới được mua sách.");
+        if (!RoleUtils.isStudentOnly(req)) {
+            redirectWithMessage(req, resp, "error", "Chi tai khoan hoc sinh moi duoc mua sach.");
             return;
         }
 
-        Staff staff = getLoggedStaff(req);
+        Staff staff = RoleUtils.getLoggedStaff(req);
+        if (staff == null) {
+            resp.sendRedirect(req.getContextPath() + "/LoginURL");
+            return;
+        }
+
         Integer studentId = resolveStudentIdForStaff(staff);
         if (studentId == null) {
-            redirectWithMessage(req, resp, "error", "Không xác định được mã sinh viên.");
+            redirectWithMessage(req, resp, "error", "Khong xac dinh duoc ma sinh vien.");
             return;
         }
 
@@ -238,39 +238,37 @@ public class BorrowController extends HttpServlet {
         try {
             bookId = parsePositiveInt(req.getParameter("bookID"), "Book");
         } catch (Exception e) {
-            redirectWithMessage(req, resp, "error", "BookID không hợp lệ.");
+            redirectWithMessage(req, resp, "error", "BookID khong hop le.");
             return;
         }
 
         Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+
         try {
             con.setAutoCommit(false);
-            // Kiểm tra số lượng
+
             int available = getBookAvailable(con, bookId);
             if (available <= 0) {
                 con.rollback();
-                redirectWithMessage(req, resp, "error", "Sách đã hết hàng.");
+                redirectWithMessage(req, resp, "error", "Sach da het hang.");
                 return;
             }
 
-            // Giảm số lượng sách (Quantity và Available đều giảm khi mua)
-            String updateBook = "UPDATE Book SET Quantity = Quantity - 1, Available = Available - 1 WHERE BookID = ? AND Available > 0";
-            try (PreparedStatement ps = con.prepareStatement(updateBook)) {
-                ps.setInt(1, bookId);
-                ps.executeUpdate();
+            double unitPrice = getBookSellingPrice(con, bookId);
+            if (unitPrice <= 0) {
+                con.rollback();
+                redirectWithMessage(req, resp, "error", "Sach chua co gia ban hop le.");
+                return;
             }
 
-            // Tạo Order (StaffID mặc định là staff đã login hoặc admin)
-            String insertOrder = "INSERT INTO Orders(StudentID, StaffID, OrderDate, TotalAmount, Status) VALUES(?,?,GETDATE(),0,?)";
-            try (PreparedStatement ps = con.prepareStatement(insertOrder)) {
-                ps.setInt(1, studentId);
-                ps.setInt(2, staff.getStaffID());
-                ps.setString(3, "Pending");
-                ps.executeUpdate();
-            }
+            int orderId = insertOrder(con, studentId, staff.getStaffID(), unitPrice);
+            insertOrderDetail(con, new OrderDetail(orderId, bookId, 1, unitPrice));
 
             con.commit();
-            redirectWithMessage(req, resp, "msg", "Đã gửi yêu cầu mua sách. Vui lòng chờ Staff xác nhận.");
+            redirectWithMessage(req, resp, "msg", "Da gui yeu cau mua sach. Vui long cho Staff/Admin xac nhan.");
         } catch (SQLException e) {
             con.rollback();
             throw e;
@@ -281,12 +279,12 @@ public class BorrowController extends HttpServlet {
     }
 
     private void requestReturnAsStudent(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (!isStudentOnly(req)) {
+        if (!RoleUtils.isStudentOnly(req)) {
             redirectWithMessage(req, resp, "error", "Chi tai khoan hoc sinh moi duoc gui yeu cau tra.");
             return;
         }
 
-        Staff staff = getLoggedStaff(req);
+        Staff staff = RoleUtils.getLoggedStaff(req);
         if (staff == null) {
             resp.sendRedirect(req.getContextPath() + "/LoginURL");
             return;
@@ -311,7 +309,7 @@ public class BorrowController extends HttpServlet {
             return;
         }
 
-        redirectWithMessage(req, resp, "msg", "Da gui yeu cau tra sach. Vui long cho admin xac nhan.");
+        redirectWithMessage(req, resp, "msg", "Da gui yeu cau tra sach. Vui long cho staff/admin xac nhan.");
     }
 
     private void createBorrowTransaction(int studentId, int staffId, int bookId, int quantity, LocalDate borrowDate, LocalDate dueDate)
@@ -345,8 +343,8 @@ public class BorrowController extends HttpServlet {
     }
 
     private void returnBorrow(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (isStudentOnly(req)) {
-            redirectWithMessage(req, resp, "error", "Học sinh không được xác nhận trả. Vui lòng chờ Staff hoặc Admin.");
+        if (RoleUtils.isStudentOnly(req)) {
+            redirectWithMessage(req, resp, "error", "Hoc sinh khong duoc xac nhan tra sach.");
             return;
         }
 
@@ -354,7 +352,7 @@ public class BorrowController extends HttpServlet {
         try {
             borrowId = parsePositiveInt(req.getParameter("borrowID"), "BorrowID");
         } catch (Exception e) {
-            redirectWithMessage(req, resp, "error", "BorrowID không hợp lệ.");
+            redirectWithMessage(req, resp, "error", "BorrowID khong hop le.");
             return;
         }
 
@@ -402,49 +400,6 @@ public class BorrowController extends HttpServlet {
         }
     }
 
-    private Staff getLoggedStaff(HttpServletRequest req) {
-        HttpSession session = req.getSession(false);
-        if (session == null) {
-            return null;
-        }
-        Object obj = session.getAttribute("staff");
-        if (obj instanceof Staff) {
-            return (Staff) obj;
-        }
-        return null;
-    }
-
-    private boolean hasRole(HttpServletRequest req, int roleId) {
-        HttpSession session = req.getSession(false);
-        if (session == null) {
-            return false;
-        }
-        Object rawRoles = session.getAttribute("roles");
-        if (!(rawRoles instanceof List<?>)) {
-            return false;
-        }
-
-        for (Object rawRole : (List<?>) rawRoles) {
-            if (rawRole instanceof Number && ((Number) rawRole).intValue() == roleId) {
-                return true;
-            }
-            if (rawRole instanceof String) {
-                try {
-                    if (Integer.parseInt((String) rawRole) == roleId) {
-                        return true;
-                    }
-                } catch (NumberFormatException ignored) {
-                    // Ignore malformed role value.
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean isStudentOnly(HttpServletRequest req) {
-        return (hasRole(req, ROLE_STUDENT) || hasRole(req, ROLE_STUDENT_ALT)) && !hasRole(req, ROLE_ADMIN) && !hasRole(req, ROLE_STAFF) && !hasRole(req, ROLE_STAFF_ALT);
-    }
-
     private Integer resolveStudentIdForStaff(Staff staff) throws SQLException {
         if (staff == null) {
             return null;
@@ -467,14 +422,14 @@ public class BorrowController extends HttpServlet {
         if (value == null || value.isEmpty()) {
             return null;
         }
-        int i = value.length() - 1;
-        while (i >= 0 && Character.isDigit(value.charAt(i))) {
-            i--;
+        int index = value.length() - 1;
+        while (index >= 0 && Character.isDigit(value.charAt(index))) {
+            index--;
         }
-        if (i == value.length() - 1) {
+        if (index == value.length() - 1) {
             return null;
         }
-        String digits = value.substring(i + 1);
+        String digits = value.substring(index + 1);
         try {
             return Integer.parseInt(digits);
         } catch (NumberFormatException e) {
@@ -482,7 +437,8 @@ public class BorrowController extends HttpServlet {
         }
     }
 
-    private void forwardCreateError(HttpServletRequest req, HttpServletResponse resp, String error) throws SQLException, ServletException, IOException {
+    private void forwardCreateError(HttpServletRequest req, HttpServletResponse resp, String error)
+            throws SQLException, ServletException, IOException {
         req.setAttribute("error", error);
         req.setAttribute("selectedStudentId", req.getParameter("studentID"));
         req.setAttribute("selectedBookId", req.getParameter("bookID"));
@@ -516,6 +472,24 @@ public class BorrowController extends HttpServlet {
             }
         }
         throw new SQLException("Khong tim thay sach id=" + bookId);
+    }
+
+    private double getBookSellingPrice(Connection con, int bookId) throws SQLException {
+        String sql = "SELECT TOP 1 p.Amount "
+                + "FROM BookPrice bp "
+                + "JOIN Price p ON p.PriceID = bp.PriceID "
+                + "WHERE bp.BookID = ? AND bp.StartDate <= CAST(GETDATE() AS DATE) "
+                + "AND (bp.EndDate IS NULL OR bp.EndDate >= CAST(GETDATE() AS DATE)) "
+                + "ORDER BY bp.StartDate DESC, bp.PriceID DESC";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, bookId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("Amount");
+                }
+            }
+        }
+        return 0;
     }
 
     private boolean isBorrowOwnedByStudentAndNotReturned(int borrowId, int studentId) throws SQLException {
@@ -557,6 +531,26 @@ public class BorrowController extends HttpServlet {
         throw new SQLException("Khong lay duoc BorrowID moi.");
     }
 
+    private int insertOrder(Connection con, int studentId, int staffId, double totalAmount) throws SQLException {
+        String sql = "INSERT INTO Orders(StudentID, StaffID, OrderDate, TotalAmount, Status) VALUES(?,?,GETDATE(),?,?)";
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, studentId);
+            ps.setInt(2, staffId);
+            ps.setDouble(3, totalAmount);
+            ps.setString(4, "Pending");
+            int affected = ps.executeUpdate();
+            if (affected == 0) {
+                throw new SQLException("Khong the tao don hang.");
+            }
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+        }
+        throw new SQLException("Khong lay duoc OrderID moi.");
+    }
+
     private void insertBorrowItem(Connection con, int borrowId, int bookId, int quantity) throws SQLException {
         String sql = "INSERT INTO BorrowItem(BorrowID, BookID, Quantity) VALUES(?,?,?)";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
@@ -566,6 +560,20 @@ public class BorrowController extends HttpServlet {
             int affected = ps.executeUpdate();
             if (affected == 0) {
                 throw new SQLException("Khong the tao chi tiet muon.");
+            }
+        }
+    }
+
+    private void insertOrderDetail(Connection con, OrderDetail orderDetail) throws SQLException {
+        String sql = "INSERT INTO OrderDetail(OrderID, BookID, Quantity, UnitPrice) VALUES(?,?,?,?)";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, orderDetail.getOrderID());
+            ps.setInt(2, orderDetail.getBookID());
+            ps.setInt(3, orderDetail.getQuantity());
+            ps.setDouble(4, orderDetail.getUnitPrice());
+            int affected = ps.executeUpdate();
+            if (affected == 0) {
+                throw new SQLException("Khong the tao chi tiet don hang.");
             }
         }
     }
@@ -706,7 +714,8 @@ public class BorrowController extends HttpServlet {
         private final String returnDate;
         private final String items;
 
-        public BorrowRow(int borrowID, String studentName, String staffName, String borrowDate, String dueDate, String status, String returnDate, String items) {
+        public BorrowRow(int borrowID, String studentName, String staffName, String borrowDate, String dueDate,
+                String status, String returnDate, String items) {
             this.borrowID = borrowID;
             this.studentName = studentName;
             this.staffName = staffName;

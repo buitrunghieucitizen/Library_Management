@@ -4,6 +4,7 @@ import Model.DAOStaff;
 import Model.DAOStaffRole;
 import Entities.Staff;
 import Entities.StaffRole;
+import Utils.RoleUtils;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -20,10 +21,6 @@ import java.util.Locale;
 
 @WebServlet(name = "Login", urlPatterns = {"/LoginURL"})
 public class Login extends HttpServlet {
-
-    private static final int ROLE_ADMIN = 1;
-    private static final int ROLE_STAFF = 2;
-    private static final int ROLE_STUDENT = 8;
 
     private final DAOStaff daoStaff = new DAOStaff();
     private final DAOStaffRole daoStaffRole = new DAOStaffRole();
@@ -63,9 +60,9 @@ public class Login extends HttpServlet {
                 ensureDefaultRoleIfMissing(staff, roleIds);
                 session.setAttribute("roles", roleIds);
 
-                boolean isAdmin = roleIds.contains(ROLE_ADMIN);
-                boolean isStaff = roleIds.contains(ROLE_STAFF) || roleIds.contains(4);
-                boolean isStudent = roleIds.contains(ROLE_STUDENT) || roleIds.contains(9);
+                boolean isAdmin = roleIds.contains(RoleUtils.ROLE_ADMIN);
+                boolean isStaff = roleIds.contains(RoleUtils.ROLE_STAFF) || roleIds.contains(RoleUtils.ROLE_STAFF_ALT);
+                boolean isStudent = roleIds.contains(RoleUtils.ROLE_STUDENT) || roleIds.contains(RoleUtils.ROLE_STUDENT_ALT);
 
                 // Chi tai khoan Student-only moi vao thang man hinh muon/tra.
                 if (isStudent && !isAdmin && !isStaff) {
@@ -104,15 +101,15 @@ public class Login extends HttpServlet {
         String staffName = normalize(staff.getStaffName());
 
         if ("admin".equals(username) || username.startsWith("admin") || staffName.contains("admin")) {
-            return ROLE_ADMIN;
+            return RoleUtils.ROLE_ADMIN;
         }
 
         if (username.startsWith("student") || staffName.contains("student")) {
-            return ROLE_STUDENT;
+            return RoleUtils.ROLE_STUDENT;
         }
 
         if (username.startsWith("staff") || username.startsWith("librarian") || staffName.contains("staff")) {
-            return ROLE_STAFF;
+            return RoleUtils.ROLE_STAFF;
         }
 
         return null;

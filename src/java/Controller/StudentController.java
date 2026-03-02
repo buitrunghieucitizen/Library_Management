@@ -2,6 +2,7 @@ package Controller;
 
 import Model.DAOStudent;
 import Entities.Student;
+import Utils.RoleUtils;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -60,10 +61,7 @@ public class StudentController extends HttpServlet {
     }
 
     private boolean isAdmin(HttpServletRequest req) {
-        jakarta.servlet.http.HttpSession session = req.getSession(false);
-        if (session == null) return false;
-        List<Integer> roles = (List<Integer>) session.getAttribute("roles");
-        return roles != null && roles.contains(1);
+        return RoleUtils.isAdmin(req);
     }
 
     @Override

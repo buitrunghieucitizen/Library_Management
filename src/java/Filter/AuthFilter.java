@@ -1,5 +1,6 @@
 package Filter;
 
+import Utils.RoleUtils;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -14,7 +15,8 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-@WebFilter(urlPatterns = { "/books", "/students", "/authors", "/categories", "/publishers", "/borrows", "/index.jsp", "/" })
+@WebFilter(urlPatterns = { "/books", "/students", "/authors", "/categories", "/publishers", "/borrows", "/orders",
+        "/bookfiles", "/staffs", "/index.jsp", "/" })
 public class AuthFilter implements Filter {
 
     @Override
@@ -48,9 +50,9 @@ public class AuthFilter implements Filter {
         List<Integer> roles = (List<Integer>) session.getAttribute("roles");
         if (roles == null) roles = new java.util.ArrayList<>();
 
-        boolean isAdmin = roles.contains(1);
-        boolean isStaff = roles.contains(2) || roles.contains(4);
-        boolean isStudent = roles.contains(8) || roles.contains(9);
+        boolean isAdmin = roles.contains(RoleUtils.ROLE_ADMIN);
+        boolean isStaff = roles.contains(RoleUtils.ROLE_STAFF) || roles.contains(RoleUtils.ROLE_STAFF_ALT);
+        boolean isStudent = roles.contains(RoleUtils.ROLE_STUDENT) || roles.contains(RoleUtils.ROLE_STUDENT_ALT);
 
         String servletPath = req.getServletPath();
 
@@ -62,9 +64,10 @@ public class AuthFilter implements Filter {
 
         // Phân quyền cho Staff
         if (isStaff) {
-            if (servletPath.equals("/books") || servletPath.equals("/students") || 
-                servletPath.equals("/borrows") || servletPath.equals("/index.jsp") || 
-                servletPath.equals("/") || servletPath.equals("/logout")) {
+            if (servletPath.equals("/books") || servletPath.equals("/students")
+                    || servletPath.equals("/borrows") || servletPath.equals("/orders")
+                    || servletPath.equals("/bookfiles") || servletPath.equals("/index.jsp")
+                    || servletPath.equals("/") || servletPath.equals("/logout")) {
                 chain.doFilter(request, response);
             } else {
                 res.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");

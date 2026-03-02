@@ -1,16 +1,16 @@
-﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Man hinh admin - Muon tra sach</title>
+    <title>Quan ly Muon Tra</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; }
-        .navbar { background: linear-gradient(135deg, #1e3c72, #2a5298); padding: 15px 30px; display: flex; align-items: center; gap: 28px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .navbar { background: linear-gradient(135deg, #1e3c72, #2a5298); padding: 15px 30px; display: flex; align-items: center; gap: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         .navbar h1 { color: #fff; font-size: 22px; }
-        .navbar a { color: #dce6f5; text-decoration: none; font-size: 15px; padding: 8px 14px; border-radius: 6px; transition: all 0.2s; }
+        .navbar a { color: #dce6f5; text-decoration: none; font-size: 15px; padding: 8px 14px; border-radius: 6px; }
         .navbar a:hover { background: rgba(255,255,255,0.15); color: #fff; }
         .nav-right { margin-left: auto; display: flex; align-items: center; gap: 16px; color: #dce6f5; font-size: 14px; }
         .container { max-width: 1240px; margin: 30px auto; padding: 0 20px; }
@@ -18,9 +18,7 @@
         h2 { color: #1e3c72; margin-bottom: 15px; }
         .btn { display: inline-block; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: #2a5298; color: #fff; }
-        .btn-primary:hover { background: #1e3c72; }
         .btn-success { background: #16a34a; color: #fff; }
-        .btn-success:hover { background: #15803d; }
         .msg { background: #d4edda; color: #155724; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; }
         .error { background: #f8d7da; color: #721c24; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; }
         table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; }
@@ -34,15 +32,29 @@
     </style>
 </head>
 <body>
+    <c:set var="isAdmin" value="false" />
+    <c:if test="${not empty sessionScope.roles}">
+        <c:forEach var="roleId" items="${sessionScope.roles}">
+            <c:if test="${roleId == 1}">
+                <c:set var="isAdmin" value="true" />
+            </c:if>
+        </c:forEach>
+    </c:if>
+
     <div class="navbar">
         <h1>Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
         <a href="${pageContext.request.contextPath}/books">Books</a>
         <a href="${pageContext.request.contextPath}/students">Students</a>
         <a href="${pageContext.request.contextPath}/borrows?action=list">Borrow</a>
-        <a href="${pageContext.request.contextPath}/authors">Authors</a>
-        <a href="${pageContext.request.contextPath}/categories">Categories</a>
-        <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
+        <a href="${pageContext.request.contextPath}/orders">Orders</a>
+        <a href="${pageContext.request.contextPath}/bookfiles">BookFiles</a>
+        <c:if test="${isAdmin}">
+            <a href="${pageContext.request.contextPath}/authors">Authors</a>
+            <a href="${pageContext.request.contextPath}/categories">Categories</a>
+            <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
+            <a href="${pageContext.request.contextPath}/staffs?action=list">Staffs</a>
+        </c:if>
         <div class="nav-right">
             <span>${sessionScope.staff.staffName}</span>
             <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
@@ -51,7 +63,7 @@
 
     <div class="container">
         <div class="panel">
-            <h2>Man hinh admin - Tat ca phieu muon/tra</h2>
+            <h2>Quan ly muon tra sach</h2>
 
             <a class="btn btn-primary" href="${pageContext.request.contextPath}/borrows?action=create" style="margin-bottom:12px;">Tao phieu muon</a>
 
