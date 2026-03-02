@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebFilter(urlPatterns = { "/books", "/students", "/authors", "/categories", "/publishers", "/borrows", "/index.jsp", "/" })
 public class AuthFilter implements Filter {
@@ -38,13 +39,52 @@ public class AuthFilter implements Filter {
         // Kiểm tra xem đã có 'staff' trong session chưa
         boolean loggedIn = session != null && session.getAttribute("staff") != null;
 
-        if (loggedIn) {
-            // Đã đăng nhập -> Cho phép đi tiếp
-            chain.doFilter(request, response);
-        } else {
-            // Chưa đăng nhập -> Chuyển về trang đăng nhập
+        if (!loggedIn) {
             res.sendRedirect(req.getContextPath() + "/LoginURL");
+            return;
         }
+
+        // Kiểm tra phân quyền theo URL
+        List<Integer> roles = (List<Integer>) session.getAttribute("roles");
+        if (roles == null) roles = new java.util.ArrayList<>();
+
+        boolean isAdmin = roles.contains(1);
+        boolean isStaff = roles.contains(2) || roles.contains(4);
+        boolean isStudent = roles.contains(8);
+
+        String servletPath = req.getServletPath();
+
+        // Admin có quyền truy cập tất cả
+        if (isAdmin) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // Phân quyền cho Staff
+        if (isStaff) {
+            if (servletPath.equals("/books") || servletPath.equals("/students") || 
+                servletPath.equals("/borrows") || servletPath.equals("/index.jsp") || 
+                servletPath.equals("/") || servletPath.equals("/logout")) {
+                chain.doFilter(request, response);
+            } else {
+                res.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");
+            }
+            return;
+        }
+
+        // Phân quyền cho Student
+        if (isStudent) {
+            if (servletPath.equals("/borrows") || servletPath.equals("/index.jsp") || 
+                servletPath.equals("/") || servletPath.equals("/logout")) {
+                chain.doFilter(request, response);
+            } else {
+                res.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");
+            }
+            return;
+        }
+
+        // Mặc định cho phép nếu không khớp role nào (có thể là trang công khai hoặc lỗi cấu hình)
+        chain.doFilter(request, response);
     }
 
     @Override

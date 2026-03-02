@@ -71,9 +71,17 @@
     </style>
 </head>
 <body>
+    <c:set var="isAdmin" value="false" />
+    <c:set var="isStaff" value="false" />
     <c:set var="isStudent" value="false" />
     <c:if test="${not empty sessionScope.roles}">
         <c:forEach var="roleId" items="${sessionScope.roles}">
+            <c:if test="${roleId == 1}">
+                <c:set var="isAdmin" value="true" />
+            </c:if>
+            <c:if test="${roleId == 2 || roleId == 4}">
+                <c:set var="isStaff" value="true" />
+            </c:if>
             <c:if test="${roleId == 8}">
                 <c:set var="isStudent" value="true" />
             </c:if>
@@ -84,73 +92,96 @@
       <h1>Library Manager</h1>
       <div class="nav-links">
           <c:choose>
-              <c:when test="${isStudent}">
-                  <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va Tra</a>
-              </c:when>
-              <c:otherwise>
+              <c:when test="${isAdmin}">
                   <a href="${pageContext.request.contextPath}/books">Books</a>
                   <a href="${pageContext.request.contextPath}/students">Students</a>
                   <a href="${pageContext.request.contextPath}/borrows?action=list">Borrow</a>
                   <a href="${pageContext.request.contextPath}/authors">Authors</a>
                   <a href="${pageContext.request.contextPath}/categories">Categories</a>
                   <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
-              </c:otherwise>
+              </c:when>
+              <c:when test="${isStaff}">
+                  <a href="${pageContext.request.contextPath}/borrows?action=list">Xác nhận trả & Đơn hàng</a>
+                  <a href="${pageContext.request.contextPath}/books">Books</a>
+                  <a href="${pageContext.request.contextPath}/students">Students</a>
+              </c:when>
+              <c:when test="${isStudent}">
+                  <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn & Mua sách</a>
+              </c:when>
           </c:choose>
       </div>
       <div class="nav-right">
-          <span class="nav-user">Xin chao, ${sessionScope.staff.staffName}</span>
-          <a class="btn-logout" href="${pageContext.request.contextPath}/logout">Dang xuat</a>
+          <span class="nav-user">Xin chào, ${sessionScope.staff.staffName} (${isAdmin ? 'Admin' : (isStaff ? 'Staff' : 'Student')})</span>
+          <a class="btn-logout" href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
       </div>
     </div>
 
     <div class="container">
       <div class="card">
         <c:choose>
-            <c:when test="${isStudent}">
-                <h2>Man hinh hoc sinh</h2>
-                <p>Ban co the xem danh sach sach con san, muon sach va gui yeu cau tra sach tai module Muon va Tra.</p>
+            <c:when test="${isAdmin}">
+                <h2>Màn hình Admin</h2>
+                <p>Quản trị viên có toàn quyền quản lý hệ thống: sách, sinh viên, tác giả, thể loại, nhà xuất bản và các giao dịch mượn/trả.</p>
             </c:when>
-            <c:otherwise>
-                <h2>Man hinh admin</h2>
-                <p>Admin co the xem toan bo du lieu va xac nhan tra sach tren module Borrow.</p>
-            </c:otherwise>
+            <c:when test="${isStaff}">
+                <h2>Màn hình Staff</h2>
+                <p>Nhân viên có quyền xác nhận trả sách và quản lý các đơn hàng mua sách.</p>
+            </c:when>
+            <c:when test="${isStudent}">
+                <h2>Màn hình Học sinh</h2>
+                <p>Bạn có thể xem danh sách sách còn sẵn, mượn sách và gửi yêu cầu trả sách hoặc mua sách.</p>
+            </c:when>
         </c:choose>
       </div>
 
       <div class="grid">
         <c:choose>
-            <c:when test="${isStudent}">
-                <a class="grid-item" href="${pageContext.request.contextPath}/borrows?action=list">
-                  <h3>Muon va Tra</h3>
-                  <span>Xem sach co san, muon sach va gui yeu cau tra</span>
-                </a>
-            </c:when>
-            <c:otherwise>
+            <c:when test="${isAdmin}">
                 <a class="grid-item" href="${pageContext.request.contextPath}/books">
                   <h3>Books</h3>
-                  <span>Quan ly danh sach sach</span>
+                  <span>Quản lý danh sách sách</span>
                 </a>
                 <a class="grid-item" href="${pageContext.request.contextPath}/students">
                   <h3>Students</h3>
-                  <span>Quan ly sinh vien</span>
+                  <span>Quản lý sinh viên</span>
                 </a>
                 <a class="grid-item" href="${pageContext.request.contextPath}/borrows?action=list">
                   <h3>Borrow</h3>
-                  <span>Xem tat ca va xac nhan tra sach</span>
+                  <span>Xác nhận trả sách & quản lý</span>
                 </a>
                 <a class="grid-item" href="${pageContext.request.contextPath}/authors">
                   <h3>Authors</h3>
-                  <span>Quan ly tac gia</span>
+                  <span>Quản lý tác gia</span>
                 </a>
                 <a class="grid-item" href="${pageContext.request.contextPath}/categories">
                   <h3>Categories</h3>
-                  <span>Quan ly the loai</span>
+                  <span>Quản lý thể loại</span>
                 </a>
                 <a class="grid-item" href="${pageContext.request.contextPath}/publishers">
                   <h3>Publishers</h3>
-                  <span>Quan ly nha xuat ban</span>
+                  <span>Quản lý nhà xuất bản</span>
                 </a>
-            </c:otherwise>
+            </c:when>
+            <c:when test="${isStaff}">
+                <a class="grid-item" href="${pageContext.request.contextPath}/borrows?action=list">
+                  <h3>Xác nhận trả</h3>
+                  <span>Xác nhận các yêu cầu trả sách từ học sinh</span>
+                </a>
+                <a class="grid-item" href="${pageContext.request.contextPath}/books">
+                  <h3>Books</h3>
+                  <span>Xem danh sách sách</span>
+                </a>
+                <a class="grid-item" href="${pageContext.request.contextPath}/students">
+                  <h3>Students</h3>
+                  <span>Xem danh sách sinh viên</span>
+                </a>
+            </c:when>
+            <c:when test="${isStudent}">
+                <a class="grid-item" href="${pageContext.request.contextPath}/borrows?action=list">
+                  <h3>Mượn & Mua</h3>
+                  <span>Xem sách, mượn hoặc mua sách</span>
+                </a>
+            </c:when>
         </c:choose>
       </div>
     </div>

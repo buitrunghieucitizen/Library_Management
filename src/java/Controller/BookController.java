@@ -35,23 +35,26 @@ public class BookController extends HttpServlet {
         try {
             switch (action) {
                 case "create":
-                    req.getRequestDispatcher("/WEB-INF/views/book/create.jsp").forward(req, resp);
+                case "edit":
+                case "delete":
+                    if (!isAdmin(req)) {
+                        resp.sendRedirect(req.getContextPath() + "/books?action=list&error=Permission Denied");
+                        return;
+                    }
+                    // proceed to original logic
+                    if ("create".equals(action)) {
+                        req.getRequestDispatcher("/WEB-INF/views/book/create.jsp").forward(req, resp);
+                    } else if ("edit".equals(action)) {
+                        int id = Integer.parseInt(req.getParameter("id"));
+                        Book b = dao.getById(id);
+                        req.setAttribute("book", b);
+                        req.getRequestDispatcher("/WEB-INF/views/book/edit.jsp").forward(req, resp);
+                    } else if ("delete".equals(action)) {
+                        int id = Integer.parseInt(req.getParameter("id"));
+                        dao.delete(id);
+                        resp.sendRedirect(req.getContextPath() + "/books?action=list");
+                    }
                     break;
-
-                case "edit": {
-                    int id = Integer.parseInt(req.getParameter("id"));
-                    Book b = dao.getById(id);
-                    req.setAttribute("book", b);
-                    req.getRequestDispatcher("/WEB-INF/views/book/edit.jsp").forward(req, resp);
-                    break;
-                }
-
-                case "delete": {
-                    int id = Integer.parseInt(req.getParameter("id"));
-                    dao.delete(id);
-                    resp.sendRedirect(req.getContextPath() + "/books?action=list");
-                    break;
-                }
 
                 case "list":
                 default: {
@@ -66,10 +69,22 @@ public class BookController extends HttpServlet {
         }
     }
 
+    private boolean isAdmin(HttpServletRequest req) {
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null) return false;
+        List<Integer> roles = (List<Integer>) session.getAttribute("roles");
+        return roles != null && roles.contains(1);
+    }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String action = req.getParameter("action");
         if (action == null) action = "create";
+
+        if (!isAdmin(req)) {
+            resp.sendRedirect(req.getContextPath() + "/books?action=list&error=Permission Denied");
+            return;
+        }
 
         try {
             if ("create".equals(action)) {

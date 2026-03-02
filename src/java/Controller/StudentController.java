@@ -27,21 +27,25 @@ public class StudentController extends HttpServlet {
         try {
             switch (action) {
                 case "create":
-                    req.getRequestDispatcher("/WEB-INF/views/student/create.jsp").forward(req, resp);
+                case "edit":
+                case "delete":
+                    if (!isAdmin(req)) {
+                        resp.sendRedirect(req.getContextPath() + "/students?action=list&error=Permission Denied");
+                        return;
+                    }
+                    if ("create".equals(action)) {
+                        req.getRequestDispatcher("/WEB-INF/views/student/create.jsp").forward(req, resp);
+                    } else if ("edit".equals(action)) {
+                        int id = Integer.parseInt(req.getParameter("id"));
+                        Student s = dao.getById(id);
+                        req.setAttribute("student", s);
+                        req.getRequestDispatcher("/WEB-INF/views/student/edit.jsp").forward(req, resp);
+                    } else if ("delete".equals(action)) {
+                        int id = Integer.parseInt(req.getParameter("id"));
+                        dao.delete(id);
+                        resp.sendRedirect(req.getContextPath() + "/students?action=list");
+                    }
                     break;
-                case "edit": {
-                    int id = Integer.parseInt(req.getParameter("id"));
-                    Student s = dao.getById(id);
-                    req.setAttribute("student", s);
-                    req.getRequestDispatcher("/WEB-INF/views/student/edit.jsp").forward(req, resp);
-                    break;
-                }
-                case "delete": {
-                    int id = Integer.parseInt(req.getParameter("id"));
-                    dao.delete(id);
-                    resp.sendRedirect(req.getContextPath() + "/students?action=list");
-                    break;
-                }
                 case "list":
                 default: {
                     List<Student> list = dao.getAll();
@@ -55,12 +59,24 @@ public class StudentController extends HttpServlet {
         }
     }
 
+    private boolean isAdmin(HttpServletRequest req) {
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null) return false;
+        List<Integer> roles = (List<Integer>) session.getAttribute("roles");
+        return roles != null && roles.contains(1);
+    }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         String action = req.getParameter("action");
         if (action == null)
             action = "create";
+
+        if (!isAdmin(req)) {
+            resp.sendRedirect(req.getContextPath() + "/students?action=list&error=Permission Denied");
+            return;
+        }
 
         try {
             if ("create".equals(action)) {
