@@ -136,7 +136,7 @@ public class DAOBorrow {
 
     // Check có đang mượn/overdue chưa trả không
     public boolean hasActiveBorrow(int staffId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Borrow WHERE StaffID = ? AND Status IN ('Borrowing', 'Overdue')";
+        String sql = "SELECT COUNT(*) FROM Borrow WHERE StudentID = ? AND Status IN ('Borrowing', 'Overdue')";
         Connection con = DBConnection.getConnection();
         if (con == null) throw new SQLException("Cannot connect to database!");
         try (PreparedStatement ps = con.prepareStatement(sql)) {
@@ -153,7 +153,7 @@ public class DAOBorrow {
     // Check có pending request không (nếu sau này thêm bảng BorrowRequest)
 // Hiện tại dùng Status = 'Pending' trong Borrow
     public boolean hasPendingBorrow(int staffId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Borrow WHERE StaffID = ? AND Status = 'Pending'";
+        String sql = "SELECT COUNT(*) FROM Borrow WHERE StudentID = ? AND Status = 'Pending'";
         Connection con = DBConnection.getConnection();
         if (con == null) throw new SQLException("Cannot connect to database!");
         try (PreparedStatement ps = con.prepareStatement(sql)) {
