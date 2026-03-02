@@ -38,23 +38,23 @@
     <div class="navbar">
         <h1>Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/books">Books</a>
-        <a href="${pageContext.request.contextPath}/students">Students</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Borrow</a>
-        <a href="${pageContext.request.contextPath}/orders">Orders</a>
-        <a href="${pageContext.request.contextPath}/bookfiles">BookFiles</a>
+        <a href="${pageContext.request.contextPath}/admin/books">Books</a>
+        <a href="${pageContext.request.contextPath}/admin/students">Students</a>
+        <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Borrow</a>
+        <a href="${pageContext.request.contextPath}/admin/orders">Orders</a>
+        <a href="${pageContext.request.contextPath}/admin/bookfiles">BookFiles</a>
         <c:if test="${isAdmin}">
-            <a href="${pageContext.request.contextPath}/authors">Authors</a>
-            <a href="${pageContext.request.contextPath}/categories">Categories</a>
-            <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
-            <a href="${pageContext.request.contextPath}/staffs?action=list">Staffs</a>
+            <a href="${pageContext.request.contextPath}/admin/authors">Authors</a>
+            <a href="${pageContext.request.contextPath}/admin/categories">Categories</a>
+            <a href="${pageContext.request.contextPath}/admin/publishers">Publishers</a>
+            <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Staffs</a>
         </c:if>
     </div>
 
     <div class="container">
         <h2>Danh sach Sinh vien</h2>
         <c:if test="${isAdmin}">
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/students?action=create" style="margin-bottom:15px;display:inline-block;">+ Them sinh vien</a>
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/students?action=create" style="margin-bottom:15px;display:inline-block;">+ Them sinh vien</a>
         </c:if>
         <table>
             <thead><tr><th>ID</th><th>Ten</th><th>Email</th><th>SDT</th><th>Hanh dong</th></tr></thead>
@@ -67,8 +67,8 @@
                         <td>${s.phone}</td>
                         <td class="actions">
                             <c:if test="${isAdmin}">
-                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/students?action=edit&id=${s.studentID}">Sua</a>
-                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/students?action=delete&id=${s.studentID}" onclick="return confirm('Xoa?')">Xoa</a>
+                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/students?action=edit&id=${s.studentID}">Sua</a>
+                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/students?action=delete&id=${s.studentID}" onclick="return confirm('Xoa?')">Xoa</a>
                             </c:if>
                             <c:if test="${not isAdmin}">
                                 <span style="color:#64748b;">Chi xem</span>

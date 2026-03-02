@@ -23,7 +23,7 @@
     <div class="container">
         <div class="card">
             <h2>Them bookfile</h2>
-            <form method="post" action="${pageContext.request.contextPath}/bookfiles?action=create">
+            <form method="post" action="${pageContext.request.contextPath}/admin/bookfiles?action=create">
                 <label>Sach</label>
                 <select name="bookID" required>
                     <c:forEach var="book" items="${books}">
@@ -45,7 +45,7 @@
 
                 <div class="actions">
                     <button class="btn btn-primary" type="submit">Luu</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/bookfiles">Huy</a>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/bookfiles">Huy</a>
                 </div>
             </form>
         </div>

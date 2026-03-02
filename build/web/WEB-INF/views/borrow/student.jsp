@@ -37,6 +37,7 @@
     <div class="navbar">
         <h1>Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/books">Books</a>
         <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn & Mua sách</a>
         <div class="nav-right">
             <span>Xin chào, ${sessionScope.staff.staffName} (Học sinh)</span>

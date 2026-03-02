@@ -27,15 +27,15 @@
 <body>
     <div class="navbar"><h1>📚 Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-        <a href="${pageContext.request.contextPath}/books">Books</a>
-        <a href="${pageContext.request.contextPath}/students">Students</a>
-        <a href="${pageContext.request.contextPath}/authors">Authors</a>
-        <a href="${pageContext.request.contextPath}/categories">Categories</a>
-        <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
+        <a href="${pageContext.request.contextPath}/admin/books">Books</a>
+        <a href="${pageContext.request.contextPath}/admin/students">Students</a>
+        <a href="${pageContext.request.contextPath}/admin/authors">Authors</a>
+        <a href="${pageContext.request.contextPath}/admin/categories">Categories</a>
+        <a href="${pageContext.request.contextPath}/admin/publishers">Publishers</a>
     </div>
     <div class="container">
         <h2>📂 Danh sách Thể loại</h2>
-        <a class="btn btn-primary" href="${pageContext.request.contextPath}/categories?action=create" style="margin-bottom:15px;display:inline-block;">+ Thêm thể loại</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/categories?action=create" style="margin-bottom:15px;display:inline-block;">+ Thêm thể loại</a>
         <table>
             <thead><tr><th>ID</th><th>Tên thể loại</th><th>Hành động</th></tr></thead>
             <tbody>
@@ -43,8 +43,8 @@
                     <tr>
                         <td>${c.categoryID}</td><td>${c.categoryName}</td>
                         <td class="actions">
-                            <a class="btn btn-warning" href="${pageContext.request.contextPath}/categories?action=edit&id=${c.categoryID}">Sửa</a>
-                            <a class="btn btn-danger" href="${pageContext.request.contextPath}/categories?action=delete&id=${c.categoryID}" onclick="return confirm('Xóa?')">Xóa</a>
+                            <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/categories?action=edit&id=${c.categoryID}">Sửa</a>
+                            <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/categories?action=delete&id=${c.categoryID}" onclick="return confirm('Xóa?')">Xóa</a>
                         </td>
                     </tr>
                 </c:forEach>

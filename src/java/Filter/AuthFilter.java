@@ -15,8 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-@WebFilter(urlPatterns = { "/books", "/students", "/authors", "/categories", "/publishers", "/borrows", "/orders",
-        "/bookfiles", "/staffs", "/index.jsp", "/" })
+@WebFilter(urlPatterns = { "/books", "/borrows", "/admin/*", "/index.jsp", "/", "/logout" })
 public class AuthFilter implements Filter {
 
     @Override
@@ -64,9 +63,10 @@ public class AuthFilter implements Filter {
 
         // Phân quyền cho Staff
         if (isStaff) {
-            if (servletPath.equals("/books") || servletPath.equals("/students")
-                    || servletPath.equals("/borrows") || servletPath.equals("/orders")
-                    || servletPath.equals("/bookfiles") || servletPath.equals("/index.jsp")
+            if (servletPath.equals("/books") || servletPath.equals("/borrows")
+                    || servletPath.equals("/admin/books") || servletPath.equals("/admin/students")
+                    || servletPath.equals("/admin/borrows") || servletPath.equals("/admin/orders")
+                    || servletPath.equals("/admin/bookfiles") || servletPath.equals("/index.jsp")
                     || servletPath.equals("/") || servletPath.equals("/logout")) {
                 chain.doFilter(request, response);
             } else {
@@ -77,8 +77,8 @@ public class AuthFilter implements Filter {
 
         // Phân quyền cho Student
         if (isStudent) {
-            if (servletPath.equals("/borrows") || servletPath.equals("/index.jsp") || 
-                servletPath.equals("/") || servletPath.equals("/logout")) {
+            if (servletPath.equals("/books") || servletPath.equals("/borrows") || servletPath.equals("/index.jsp")
+                || servletPath.equals("/") || servletPath.equals("/logout")) {
                 chain.doFilter(request, response);
             } else {
                 res.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");

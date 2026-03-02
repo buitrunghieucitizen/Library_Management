@@ -21,14 +21,14 @@
     </style>
 </head>
 <body>
-    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/publishers">Publishers</a></div>
+    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/admin/publishers">Publishers</a></div>
     <div class="container"><div class="card">
         <h2>✏️ Sửa Nhà xuất bản</h2>
-        <form method="POST" action="${pageContext.request.contextPath}/publishers?action=edit">
+        <form method="POST" action="${pageContext.request.contextPath}/admin/publishers?action=edit">
             <input type="hidden" name="publisherID" value="${publisher.publisherID}">
             <label>Tên NXB</label><input type="text" name="publisherName" value="${publisher.publisherName}" required>
             <button class="btn btn-primary" type="submit">Cập nhật</button>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/publishers">Hủy</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/publishers">Hủy</a>
         </form>
     </div></div>
 </body>

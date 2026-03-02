@@ -14,13 +14,20 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet(name = "StudentController", urlPatterns = { "/students" })
+@WebServlet(name = "StudentController", urlPatterns = { "/admin/students" })
 public class StudentController extends HttpServlet {
+
+    private static final String STUDENTS_PATH = "/admin/students";
 
     private final DAOStudent dao = new DAOStudent();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (!canView(req)) {
+            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");
+            return;
+        }
+
         String action = req.getParameter("action");
         if (action == null)
             action = "list";
@@ -31,7 +38,7 @@ public class StudentController extends HttpServlet {
                 case "edit":
                 case "delete":
                     if (!isAdmin(req)) {
-                        resp.sendRedirect(req.getContextPath() + "/students?action=list&error=Permission Denied");
+                        resp.sendRedirect(req.getContextPath() + STUDENTS_PATH + "?action=list&error=Permission Denied");
                         return;
                     }
                     if ("create".equals(action)) {
@@ -44,7 +51,7 @@ public class StudentController extends HttpServlet {
                     } else if ("delete".equals(action)) {
                         int id = Integer.parseInt(req.getParameter("id"));
                         dao.delete(id);
-                        resp.sendRedirect(req.getContextPath() + "/students?action=list");
+                        resp.sendRedirect(req.getContextPath() + STUDENTS_PATH + "?action=list");
                     }
                     break;
                 case "list":
@@ -64,6 +71,10 @@ public class StudentController extends HttpServlet {
         return RoleUtils.isAdmin(req);
     }
 
+    private boolean canView(HttpServletRequest req) {
+        return RoleUtils.isAdmin(req) || RoleUtils.isStaff(req);
+    }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
@@ -72,7 +83,7 @@ public class StudentController extends HttpServlet {
             action = "create";
 
         if (!isAdmin(req)) {
-            resp.sendRedirect(req.getContextPath() + "/students?action=list&error=Permission Denied");
+            resp.sendRedirect(req.getContextPath() + STUDENTS_PATH + "?action=list&error=Permission Denied");
             return;
         }
 
@@ -81,7 +92,7 @@ public class StudentController extends HttpServlet {
                 Student s = new Student(req.getParameter("studentName"), req.getParameter("email"),
                         req.getParameter("phone"));
                 dao.insert(s);
-                resp.sendRedirect(req.getContextPath() + "/students?action=list");
+                resp.sendRedirect(req.getContextPath() + STUDENTS_PATH + "?action=list");
                 return;
             }
             if ("edit".equals(action)) {
@@ -89,10 +100,10 @@ public class StudentController extends HttpServlet {
                         req.getParameter("phone"));
                 s.setStudentID(Integer.parseInt(req.getParameter("studentID")));
                 dao.update(s);
-                resp.sendRedirect(req.getContextPath() + "/students?action=list");
+                resp.sendRedirect(req.getContextPath() + STUDENTS_PATH + "?action=list");
                 return;
             }
-            resp.sendRedirect(req.getContextPath() + "/students?action=list");
+            resp.sendRedirect(req.getContextPath() + STUDENTS_PATH + "?action=list");
         } catch (SQLException e) {
             throw new ServletException(e);
         }

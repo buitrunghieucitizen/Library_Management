@@ -33,10 +33,10 @@
     <div class="navbar">
         <h1>Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Muon tra</a>
-        <a href="${pageContext.request.contextPath}/orders">Orders</a>
-        <a href="${pageContext.request.contextPath}/bookfiles">BookFiles</a>
-        <a href="${pageContext.request.contextPath}/staffs?action=list">Staffs</a>
+        <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Muon tra</a>
+        <a href="${pageContext.request.contextPath}/admin/orders">Orders</a>
+        <a href="${pageContext.request.contextPath}/admin/bookfiles">BookFiles</a>
+        <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Staffs</a>
         <div class="nav-right">
             <span>${sessionScope.staff.staffName}</span>
             <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
@@ -46,7 +46,7 @@
     <div class="container">
         <div class="panel">
             <h2>Quan ly staff</h2>
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/staffs?action=create">Them staff</a>
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/staffs?action=create">Them staff</a>
 
             <c:if test="${not empty param.msg}">
                 <div class="msg">${param.msg}</div>
@@ -76,8 +76,8 @@
                             <td>${row.roleNames}</td>
                             <td>
                                 <div class="actions">
-                                    <a class="btn btn-warning" href="${pageContext.request.contextPath}/staffs?action=edit&id=${row.staff.staffID}">Sua</a>
-                                    <a class="btn btn-danger" href="${pageContext.request.contextPath}/staffs?action=delete&id=${row.staff.staffID}" onclick="return confirm('Xoa staff nay?')">Xoa</a>
+                                    <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/staffs?action=edit&id=${row.staff.staffID}">Sua</a>
+                                    <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/staffs?action=delete&id=${row.staff.staffID}" onclick="return confirm('Xoa staff nay?')">Xoa</a>
                                 </div>
                             </td>
                         </tr>

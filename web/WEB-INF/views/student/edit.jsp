@@ -22,16 +22,16 @@
     </style>
 </head>
 <body>
-    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/students">Students</a></div>
+    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/admin/students">Students</a></div>
     <div class="container"><div class="card">
         <h2>✏️ Sửa Sinh viên</h2>
-        <form method="POST" action="${pageContext.request.contextPath}/students?action=edit">
+        <form method="POST" action="${pageContext.request.contextPath}/admin/students?action=edit">
             <input type="hidden" name="studentID" value="${student.studentID}">
             <label>Tên sinh viên</label><input type="text" name="studentName" value="${student.studentName}" required>
             <label>Email</label><input type="text" name="email" value="${student.email}">
             <label>Số điện thoại</label><input type="text" name="phone" value="${student.phone}">
             <button class="btn btn-primary" type="submit">Cập nhật</button>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/students">Hủy</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/students">Hủy</a>
         </form>
     </div></div>
 </body>

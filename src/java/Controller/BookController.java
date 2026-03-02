@@ -21,13 +21,26 @@ import java.util.List;
  *
  * @author Administrator
  */
-@WebServlet(name = "BookController", urlPatterns = {"/books"})
+@WebServlet(name = "BookController", urlPatterns = {"/books", "/admin/books"})
 public class BookController extends HttpServlet {
+
+    private static final String PUBLIC_BOOKS_PATH = "/books";
+    private static final String ADMIN_BOOKS_PATH = "/admin/books";
 
     private final DAOBook dao = new DAOBook();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (shouldRedirectToAdminRoute(req)) {
+            resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH + "?action=list");
+            return;
+        }
+
+        if (isAdminSection(req) && !canAccessAdminSection(req)) {
+            resp.sendRedirect(req.getContextPath() + PUBLIC_BOOKS_PATH + "?action=list&error=Access Denied");
+            return;
+        }
+
         String action = req.getParameter("action");
         if (action == null) action = "list";
 
@@ -36,11 +49,10 @@ public class BookController extends HttpServlet {
                 case "create":
                 case "edit":
                 case "delete":
-                    if (!isAdmin(req)) {
-                        resp.sendRedirect(req.getContextPath() + "/books?action=list&error=Permission Denied");
+                    if (!isAdminSection(req) || !isAdmin(req)) {
+                        resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list&error=Permission Denied");
                         return;
                     }
-                    // proceed to original logic
                     if ("create".equals(action)) {
                         req.getRequestDispatcher("/WEB-INF/views/book/create.jsp").forward(req, resp);
                     } else if ("edit".equals(action)) {
@@ -51,7 +63,7 @@ public class BookController extends HttpServlet {
                     } else if ("delete".equals(action)) {
                         int id = Integer.parseInt(req.getParameter("id"));
                         dao.delete(id);
-                        resp.sendRedirect(req.getContextPath() + "/books?action=list");
+                        resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH + "?action=list");
                     }
                     break;
 
@@ -59,6 +71,7 @@ public class BookController extends HttpServlet {
                 default: {
                     List<Book> list = dao.getAll();
                     req.setAttribute("books", list);
+                    req.setAttribute("adminSection", isAdminSection(req));
                     req.getRequestDispatcher("/WEB-INF/views/book/list.jsp").forward(req, resp);
                     break;
                 }
@@ -77,8 +90,8 @@ public class BookController extends HttpServlet {
         String action = req.getParameter("action");
         if (action == null) action = "create";
 
-        if (!isAdmin(req)) {
-            resp.sendRedirect(req.getContextPath() + "/books?action=list&error=Permission Denied");
+        if (!isAdminSection(req) || !isAdmin(req)) {
+            resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list&error=Permission Denied");
             return;
         }
 
@@ -86,21 +99,37 @@ public class BookController extends HttpServlet {
             if ("create".equals(action)) {
                 Book b = readBookFromRequest(req, false);
                 dao.insert(b);
-                resp.sendRedirect(req.getContextPath() + "/books?action=list");
+                resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH + "?action=list");
                 return;
             }
 
             if ("edit".equals(action)) {
                 Book b = readBookFromRequest(req, true);
                 dao.update(b);
-                resp.sendRedirect(req.getContextPath() + "/books?action=list");
+                resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH + "?action=list");
                 return;
             }
 
-            resp.sendRedirect(req.getContextPath() + "/books?action=list");
+            resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH + "?action=list");
         } catch (SQLException e) {
             throw new ServletException(e);
         }
+    }
+
+    private boolean shouldRedirectToAdminRoute(HttpServletRequest req) {
+        return PUBLIC_BOOKS_PATH.equals(req.getServletPath()) && !RoleUtils.isStudentOnly(req);
+    }
+
+    private boolean canAccessAdminSection(HttpServletRequest req) {
+        return RoleUtils.isAdmin(req) || RoleUtils.isStaff(req);
+    }
+
+    private boolean isAdminSection(HttpServletRequest req) {
+        return ADMIN_BOOKS_PATH.equals(req.getServletPath());
+    }
+
+    private String getListPath(HttpServletRequest req) {
+        return isAdminSection(req) ? ADMIN_BOOKS_PATH : PUBLIC_BOOKS_PATH;
     }
 
     private Book readBookFromRequest(HttpServletRequest req, boolean hasId) {

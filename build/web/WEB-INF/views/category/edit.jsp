@@ -21,14 +21,14 @@
     </style>
 </head>
 <body>
-    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/categories">Categories</a></div>
+    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/admin/categories">Categories</a></div>
     <div class="container"><div class="card">
         <h2>✏️ Sửa Thể loại</h2>
-        <form method="POST" action="${pageContext.request.contextPath}/categories?action=edit">
+        <form method="POST" action="${pageContext.request.contextPath}/admin/categories?action=edit">
             <input type="hidden" name="categoryID" value="${category.categoryID}">
             <label>Tên thể loại</label><input type="text" name="categoryName" value="${category.categoryName}" required>
             <button class="btn btn-primary" type="submit">Cập nhật</button>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/categories">Hủy</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/categories">Hủy</a>
         </form>
     </div></div>
 </body>

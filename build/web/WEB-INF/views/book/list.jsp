@@ -28,10 +28,19 @@
 </head>
 <body>
     <c:set var="isAdmin" value="false" />
+    <c:set var="isStaff" value="false" />
+    <c:set var="isStudent" value="false" />
+    <c:set var="isAdminSection" value="${requestScope.adminSection}" />
     <c:if test="${not empty sessionScope.roles}">
         <c:forEach var="roleId" items="${sessionScope.roles}">
             <c:if test="${roleId == 1}">
                 <c:set var="isAdmin" value="true" />
+            </c:if>
+            <c:if test="${roleId == 2 || roleId == 4}">
+                <c:set var="isStaff" value="true" />
+            </c:if>
+            <c:if test="${roleId == 8 || roleId == 9}">
+                <c:set var="isStudent" value="true" />
             </c:if>
         </c:forEach>
     </c:if>
@@ -39,23 +48,31 @@
     <div class="navbar">
         <h1>Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/books">Books</a>
-        <a href="${pageContext.request.contextPath}/students">Students</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Borrow</a>
-        <a href="${pageContext.request.contextPath}/orders">Orders</a>
-        <a href="${pageContext.request.contextPath}/bookfiles">BookFiles</a>
-        <c:if test="${isAdmin}">
-            <a href="${pageContext.request.contextPath}/authors">Authors</a>
-            <a href="${pageContext.request.contextPath}/categories">Categories</a>
-            <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
-            <a href="${pageContext.request.contextPath}/staffs?action=list">Staffs</a>
-        </c:if>
+        <c:choose>
+            <c:when test="${isAdminSection}">
+                <a href="${pageContext.request.contextPath}/admin/books">Books</a>
+                <a href="${pageContext.request.contextPath}/admin/students">Students</a>
+                <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Borrow</a>
+                <a href="${pageContext.request.contextPath}/admin/orders">Orders</a>
+                <a href="${pageContext.request.contextPath}/admin/bookfiles">BookFiles</a>
+                <c:if test="${isAdmin}">
+                    <a href="${pageContext.request.contextPath}/admin/authors">Authors</a>
+                    <a href="${pageContext.request.contextPath}/admin/categories">Categories</a>
+                    <a href="${pageContext.request.contextPath}/admin/publishers">Publishers</a>
+                    <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Staffs</a>
+                </c:if>
+            </c:when>
+            <c:otherwise>
+                <a href="${pageContext.request.contextPath}/books">Books</a>
+                <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va mua sach</a>
+            </c:otherwise>
+        </c:choose>
     </div>
 
     <div class="container">
         <h2>Danh sach Sach</h2>
-        <c:if test="${isAdmin}">
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/books?action=create" style="margin-bottom:15px;display:inline-block;">+ Them sach moi</a>
+        <c:if test="${isAdminSection && isAdmin}">
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/books?action=create" style="margin-bottom:15px;display:inline-block;">+ Them sach moi</a>
         </c:if>
 
         <c:if test="${not empty msg}">
@@ -84,11 +101,11 @@
                         <td>${b.categoryID}</td>
                         <td>${b.publisherID}</td>
                         <td class="actions">
-                            <c:if test="${isAdmin}">
-                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/books?action=edit&id=${b.bookID}">Sua</a>
-                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/books?action=delete&id=${b.bookID}" onclick="return confirm('Ban co chac muon xoa?')">Xoa</a>
+                            <c:if test="${isAdminSection && isAdmin}">
+                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/books?action=edit&id=${b.bookID}">Sua</a>
+                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/books?action=delete&id=${b.bookID}" onclick="return confirm('Ban co chac muon xoa?')">Xoa</a>
                             </c:if>
-                            <c:if test="${not isAdmin}">
+                            <c:if test="${not isAdminSection || not isAdmin}">
                                 <span style="color:#64748b;">Chi xem</span>
                             </c:if>
                         </td>

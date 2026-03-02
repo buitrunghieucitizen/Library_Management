@@ -33,11 +33,11 @@
     <div class="navbar">
         <h1>Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Muon tra</a>
-        <a href="${pageContext.request.contextPath}/orders">Orders</a>
-        <a href="${pageContext.request.contextPath}/bookfiles">BookFiles</a>
+        <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Muon tra</a>
+        <a href="${pageContext.request.contextPath}/admin/orders">Orders</a>
+        <a href="${pageContext.request.contextPath}/admin/bookfiles">BookFiles</a>
         <c:if test="${isAdmin}">
-            <a href="${pageContext.request.contextPath}/staffs?action=list">Staffs</a>
+            <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Staffs</a>
         </c:if>
         <div class="nav-right">
             <span>${sessionScope.staff.staffName}</span>
@@ -48,7 +48,7 @@
     <div class="container">
         <div class="panel">
             <h2>Quan ly bookfile</h2>
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/bookfiles?action=create">Them bookfile</a>
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/bookfiles?action=create">Them bookfile</a>
 
             <c:if test="${not empty param.msg}">
                 <div class="msg" style="margin-top:12px;">${param.msg}</div>
@@ -86,8 +86,8 @@
                             <td>${row.active ? 'Yes' : 'No'}</td>
                             <td>
                                 <div class="actions">
-                                    <a class="btn btn-warning" href="${pageContext.request.contextPath}/bookfiles?action=edit&id=${row.bookFileID}">Sua</a>
-                                    <a class="btn btn-danger" href="${pageContext.request.contextPath}/bookfiles?action=delete&id=${row.bookFileID}" onclick="return confirm('Xoa bookfile nay?')">Xoa</a>
+                                    <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/bookfiles?action=edit&id=${row.bookFileID}">Sua</a>
+                                    <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/bookfiles?action=delete&id=${row.bookFileID}" onclick="return confirm('Xoa bookfile nay?')">Xoa</a>
                                 </div>
                             </td>
                         </tr>

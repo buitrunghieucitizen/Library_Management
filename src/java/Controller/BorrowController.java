@@ -28,16 +28,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@WebServlet(name = "BorrowController", urlPatterns = {"/borrows"})
+@WebServlet(name = "BorrowController", urlPatterns = {"/borrows", "/admin/borrows"})
 public class BorrowController extends HttpServlet {
 
     private static final int DEFAULT_STUDENT_BORROW_DAYS = 7;
+    private static final String PUBLIC_BORROWS_PATH = "/borrows";
+    private static final String ADMIN_BORROWS_PATH = "/admin/borrows";
 
     private final DAOStudent daoStudent = new DAOStudent();
     private final DAOBook daoBook = new DAOBook();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (shouldRedirectToAdminRoute(req)) {
+            resp.sendRedirect(req.getContextPath() + ADMIN_BORROWS_PATH + "?action=list");
+            return;
+        }
+
         String action = req.getParameter("action");
         if (action == null) {
             action = "list";
@@ -61,6 +68,11 @@ public class BorrowController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
+        if (shouldRedirectToAdminRoute(req)) {
+            resp.sendRedirect(req.getContextPath() + ADMIN_BORROWS_PATH + "?action=list");
+            return;
+        }
+
         String action = req.getParameter("action");
         if (action == null) {
             action = "list";
@@ -84,7 +96,7 @@ public class BorrowController extends HttpServlet {
                     requestReturnAsStudent(req, resp);
                     break;
                 default:
-                    resp.sendRedirect(req.getContextPath() + "/borrows?action=list");
+                    resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list");
                     break;
             }
         } catch (SQLException e) {
@@ -99,7 +111,7 @@ public class BorrowController extends HttpServlet {
             return;
         }
 
-        if (RoleUtils.isStudentOnly(req)) {
+        if (!isAdminSection(req) && RoleUtils.isStudentOnly(req)) {
             Integer studentId = resolveStudentIdForStaff(staff);
             if (studentId == null) {
                 req.setAttribute("mappingError", "Khong xac dinh duoc tai khoan sinh vien cho user hien tai.");
@@ -114,12 +126,17 @@ public class BorrowController extends HttpServlet {
             return;
         }
 
+        if (!canAccessAdminSection(req)) {
+            resp.sendRedirect(req.getContextPath() + PUBLIC_BORROWS_PATH + "?action=list&error=Access Denied");
+            return;
+        }
+
         req.setAttribute("borrows", fetchBorrowRows());
         req.getRequestDispatcher("/WEB-INF/views/borrow/list.jsp").forward(req, resp);
     }
 
     private void showCreate(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        if (RoleUtils.isStudentOnly(req)) {
+        if (!isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
             redirectWithMessage(req, resp, "error", "Hoc sinh khong duoc tao phieu muon theo form quan tri.");
             return;
         }
@@ -141,7 +158,7 @@ public class BorrowController extends HttpServlet {
     }
 
     private void createBorrow(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        if (RoleUtils.isStudentOnly(req)) {
+        if (!isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
             redirectWithMessage(req, resp, "error", "Hoc sinh khong duoc tao phieu muon theo form quan tri.");
             return;
         }
@@ -343,7 +360,7 @@ public class BorrowController extends HttpServlet {
     }
 
     private void returnBorrow(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (RoleUtils.isStudentOnly(req)) {
+        if (!isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
             redirectWithMessage(req, resp, "error", "Hoc sinh khong duoc xac nhan tra sach.");
             return;
         }
@@ -450,7 +467,23 @@ public class BorrowController extends HttpServlet {
 
     private void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp, String key, String value) throws IOException {
         String encoded = URLEncoder.encode(value, StandardCharsets.UTF_8);
-        resp.sendRedirect(req.getContextPath() + "/borrows?action=list&" + key + "=" + encoded);
+        resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list&" + key + "=" + encoded);
+    }
+
+    private boolean shouldRedirectToAdminRoute(HttpServletRequest req) {
+        return PUBLIC_BORROWS_PATH.equals(req.getServletPath()) && !RoleUtils.isStudentOnly(req);
+    }
+
+    private boolean isAdminSection(HttpServletRequest req) {
+        return ADMIN_BORROWS_PATH.equals(req.getServletPath());
+    }
+
+    private boolean canAccessAdminSection(HttpServletRequest req) {
+        return RoleUtils.isAdmin(req) || RoleUtils.isStaff(req);
+    }
+
+    private String getListPath(HttpServletRequest req) {
+        return isAdminSection(req) ? ADMIN_BORROWS_PATH : PUBLIC_BORROWS_PATH;
     }
 
     private int parsePositiveInt(String raw, String fieldName) {

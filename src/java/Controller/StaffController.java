@@ -21,8 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@WebServlet(name = "StaffController", urlPatterns = {"/staffs"})
+@WebServlet(name = "StaffController", urlPatterns = {"/admin/staffs"})
 public class StaffController extends HttpServlet {
+
+    private static final String STAFFS_PATH = "/admin/staffs";
 
     private final DAOStaff daoStaff = new DAOStaff();
     private final DAOStaffRole daoStaffRole = new DAOStaffRole();
@@ -86,7 +88,7 @@ public class StaffController extends HttpServlet {
                 return;
             }
 
-            resp.sendRedirect(req.getContextPath() + "/staffs?action=list");
+            resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list");
         } catch (SQLException e) {
             throw new ServletException(e);
         }
@@ -110,7 +112,7 @@ public class StaffController extends HttpServlet {
         int staffId = Integer.parseInt(req.getParameter("id"));
         Staff staff = daoStaff.getById(staffId);
         if (staff == null) {
-            resp.sendRedirect(req.getContextPath() + "/staffs?action=list&error=Khong tim thay tai khoan");
+            resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&error=Khong tim thay tai khoan");
             return;
         }
 
@@ -128,7 +130,7 @@ public class StaffController extends HttpServlet {
 
         daoStaff.insert(staff);
         syncRoles(staff.getStaffID(), roleIds);
-        resp.sendRedirect(req.getContextPath() + "/staffs?action=list&msg=Tao%20tai%20khoan%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&msg=Tao%20tai%20khoan%20thanh%20cong");
     }
 
     private void updateStaff(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
@@ -141,7 +143,7 @@ public class StaffController extends HttpServlet {
 
         daoStaff.update(staff);
         syncRoles(staff.getStaffID(), roleIds);
-        resp.sendRedirect(req.getContextPath() + "/staffs?action=list&msg=Cap%20nhat%20tai%20khoan%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&msg=Cap%20nhat%20tai%20khoan%20thanh%20cong");
     }
 
     private void deleteStaff(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
@@ -150,7 +152,7 @@ public class StaffController extends HttpServlet {
             daoStaffRole.delete(staffRole.getStaffID(), staffRole.getRoleID());
         }
         daoStaff.delete(staffId);
-        resp.sendRedirect(req.getContextPath() + "/staffs?action=list&msg=Xoa%20tai%20khoan%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&msg=Xoa%20tai%20khoan%20thanh%20cong");
     }
 
     private Staff readStaff(HttpServletRequest req, boolean hasId) {

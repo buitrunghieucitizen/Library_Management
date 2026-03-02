@@ -27,15 +27,15 @@
 <body>
     <div class="navbar"><h1>📚 Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-        <a href="${pageContext.request.contextPath}/books">Books</a>
-        <a href="${pageContext.request.contextPath}/students">Students</a>
-        <a href="${pageContext.request.contextPath}/authors">Authors</a>
-        <a href="${pageContext.request.contextPath}/categories">Categories</a>
-        <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
+        <a href="${pageContext.request.contextPath}/admin/books">Books</a>
+        <a href="${pageContext.request.contextPath}/admin/students">Students</a>
+        <a href="${pageContext.request.contextPath}/admin/authors">Authors</a>
+        <a href="${pageContext.request.contextPath}/admin/categories">Categories</a>
+        <a href="${pageContext.request.contextPath}/admin/publishers">Publishers</a>
     </div>
     <div class="container">
         <h2>✍️ Danh sách Tác giả</h2>
-        <a class="btn btn-primary" href="${pageContext.request.contextPath}/authors?action=create" style="margin-bottom:15px;display:inline-block;">+ Thêm tác giả</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/authors?action=create" style="margin-bottom:15px;display:inline-block;">+ Thêm tác giả</a>
         <table>
             <thead><tr><th>ID</th><th>Tên tác giả</th><th>Hành động</th></tr></thead>
             <tbody>
@@ -43,8 +43,8 @@
                     <tr>
                         <td>${a.authorID}</td><td>${a.authorName}</td>
                         <td class="actions">
-                            <a class="btn btn-warning" href="${pageContext.request.contextPath}/authors?action=edit&id=${a.authorID}">Sửa</a>
-                            <a class="btn btn-danger" href="${pageContext.request.contextPath}/authors?action=delete&id=${a.authorID}" onclick="return confirm('Xóa?')">Xóa</a>
+                            <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/authors?action=edit&id=${a.authorID}">Sửa</a>
+                            <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/authors?action=delete&id=${a.authorID}" onclick="return confirm('Xóa?')">Xóa</a>
                         </td>
                     </tr>
                 </c:forEach>

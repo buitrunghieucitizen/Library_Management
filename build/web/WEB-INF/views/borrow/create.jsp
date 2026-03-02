@@ -30,7 +30,7 @@
     <div class="navbar">
         <h1>📚 Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-        <a href="${pageContext.request.contextPath}/borrows">Borrow</a>
+        <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Borrow</a>
     </div>
 
     <div class="container">
@@ -40,7 +40,7 @@
             <div class="error">${error}</div>
         </c:if>
 
-        <form method="POST" action="${pageContext.request.contextPath}/borrows">
+        <form method="POST" action="${pageContext.request.contextPath}/admin/borrows">
             <input type="hidden" name="action" value="create">
 
             <label>Sinh vien</label>
@@ -72,7 +72,7 @@
 
             <div class="actions">
                 <button class="btn btn-primary" type="submit">Tao phieu</button>
-                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/borrows?action=list">Huy</a>
+                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/borrows?action=list">Huy</a>
             </div>
         </form>
     </div>

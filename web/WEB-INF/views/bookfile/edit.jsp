@@ -24,7 +24,7 @@
     <div class="container">
         <div class="card">
             <h2>Sua bookfile</h2>
-            <form method="post" action="${pageContext.request.contextPath}/bookfiles?action=edit">
+            <form method="post" action="${pageContext.request.contextPath}/admin/bookfiles?action=edit">
                 <input type="hidden" name="bookFileID" value="${bookFile.bookFileID}">
 
                 <label>Sach</label>
@@ -53,7 +53,7 @@
 
                 <div class="actions">
                     <button class="btn btn-primary" type="submit">Cap nhat</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/bookfiles">Huy</a>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/bookfiles">Huy</a>
                 </div>
             </form>
         </div>

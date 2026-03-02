@@ -2,6 +2,7 @@ package Controller;
 
 import Model.DAOPublisher;
 import Entities.Publisher;
+import Utils.RoleUtils;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,13 +14,20 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet(name = "PublisherController", urlPatterns = { "/publishers" })
+@WebServlet(name = "PublisherController", urlPatterns = { "/admin/publishers" })
 public class PublisherController extends HttpServlet {
+
+    private static final String PUBLISHERS_PATH = "/admin/publishers";
 
     private final DAOPublisher dao = new DAOPublisher();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (!RoleUtils.isAdmin(req)) {
+            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");
+            return;
+        }
+
         String action = req.getParameter("action");
         if (action == null)
             action = "list";
@@ -39,7 +47,7 @@ public class PublisherController extends HttpServlet {
                 case "delete": {
                     int id = Integer.parseInt(req.getParameter("id"));
                     dao.delete(id);
-                    resp.sendRedirect(req.getContextPath() + "/publishers?action=list");
+                    resp.sendRedirect(req.getContextPath() + PUBLISHERS_PATH + "?action=list");
                     break;
                 }
                 case "list":
@@ -58,6 +66,11 @@ public class PublisherController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
+        if (!RoleUtils.isAdmin(req)) {
+            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");
+            return;
+        }
+
         String action = req.getParameter("action");
         if (action == null)
             action = "create";
@@ -66,17 +79,17 @@ public class PublisherController extends HttpServlet {
             if ("create".equals(action)) {
                 Publisher p = new Publisher(req.getParameter("publisherName"));
                 dao.insert(p);
-                resp.sendRedirect(req.getContextPath() + "/publishers?action=list");
+                resp.sendRedirect(req.getContextPath() + PUBLISHERS_PATH + "?action=list");
                 return;
             }
             if ("edit".equals(action)) {
                 Publisher p = new Publisher(req.getParameter("publisherName"));
                 p.setPublisherID(Integer.parseInt(req.getParameter("publisherID")));
                 dao.update(p);
-                resp.sendRedirect(req.getContextPath() + "/publishers?action=list");
+                resp.sendRedirect(req.getContextPath() + PUBLISHERS_PATH + "?action=list");
                 return;
             }
-            resp.sendRedirect(req.getContextPath() + "/publishers?action=list");
+            resp.sendRedirect(req.getContextPath() + PUBLISHERS_PATH + "?action=list");
         } catch (SQLException e) {
             throw new ServletException(e);
         }

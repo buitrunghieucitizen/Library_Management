@@ -92,24 +92,25 @@
       <div class="nav-links">
           <c:choose>
               <c:when test="${isAdmin}">
-                  <a href="${pageContext.request.contextPath}/books">Books</a>
-                  <a href="${pageContext.request.contextPath}/students">Students</a>
-                  <a href="${pageContext.request.contextPath}/borrows?action=list">Borrow</a>
-                  <a href="${pageContext.request.contextPath}/orders">Orders</a>
-                  <a href="${pageContext.request.contextPath}/bookfiles">BookFiles</a>
-                  <a href="${pageContext.request.contextPath}/authors">Authors</a>
-                  <a href="${pageContext.request.contextPath}/categories">Categories</a>
-                  <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
-                  <a href="${pageContext.request.contextPath}/staffs?action=list">Staffs</a>
+                  <a href="${pageContext.request.contextPath}/admin/books">Books</a>
+                  <a href="${pageContext.request.contextPath}/admin/students">Students</a>
+                  <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Borrow</a>
+                  <a href="${pageContext.request.contextPath}/admin/orders">Orders</a>
+                  <a href="${pageContext.request.contextPath}/admin/bookfiles">BookFiles</a>
+                  <a href="${pageContext.request.contextPath}/admin/authors">Authors</a>
+                  <a href="${pageContext.request.contextPath}/admin/categories">Categories</a>
+                  <a href="${pageContext.request.contextPath}/admin/publishers">Publishers</a>
+                  <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Staffs</a>
               </c:when>
               <c:when test="${isStaff}">
-                  <a href="${pageContext.request.contextPath}/borrows?action=list">Borrow</a>
-                  <a href="${pageContext.request.contextPath}/orders">Orders</a>
-                  <a href="${pageContext.request.contextPath}/bookfiles">BookFiles</a>
-                  <a href="${pageContext.request.contextPath}/books">Books</a>
-                  <a href="${pageContext.request.contextPath}/students">Students</a>
+                  <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Borrow</a>
+                  <a href="${pageContext.request.contextPath}/admin/orders">Orders</a>
+                  <a href="${pageContext.request.contextPath}/admin/bookfiles">BookFiles</a>
+                  <a href="${pageContext.request.contextPath}/admin/books">Books</a>
+                  <a href="${pageContext.request.contextPath}/admin/students">Students</a>
               </c:when>
               <c:when test="${isStudent}">
+                  <a href="${pageContext.request.contextPath}/books">Books</a>
                   <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va mua sach</a>
               </c:when>
           </c:choose>
@@ -145,66 +146,70 @@
       <div class="grid">
         <c:choose>
             <c:when test="${isAdmin}">
-                <a class="grid-item" href="${pageContext.request.contextPath}/books">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/books">
                   <h3>Books</h3>
                   <span>Quan ly danh sach sach</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/students">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/students">
                   <h3>Students</h3>
                   <span>Quan ly sinh vien</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/borrows?action=list">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/borrows?action=list">
                   <h3>Borrow</h3>
                   <span>Quan ly muon tra sach</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/orders">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/orders">
                   <h3>Orders</h3>
                   <span>Quan ly don hang sach</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/bookfiles">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/bookfiles">
                   <h3>BookFiles</h3>
                   <span>Quan ly file dinh kem sach</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/authors">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/authors">
                   <h3>Authors</h3>
                   <span>Quan ly tac gia</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/categories">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/categories">
                   <h3>Categories</h3>
                   <span>Quan ly the loai</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/publishers">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/publishers">
                   <h3>Publishers</h3>
                   <span>Quan ly nha xuat ban</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/staffs?action=list">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/staffs?action=list">
                   <h3>Staffs</h3>
                   <span>Quan ly tai khoan va role</span>
                 </a>
             </c:when>
             <c:when test="${isStaff}">
-                <a class="grid-item" href="${pageContext.request.contextPath}/borrows?action=list">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/borrows?action=list">
                   <h3>Borrow</h3>
                   <span>Xac nhan muon tra sach</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/orders">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/orders">
                   <h3>Orders</h3>
                   <span>Duyet va tu choi don mua sach</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/bookfiles">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/bookfiles">
                   <h3>BookFiles</h3>
                   <span>Them, sua, xoa file sach</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/books">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/books">
                   <h3>Books</h3>
                   <span>Xem danh sach sach</span>
                 </a>
-                <a class="grid-item" href="${pageContext.request.contextPath}/students">
+                <a class="grid-item" href="${pageContext.request.contextPath}/admin/students">
                   <h3>Students</h3>
                   <span>Xem danh sach sinh vien</span>
                 </a>
             </c:when>
             <c:when test="${isStudent}">
+                <a class="grid-item" href="${pageContext.request.contextPath}/books">
+                  <h3>Books</h3>
+                  <span>Xem danh sach sach</span>
+                </a>
                 <a class="grid-item" href="${pageContext.request.contextPath}/borrows?action=list">
                   <h3>Muon va Mua</h3>
                   <span>Muon sach, tra sach va dat mua</span>

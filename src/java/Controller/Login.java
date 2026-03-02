@@ -64,9 +64,9 @@ public class Login extends HttpServlet {
                 boolean isStaff = roleIds.contains(RoleUtils.ROLE_STAFF) || roleIds.contains(RoleUtils.ROLE_STAFF_ALT);
                 boolean isStudent = roleIds.contains(RoleUtils.ROLE_STUDENT) || roleIds.contains(RoleUtils.ROLE_STUDENT_ALT);
 
-                // Chi tai khoan Student-only moi vao thang man hinh muon/tra.
+                // Student-only vao route public, staff/admin vao dashboard quan tri.
                 if (isStudent && !isAdmin && !isStaff) {
-                    response.sendRedirect(request.getContextPath() + "/borrows?action=list");
+                    response.sendRedirect(request.getContextPath() + "/books");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/index.jsp");
                 }

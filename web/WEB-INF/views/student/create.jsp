@@ -22,15 +22,15 @@
     </style>
 </head>
 <body>
-    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/students">Students</a></div>
+    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/admin/students">Students</a></div>
     <div class="container"><div class="card">
         <h2>➕ Thêm Sinh viên</h2>
-        <form method="POST" action="${pageContext.request.contextPath}/students?action=create">
+        <form method="POST" action="${pageContext.request.contextPath}/admin/students?action=create">
             <label>Tên sinh viên</label><input type="text" name="studentName" required>
             <label>Email</label><input type="text" name="email">
             <label>Số điện thoại</label><input type="text" name="phone">
             <button class="btn btn-primary" type="submit">Lưu</button>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/students">Hủy</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/students">Hủy</a>
         </form>
     </div></div>
 </body>

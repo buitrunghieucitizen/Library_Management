@@ -28,12 +28,12 @@
     <div class="navbar">
         <h1>📚 Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-        <a href="${pageContext.request.contextPath}/books">Books</a>
+        <a href="${pageContext.request.contextPath}/admin/books">Books</a>
     </div>
     <div class="container">
         <div class="card">
             <h2>✏️ Sửa sách</h2>
-            <form method="POST" action="${pageContext.request.contextPath}/books?action=edit">
+            <form method="POST" action="${pageContext.request.contextPath}/admin/books?action=edit">
                 <input type="hidden" name="bookID" value="${book.bookID}">
 
                 <label>Tên sách</label>
@@ -52,7 +52,7 @@
                 <input type="number" name="publisherID" min="1" value="${book.publisherID}" required>
 
                 <button class="btn btn-primary" type="submit">Cập nhật</button>
-                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/books">Hủy</a>
+                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/books">Hủy</a>
             </form>
         </div>
     </div>

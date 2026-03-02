@@ -32,7 +32,7 @@
                 <div class="error">${error}</div>
             </c:if>
 
-            <form method="post" action="${pageContext.request.contextPath}/staffs?action=edit">
+            <form method="post" action="${pageContext.request.contextPath}/admin/staffs?action=edit">
                 <input type="hidden" name="staffID" value="${staff.staffID}">
 
                 <label>Ten staff</label>
@@ -56,7 +56,7 @@
 
                 <div class="actions">
                     <button class="btn btn-primary" type="submit">Cap nhat</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/staffs?action=list">Huy</a>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/staffs?action=list">Huy</a>
                 </div>
             </form>
         </div>

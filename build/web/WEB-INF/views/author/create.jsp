@@ -21,13 +21,13 @@
     </style>
 </head>
 <body>
-    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/authors">Authors</a></div>
+    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/admin/authors">Authors</a></div>
     <div class="container"><div class="card">
         <h2>➕ Thêm Tác giả</h2>
-        <form method="POST" action="${pageContext.request.contextPath}/authors?action=create">
+        <form method="POST" action="${pageContext.request.contextPath}/admin/authors?action=create">
             <label>Tên tác giả</label><input type="text" name="authorName" required>
             <button class="btn btn-primary" type="submit">Lưu</button>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/authors">Hủy</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/authors">Hủy</a>
         </form>
     </div></div>
 </body>

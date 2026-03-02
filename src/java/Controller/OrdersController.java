@@ -18,8 +18,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet(name = "OrdersController", urlPatterns = {"/orders"})
+@WebServlet(name = "OrdersController", urlPatterns = {"/admin/orders"})
 public class OrdersController extends HttpServlet {
+
+    private static final String ORDERS_PATH = "/admin/orders";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -52,7 +54,7 @@ public class OrdersController extends HttpServlet {
 
         String action = req.getParameter("action");
         if (!"approve".equals(action) && !"reject".equals(action)) {
-            resp.sendRedirect(req.getContextPath() + "/orders");
+            resp.sendRedirect(req.getContextPath() + ORDERS_PATH);
             return;
         }
 
@@ -251,7 +253,7 @@ public class OrdersController extends HttpServlet {
 
     private void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp, String key, String value) throws IOException {
         String encoded = URLEncoder.encode(value, StandardCharsets.UTF_8);
-        resp.sendRedirect(req.getContextPath() + "/orders?" + key + "=" + encoded);
+        resp.sendRedirect(req.getContextPath() + ORDERS_PATH + "?" + key + "=" + encoded);
     }
 
     public static class OrderRow {

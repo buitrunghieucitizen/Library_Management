@@ -36,16 +36,16 @@
     <div class="navbar">
         <h1>Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Muon tra</a>
-        <a href="${pageContext.request.contextPath}/orders">Orders</a>
-        <a href="${pageContext.request.contextPath}/bookfiles">BookFiles</a>
+        <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Muon tra</a>
+        <a href="${pageContext.request.contextPath}/admin/orders">Orders</a>
+        <a href="${pageContext.request.contextPath}/admin/bookfiles">BookFiles</a>
         <c:if test="${isAdmin}">
-            <a href="${pageContext.request.contextPath}/books">Books</a>
-            <a href="${pageContext.request.contextPath}/students">Students</a>
-            <a href="${pageContext.request.contextPath}/authors">Authors</a>
-            <a href="${pageContext.request.contextPath}/categories">Categories</a>
-            <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
-            <a href="${pageContext.request.contextPath}/staffs?action=list">Staffs</a>
+            <a href="${pageContext.request.contextPath}/admin/books">Books</a>
+            <a href="${pageContext.request.contextPath}/admin/students">Students</a>
+            <a href="${pageContext.request.contextPath}/admin/authors">Authors</a>
+            <a href="${pageContext.request.contextPath}/admin/categories">Categories</a>
+            <a href="${pageContext.request.contextPath}/admin/publishers">Publishers</a>
+            <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Staffs</a>
         </c:if>
         <div class="nav-right">
             <span>${sessionScope.staff.staffName}</span>
@@ -94,12 +94,12 @@
                             <td>
                                 <c:if test="${order.status eq 'Pending'}">
                                     <div class="actions">
-                                        <form method="post" action="${pageContext.request.contextPath}/orders" style="margin:0;">
+                                        <form method="post" action="${pageContext.request.contextPath}/admin/orders" style="margin:0;">
                                             <input type="hidden" name="action" value="approve">
                                             <input type="hidden" name="orderID" value="${order.orderID}">
                                             <button class="btn btn-approve" type="submit">Duyet</button>
                                         </form>
-                                        <form method="post" action="${pageContext.request.contextPath}/orders" style="margin:0;">
+                                        <form method="post" action="${pageContext.request.contextPath}/admin/orders" style="margin:0;">
                                             <input type="hidden" name="action" value="reject">
                                             <input type="hidden" name="orderID" value="${order.orderID}">
                                             <button class="btn btn-reject" type="submit">Tu choi</button>

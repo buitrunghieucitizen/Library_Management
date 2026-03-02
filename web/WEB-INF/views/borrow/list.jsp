@@ -44,16 +44,16 @@
     <div class="navbar">
         <h1>Library Manager</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/books">Books</a>
-        <a href="${pageContext.request.contextPath}/students">Students</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Borrow</a>
-        <a href="${pageContext.request.contextPath}/orders">Orders</a>
-        <a href="${pageContext.request.contextPath}/bookfiles">BookFiles</a>
+        <a href="${pageContext.request.contextPath}/admin/books">Books</a>
+        <a href="${pageContext.request.contextPath}/admin/students">Students</a>
+        <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Borrow</a>
+        <a href="${pageContext.request.contextPath}/admin/orders">Orders</a>
+        <a href="${pageContext.request.contextPath}/admin/bookfiles">BookFiles</a>
         <c:if test="${isAdmin}">
-            <a href="${pageContext.request.contextPath}/authors">Authors</a>
-            <a href="${pageContext.request.contextPath}/categories">Categories</a>
-            <a href="${pageContext.request.contextPath}/publishers">Publishers</a>
-            <a href="${pageContext.request.contextPath}/staffs?action=list">Staffs</a>
+            <a href="${pageContext.request.contextPath}/admin/authors">Authors</a>
+            <a href="${pageContext.request.contextPath}/admin/categories">Categories</a>
+            <a href="${pageContext.request.contextPath}/admin/publishers">Publishers</a>
+            <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Staffs</a>
         </c:if>
         <div class="nav-right">
             <span>${sessionScope.staff.staffName}</span>
@@ -65,7 +65,7 @@
         <div class="panel">
             <h2>Quan ly muon tra sach</h2>
 
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/borrows?action=create" style="margin-bottom:12px;">Tao phieu muon</a>
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/borrows?action=create" style="margin-bottom:12px;">Tao phieu muon</a>
 
             <c:if test="${not empty param.msg}">
                 <div class="msg">${param.msg}</div>
@@ -108,7 +108,7 @@
                             <td>${b.items}</td>
                             <td>
                                 <c:if test="${b.status ne 'Returned'}">
-                                    <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;" onsubmit="return confirm('Xac nhan tra sach cho phieu nay?');">
+                                    <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" style="margin:0;" onsubmit="return confirm('Xac nhan tra sach cho phieu nay?');">
                                         <input type="hidden" name="action" value="return">
                                         <input type="hidden" name="borrowID" value="${b.borrowID}">
                                         <button class="btn btn-success" type="submit">Xac nhan tra</button>

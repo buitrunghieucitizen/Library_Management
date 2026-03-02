@@ -20,8 +20,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet(name = "BookFileController", urlPatterns = {"/bookfiles"})
+@WebServlet(name = "BookFileController", urlPatterns = {"/admin/bookfiles"})
 public class BookFileController extends HttpServlet {
+
+    private static final String BOOKFILES_PATH = "/admin/bookfiles";
 
     private final DAOBookFile daoBookFile = new DAOBookFile();
     private final DAOBook daoBook = new DAOBook();
@@ -82,7 +84,7 @@ public class BookFileController extends HttpServlet {
                 createBookFile(req, resp);
                 return;
             }
-            resp.sendRedirect(req.getContextPath() + "/bookfiles");
+            resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH);
         } catch (SQLException e) {
             throw new ServletException(e);
         }
@@ -102,7 +104,7 @@ public class BookFileController extends HttpServlet {
         int bookFileId = Integer.parseInt(req.getParameter("id"));
         BookFile bookFile = daoBookFile.getById(bookFileId);
         if (bookFile == null) {
-            resp.sendRedirect(req.getContextPath() + "/bookfiles?error=Khong%20tim%20thay%20bookfile");
+            resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?error=Khong%20tim%20thay%20bookfile");
             return;
         }
 
@@ -112,20 +114,20 @@ public class BookFileController extends HttpServlet {
 
     private void createBookFile(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
         BookFile bookFile = readBookFile(req, false);
-        daoBookFile.insert(bookFile);
-        resp.sendRedirect(req.getContextPath() + "/bookfiles?msg=Them%20bookfile%20thanh%20cong");
+       daoBookFile.insert(bookFile);
+        resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?msg=Them%20bookfile%20thanh%20cong");
     }
 
     private void updateBookFile(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
         BookFile bookFile = readBookFile(req, true);
         daoBookFile.update(bookFile);
-        resp.sendRedirect(req.getContextPath() + "/bookfiles?msg=Cap%20nhat%20bookfile%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?msg=Cap%20nhat%20bookfile%20thanh%20cong");
     }
 
     private void deleteBookFile(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
         int bookFileId = Integer.parseInt(req.getParameter("id"));
         daoBookFile.delete(bookFileId);
-        resp.sendRedirect(req.getContextPath() + "/bookfiles?msg=Xoa%20bookfile%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?msg=Xoa%20bookfile%20thanh%20cong");
     }
 
     private BookFile readBookFile(HttpServletRequest req, boolean hasId) {
