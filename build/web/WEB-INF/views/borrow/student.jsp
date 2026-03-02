@@ -1,4 +1,4 @@
-﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html>
@@ -36,17 +36,17 @@
 <body>
     <div class="navbar">
         <h1>Library Manager</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Muon tra sach</a>
+        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn & Mua sách</a>
         <div class="nav-right">
-            <span>${sessionScope.staff.staffName}</span>
-            <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
+            <span>Xin chào, ${sessionScope.staff.staffName} (Học sinh)</span>
+            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2>Man hinh hoc sinh</h2>
+            <h2>Màn hình Học sinh</h2>
             <c:if test="${not empty mappingError}">
                 <div class="error">${mappingError}</div>
             </c:if>
@@ -56,18 +56,18 @@
             <c:if test="${not empty param.error}">
                 <div class="error">${param.error}</div>
             </c:if>
-            <p>Student ID: <strong><c:out value="${studentId}" default="-"/></strong></p>
+            <p>Mã sinh viên: <strong><c:out value="${studentId}" default="-"/></strong></p>
         </div>
 
         <div class="card">
-            <h3>Danh sach sach co san</h3>
+            <h3>Danh sách sách có sẵn</h3>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Ten sach</th>
-                        <th>Con lai</th>
-                        <th>Hanh dong</th>
+                        <th>Tên sách</th>
+                        <th>Còn lại</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -77,33 +77,40 @@
                             <td>${book.bookName}</td>
                             <td>${book.available}</td>
                             <td>
-                                <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;">
-                                    <input type="hidden" name="action" value="borrow">
-                                    <input type="hidden" name="bookID" value="${book.bookID}">
-                                    <button class="btn btn-borrow" type="submit">Muon</button>
-                                </form>
+                                <div style="display:flex; gap:5px;">
+                                    <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;">
+                                        <input type="hidden" name="action" value="borrow">
+                                        <input type="hidden" name="bookID" value="${book.bookID}">
+                                        <button class="btn btn-borrow" type="submit">Mượn</button>
+                                    </form>
+                                    <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;">
+                                        <input type="hidden" name="action" value="buy">
+                                        <input type="hidden" name="bookID" value="${book.bookID}">
+                                        <button class="btn btn-return" style="background:#f59e0b;" type="submit">Mua</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty availableBooks}">
-                        <tr><td colspan="4" class="empty">Khong co sach san sang de muon.</td></tr>
+                        <tr><td colspan="4" class="empty">Không có sách sẵn sàng để mượn/mua.</td></tr>
                     </c:if>
                 </tbody>
             </table>
         </div>
 
         <div class="card">
-            <h3>Sach dang muon cua ban</h3>
+            <h3>Sách đang mượn của bạn</h3>
             <table>
                 <thead>
                     <tr>
                         <th>Borrow ID</th>
-                        <th>Ngay muon</th>
-                        <th>Han tra</th>
-                        <th>Ngay tra</th>
-                        <th>Trang thai</th>
-                        <th>Sach</th>
-                        <th>Hanh dong</th>
+                        <th>Ngày mượn</th>
+                        <th>Hạn trả</th>
+                        <th>Ngày trả</th>
+                        <th>Trạng thái</th>
+                        <th>Sách</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -127,14 +134,14 @@
                                     <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;">
                                         <input type="hidden" name="action" value="requestReturn">
                                         <input type="hidden" name="borrowID" value="${b.borrowID}">
-                                        <button class="btn btn-return" type="submit">Tra</button>
+                                        <button class="btn btn-return" type="submit">Trả sách</button>
                                     </form>
                                 </c:if>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty borrows}">
-                        <tr><td colspan="7" class="empty">Ban chua co phieu muon nao.</td></tr>
+                        <tr><td colspan="7" class="empty">Bạn chưa có phiếu mượn nào.</td></tr>
                     </c:if>
                 </tbody>
             </table>
