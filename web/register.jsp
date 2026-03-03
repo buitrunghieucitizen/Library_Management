@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Portal | Dang nhap</title>
+    <title>Library Portal | Dang ky</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -15,13 +15,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.84)),
+            background: linear-gradient(rgba(15, 23, 42, 0.68), rgba(15, 23, 42, 0.88)),
                 url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2000&auto=format&fit=crop') center/cover;
             padding: 24px;
         }
         .card-shell {
             width: 100%;
-            max-width: 620px;
+            max-width: 640px;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 28px;
             padding: 40px 34px;
@@ -79,40 +79,36 @@
         .btn-submit:hover {
             background: #1e293b;
         }
-        .error-box, .success-box {
-            border-radius: 14px;
-            padding: 12px 14px;
-            margin-bottom: 18px;
-            font-weight: 600;
-        }
         .error-box {
             background: #fff1f2;
             border: 1px solid #fecdd3;
             color: #be123c;
-        }
-        .success-box {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #15803d;
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 18px;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
     <div class="card-shell">
         <div class="text-center mb-4">
-            <div class="brand">LM</div>
-            <h1 class="h3 fw-bold mb-2">Dang nhap</h1>
-            <p class="text-muted mb-0">Dang nhap vao he thong thu vien va student portal.</p>
+            <div class="brand">+</div>
+            <h1 class="h3 fw-bold mb-2">Dang ky tai khoan</h1>
+            <p class="text-muted mb-0">Tao tai khoan student de truy cap student portal.</p>
         </div>
 
-        <% if ("1".equals(request.getParameter("registered"))) { %>
-            <div class="success-box">Dang ky thanh cong. Ban co the dang nhap ngay bay gio.</div>
-        <% } %>
         <% if (request.getAttribute("error") != null) { %>
             <div class="error-box"><%= request.getAttribute("error") %></div>
         <% } %>
 
-        <form action="<%=request.getContextPath()%>/LoginURL" method="post">
+        <form action="<%=request.getContextPath()%>/register" method="post">
+            <div class="field">
+                <label>Ho va ten</label>
+                <input type="text" name="name"
+                       value="<%= request.getAttribute("name") != null ? request.getAttribute("name") : "" %>"
+                       required>
+            </div>
             <div class="field">
                 <label>Ten dang nhap</label>
                 <input type="text" name="username"
@@ -123,12 +119,16 @@
                 <label>Mat khau</label>
                 <input type="password" name="password" required>
             </div>
-            <button class="btn-submit" type="submit">Dang nhap he thong</button>
+            <div class="field">
+                <label>Xac nhan mat khau</label>
+                <input type="password" name="confirm" required>
+            </div>
+            <button class="btn-submit" type="submit">Tao tai khoan</button>
         </form>
 
         <div class="text-center mt-4">
-            <span class="text-muted">Chua co tai khoan student?</span>
-            <a href="<%=request.getContextPath()%>/register" class="fw-bold text-decoration-none ms-1">Dang ky</a>
+            <span class="text-muted">Da co tai khoan?</span>
+            <a href="<%=request.getContextPath()%>/LoginURL" class="fw-bold text-decoration-none ms-1">Dang nhap</a>
         </div>
     </div>
 </body>

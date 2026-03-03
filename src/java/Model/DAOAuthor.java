@@ -86,4 +86,27 @@ public class DAOAuthor {
             con.close();
         }
     }
+
+    public List<String> getNamesByBookId(int bookId) throws SQLException {
+        String sql = "SELECT a.AuthorName "
+                + "FROM BookAuthor ba "
+                + "JOIN Author a ON a.AuthorID = ba.AuthorID "
+                + "WHERE ba.BookID = ? "
+                + "ORDER BY a.AuthorName";
+        List<String> names = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+        if (con == null)
+            throw new SQLException("Cannot connect to database!");
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, bookId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    names.add(rs.getString("AuthorName"));
+                }
+            }
+        } finally {
+            con.close();
+        }
+        return names;
+    }
 }

@@ -28,10 +28,16 @@ public class Login extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Nếu đã đăng nhập rồi thì chuyển về trang chủ
         HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.setMaxInactiveInterval(30 * 60);
+        }
         if (session != null && session.getAttribute("staff") != null) {
-            response.sendRedirect(request.getContextPath() + "/index.jsp");
+            if (RoleUtils.isStudentOnly(request)) {
+                response.sendRedirect(request.getContextPath() + "/home");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/index.jsp");
+            }
             return;
         }
         request.getRequestDispatcher("/login.jsp").forward(request, response);
@@ -47,11 +53,10 @@ public class Login extends HttpServlet {
         try {
             Staff staff = daoStaff.login(username, password);
             if (staff != null) {
-                // Đăng nhập thành công
                 HttpSession session = request.getSession();
+                session.setMaxInactiveInterval(30 * 60);
                 session.setAttribute("staff", staff);
 
-                // Lấy danh sách roles
                 List<StaffRole> staffRoles = daoStaffRole.getByStaffId(staff.getStaffID());
                 List<Integer> roleIds = new ArrayList<>();
                 for (StaffRole sr : staffRoles) {
@@ -64,14 +69,12 @@ public class Login extends HttpServlet {
                 boolean isStaff = roleIds.contains(RoleUtils.ROLE_STAFF) || roleIds.contains(RoleUtils.ROLE_STAFF_ALT);
                 boolean isStudent = roleIds.contains(RoleUtils.ROLE_STUDENT) || roleIds.contains(RoleUtils.ROLE_STUDENT_ALT);
 
-                // Student-only vao route public, staff/admin vao dashboard quan tri.
                 if (isStudent && !isAdmin && !isStaff) {
-                    response.sendRedirect(request.getContextPath() + "/books");
+                    response.sendRedirect(request.getContextPath() + "/home");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/index.jsp");
                 }
             } else {
-                // Đăng nhập thất bại
                 request.setAttribute("error", "Sai tên đăng nhập hoặc mật khẩu!");
                 request.setAttribute("username", username);
                 request.getRequestDispatcher("/login.jsp").forward(request, response);

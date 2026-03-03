@@ -15,6 +15,7 @@ public class Book {
     private int Available;
     private int CategoryID;
     private int PublisherID;
+    private String ImageUrl;
 
     public Book(int BookID, String BookName, int Quantity, int Available, int CategoryID, int PublisherID) {
         this.BookID = BookID;
@@ -23,6 +24,17 @@ public class Book {
         this.Available = Available;
         this.CategoryID = CategoryID;
         this.PublisherID = PublisherID;
+        this.ImageUrl = null;
+    }
+
+    public Book(int BookID, String BookName, int Quantity, int Available, int CategoryID, int PublisherID, String ImageUrl) {
+        this.BookID = BookID;
+        this.BookName = BookName;
+        this.Quantity = Quantity;
+        this.Available = Available;
+        this.CategoryID = CategoryID;
+        this.PublisherID = PublisherID;
+        this.ImageUrl = ImageUrl;
     }
 
     public Book(String BookName, int Quantity, int Available, int CategoryID, int PublisherID) {
@@ -31,6 +43,16 @@ public class Book {
         this.Available = Available;
         this.CategoryID = CategoryID;
         this.PublisherID = PublisherID;
+        this.ImageUrl = null;
+    }
+
+    public Book(String BookName, int Quantity, int Available, int CategoryID, int PublisherID, String ImageUrl) {
+        this.BookName = BookName;
+        this.Quantity = Quantity;
+        this.Available = Available;
+        this.CategoryID = CategoryID;
+        this.PublisherID = PublisherID;
+        this.ImageUrl = ImageUrl;
     }
 
     public int getBookID() {
@@ -81,9 +103,17 @@ public class Book {
         this.PublisherID = PublisherID;
     }
 
+    public String getImageUrl() {
+        return ImageUrl;
+    }
+
+    public void setImageUrl(String ImageUrl) {
+        this.ImageUrl = ImageUrl;
+    }
+
     @Override
     public String toString() {
-        return "Book{" + "BookID=" + BookID + ", BookName=" + BookName + ", Quantity=" + Quantity + ", Available=" + Available + ", CategoryID=" + CategoryID + ", PublisherID=" + PublisherID + '}';
+        return "Book{" + "BookID=" + BookID + ", BookName=" + BookName + ", Quantity=" + Quantity + ", Available=" + Available + ", CategoryID=" + CategoryID + ", PublisherID=" + PublisherID + ", ImageUrl=" + ImageUrl + '}';
     }
     
     

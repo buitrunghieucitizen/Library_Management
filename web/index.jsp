@@ -110,7 +110,7 @@
                   <a href="${pageContext.request.contextPath}/admin/students">Students</a>
               </c:when>
               <c:when test="${isStudent}">
-                  <a href="${pageContext.request.contextPath}/books">Books</a>
+                  <a href="${pageContext.request.contextPath}/home">Student Portal</a>
                   <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va mua sach</a>
               </c:when>
           </c:choose>
@@ -134,7 +134,7 @@
             </c:when>
             <c:when test="${isStudent}">
                 <h2>Man hinh Student</h2>
-                <p>Student co the muon sach, gui yeu cau tra sach va dat mua sach.</p>
+                <p>Student co the vao student portal de tim sach, sau do muon sach, gui yeu cau tra sach va dat mua sach.</p>
             </c:when>
             <c:otherwise>
                 <h2>Tai khoan chua duoc gan quyen</h2>
@@ -206,9 +206,9 @@
                 </a>
             </c:when>
             <c:when test="${isStudent}">
-                <a class="grid-item" href="${pageContext.request.contextPath}/books">
-                  <h3>Books</h3>
-                  <span>Xem danh sach sach</span>
+                <a class="grid-item" href="${pageContext.request.contextPath}/home">
+                  <h3>Student Portal</h3>
+                  <span>Tim sach va mo giao dien student moi</span>
                 </a>
                 <a class="grid-item" href="${pageContext.request.contextPath}/borrows?action=list">
                   <h3>Muon va Mua</h3>

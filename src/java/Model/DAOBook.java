@@ -126,4 +126,63 @@ public class DAOBook {
             con.close();
         }
     }
+
+    public List<Book> getFiltered(String search, String letter, Integer categoryId,
+            Integer publisherId, String authorName) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+                "SELECT DISTINCT b.BookID, b.BookName, b.Quantity, b.Available, b.CategoryID, b.PublisherID "
+                + "FROM Book b "
+                + "LEFT JOIN BookAuthor ba ON b.BookID = ba.BookID "
+                + "LEFT JOIN Author a ON ba.AuthorID = a.AuthorID "
+                + "WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append("AND b.BookName LIKE ? ");
+            params.add("%" + search.trim() + "%");
+        }
+        if (letter != null && !letter.trim().isEmpty() && !"ALL".equalsIgnoreCase(letter)) {
+            sql.append("AND b.BookName LIKE ? ");
+            params.add(letter.trim() + "%");
+        }
+        if (categoryId != null) {
+            sql.append("AND b.CategoryID = ? ");
+            params.add(categoryId);
+        }
+        if (publisherId != null) {
+            sql.append("AND b.PublisherID = ? ");
+            params.add(publisherId);
+        }
+        if (authorName != null && !authorName.trim().isEmpty()) {
+            sql.append("AND a.AuthorName LIKE ? ");
+            params.add("%" + authorName.trim() + "%");
+        }
+
+        sql.append("ORDER BY b.BookName ASC");
+
+        List<Book> list = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new Book(
+                            rs.getInt("BookID"),
+                            rs.getString("BookName"),
+                            rs.getInt("Quantity"),
+                            rs.getInt("Available"),
+                            rs.getInt("CategoryID"),
+                            rs.getInt("PublisherID")));
+                }
+            }
+        } finally {
+            con.close();
+        }
+        return list;
+    }
 }

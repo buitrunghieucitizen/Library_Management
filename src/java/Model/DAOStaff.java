@@ -94,4 +94,21 @@ public class DAOStaff {
             return ps.executeUpdate();
         } finally { con.close(); }
     }
+
+    public boolean existsByUsername(String username) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Staff WHERE Username = ?";
+        Connection con = DBConnection.getConnection();
+        if (con == null) throw new SQLException("Cannot connect to database!");
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } finally {
+            con.close();
+        }
+        return false;
+    }
 }

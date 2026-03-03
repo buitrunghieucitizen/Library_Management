@@ -101,4 +101,29 @@ public class DAOBorrow {
             con.close();
         }
     }
+
+    public List<Borrow> getActiveByStudentId(int studentId) throws SQLException {
+        String sql = "SELECT BorrowID, StudentID, StaffID, BorrowDate, DueDate, Status, ReturnDate "
+                + "FROM Borrow "
+                + "WHERE StudentID = ? AND Status IN ('Borrowing', 'Overdue') "
+                + "ORDER BY DueDate ASC, BorrowID DESC";
+        List<Borrow> list = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+        if (con == null)
+            throw new SQLException("Cannot connect to database!");
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new Borrow(
+                            rs.getInt("BorrowID"), rs.getInt("StudentID"), rs.getInt("StaffID"),
+                            rs.getString("BorrowDate"), rs.getString("DueDate"),
+                            rs.getString("Status"), rs.getString("ReturnDate")));
+                }
+            }
+        } finally {
+            con.close();
+        }
+        return list;
+    }
 }

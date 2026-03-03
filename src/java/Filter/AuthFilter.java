@@ -13,10 +13,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
-@WebFilter(urlPatterns = { "/books", "/borrows", "/admin/*", "/index.jsp", "/", "/logout" })
+@WebFilter(urlPatterns = {"/*"})
 public class AuthFilter implements Filter {
+
+    private static final List<String> PUBLIC_PATHS = Arrays.asList(
+            "/LoginURL",
+            "/login.jsp",
+            "/register",
+            "/register.jsp",
+            "/index.html"
+    );
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -28,69 +37,97 @@ public class AuthFilter implements Filter {
 
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
-        HttpSession session = req.getSession(false);
+        String contextPath = req.getContextPath();
+        String path = req.getRequestURI().substring(contextPath.length());
 
-        // Bỏ qua tài nguyên tĩnh (css, js, ảnh)
-        String path = req.getRequestURI();
-        if (path.endsWith(".css") || path.endsWith(".js") || path.endsWith(".png") || path.endsWith(".jpg")) {
+        if (isStaticResource(path)) {
             chain.doFilter(request, response);
             return;
         }
 
-        // Kiểm tra xem đã có 'staff' trong session chưa
+        if (isPublicPath(path)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        HttpSession session = req.getSession(false);
         boolean loggedIn = session != null && session.getAttribute("staff") != null;
 
         if (!loggedIn) {
-            res.sendRedirect(req.getContextPath() + "/LoginURL");
+            res.sendRedirect(contextPath + "/LoginURL");
             return;
         }
 
-        // Kiểm tra phân quyền theo URL
-        List<Integer> roles = (List<Integer>) session.getAttribute("roles");
-        if (roles == null) roles = new java.util.ArrayList<>();
+        boolean isAdmin = RoleUtils.isAdmin(req);
+        boolean isStaff = RoleUtils.isStaff(req);
+        boolean isStudentOnly = RoleUtils.isStudentOnly(req);
 
-        boolean isAdmin = roles.contains(RoleUtils.ROLE_ADMIN);
-        boolean isStaff = roles.contains(RoleUtils.ROLE_STAFF) || roles.contains(RoleUtils.ROLE_STAFF_ALT);
-        boolean isStudent = roles.contains(RoleUtils.ROLE_STUDENT) || roles.contains(RoleUtils.ROLE_STUDENT_ALT);
+        if (isStudentPortalPath(path)) {
+            if (isStudentOnly) {
+                chain.doFilter(request, response);
+            } else {
+                res.sendRedirect(contextPath + "/index.jsp");
+            }
+            return;
+        }
 
-        String servletPath = req.getServletPath();
+        if (path.startsWith("/admin")) {
+            if (isAdmin || isStaff) {
+                chain.doFilter(request, response);
+            } else if (isStudentOnly) {
+                res.sendRedirect(contextPath + "/home");
+            } else {
+                res.sendRedirect(contextPath + "/index.jsp?error=Access Denied");
+            }
+            return;
+        }
 
-        // Admin có quyền truy cập tất cả
-        if (isAdmin) {
+        if (isAdmin || isStaff) {
             chain.doFilter(request, response);
             return;
         }
 
-        // Phân quyền cho Staff
-        if (isStaff) {
-            if (servletPath.equals("/books") || servletPath.equals("/borrows")
-                    || servletPath.equals("/admin/books") || servletPath.equals("/admin/students")
-                    || servletPath.equals("/admin/borrows") || servletPath.equals("/admin/orders")
-                    || servletPath.equals("/admin/bookfiles") || servletPath.equals("/index.jsp")
-                    || servletPath.equals("/") || servletPath.equals("/logout")) {
+        if (isStudentOnly) {
+            if (path.equals("/books") || path.equals("/borrows") || path.equals("/index.jsp")
+                    || path.equals("/") || path.equals("/logout")) {
                 chain.doFilter(request, response);
             } else {
-                res.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");
+                res.sendRedirect(contextPath + "/home");
             }
             return;
         }
 
-        // Phân quyền cho Student
-        if (isStudent) {
-            if (servletPath.equals("/books") || servletPath.equals("/borrows") || servletPath.equals("/index.jsp")
-                || servletPath.equals("/") || servletPath.equals("/logout")) {
-                chain.doFilter(request, response);
-            } else {
-                res.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");
-            }
-            return;
-        }
-
-        // Mặc định cho phép nếu không khớp role nào (có thể là trang công khai hoặc lỗi cấu hình)
         chain.doFilter(request, response);
     }
 
     @Override
     public void destroy() {
+    }
+
+    private boolean isStaticResource(String path) {
+        return path.endsWith(".css")
+                || path.endsWith(".js")
+                || path.endsWith(".png")
+                || path.endsWith(".jpg")
+                || path.endsWith(".jpeg")
+                || path.endsWith(".gif")
+                || path.endsWith(".ico")
+                || path.endsWith(".svg")
+                || path.endsWith(".woff")
+                || path.endsWith(".woff2")
+                || path.startsWith("/uploads/");
+    }
+
+    private boolean isPublicPath(String path) {
+        for (String publicPath : PUBLIC_PATHS) {
+            if (path.equals(publicPath) || path.startsWith(publicPath + "/")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isStudentPortalPath(String path) {
+        return path.equals("/home") || path.startsWith("/home/");
     }
 }
