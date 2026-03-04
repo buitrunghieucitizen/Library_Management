@@ -116,10 +116,12 @@ public class BorrowController extends HttpServlet {
             if (studentId == null) {
                 req.setAttribute("mappingError", "Khong xac dinh duoc tai khoan sinh vien cho user hien tai.");
                 req.setAttribute("availableBooks", Collections.emptyList());
+                req.setAttribute("bookPrices", Collections.emptyList());
                 req.setAttribute("borrows", Collections.emptyList());
             } else {
                 req.setAttribute("studentId", studentId);
                 req.setAttribute("availableBooks", fetchBorrowableBooks());
+                req.setAttribute("bookPrices", fetchBookPriceRows());
                 req.setAttribute("borrows", fetchBorrowRowsByStudent(studentId));
             }
             req.getRequestDispatcher("/WEB-INF/views/borrow/student.jsp").forward(req, resp);
@@ -737,6 +739,43 @@ public class BorrowController extends HttpServlet {
         return availableBooks;
     }
 
+    private List<BookPriceRow> fetchBookPriceRows() throws SQLException {
+        String sql = "SELECT b.BookID, b.BookName, b.Available, p.Amount, p.Currency, p.Note "
+                + "FROM Book b "
+                + "LEFT JOIN ("
+                + "    SELECT bp.BookID, bp.PriceID, bp.StartDate, "
+                + "           ROW_NUMBER() OVER (PARTITION BY bp.BookID ORDER BY bp.StartDate DESC, bp.PriceID DESC) AS rn "
+                + "    FROM BookPrice bp "
+                + "    WHERE bp.StartDate <= CAST(GETDATE() AS DATE) "
+                + "      AND (bp.EndDate IS NULL OR bp.EndDate >= CAST(GETDATE() AS DATE))"
+                + ") currentPrice ON currentPrice.BookID = b.BookID AND currentPrice.rn = 1 "
+                + "LEFT JOIN Price p ON p.PriceID = currentPrice.PriceID "
+                + "ORDER BY b.BookID DESC";
+
+        List<BookPriceRow> rows = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                rows.add(new BookPriceRow(
+                        rs.getInt("BookID"),
+                        rs.getString("BookName"),
+                        rs.getInt("Available"),
+                        rs.getDouble("Amount"),
+                        rs.getString("Currency"),
+                        rs.getString("Note")));
+            }
+        } finally {
+            con.close();
+        }
+
+        return rows;
+    }
+
     public static class BorrowRow {
         private final int borrowID;
         private final String studentName;
@@ -789,6 +828,48 @@ public class BorrowController extends HttpServlet {
 
         public String getItems() {
             return items;
+        }
+    }
+
+    public static class BookPriceRow {
+        private final int bookID;
+        private final String bookName;
+        private final int available;
+        private final double amount;
+        private final String currency;
+        private final String note;
+
+        public BookPriceRow(int bookID, String bookName, int available, double amount, String currency, String note) {
+            this.bookID = bookID;
+            this.bookName = bookName;
+            this.available = available;
+            this.amount = amount;
+            this.currency = currency;
+            this.note = note;
+        }
+
+        public int getBookID() {
+            return bookID;
+        }
+
+        public String getBookName() {
+            return bookName;
+        }
+
+        public int getAvailable() {
+            return available;
+        }
+
+        public double getAmount() {
+            return amount;
+        }
+
+        public String getCurrency() {
+            return currency;
+        }
+
+        public String getNote() {
+            return note;
         }
     }
 }

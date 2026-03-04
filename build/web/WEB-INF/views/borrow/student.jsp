@@ -27,27 +27,30 @@
         .btn-borrow:hover { background: #1d4ed8; }
         .btn-return { background: #16a34a; color: #fff; }
         .btn-return:hover { background: #15803d; }
+        .btn-buy { background: #f59e0b; color: #fff; }
+        .btn-buy:hover { background: #d97706; }
         .status-borrowing { color: #1d4ed8; font-weight: 600; }
         .status-returned { color: #15803d; font-weight: 600; }
         .status-overdue { color: #dc2626; font-weight: 600; }
         .empty { text-align: center; color: #64748b; padding: 18px 8px; }
+        .actions { display: flex; gap: 5px; }
     </style>
 </head>
 <body>
     <div class="navbar">
         <h1>Library Manager</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
         <a href="${pageContext.request.contextPath}/books">Books</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn & Mua sách</a>
+        <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va Mua sach</a>
         <div class="nav-right">
-            <span>Xin chào, ${sessionScope.staff.staffName} (Học sinh)</span>
-            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
+            <span>Xin chao, ${sessionScope.staff.staffName} (Hoc sinh)</span>
+            <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2>Màn hình Học sinh</h2>
+            <h2>Man hinh Hoc sinh</h2>
             <c:if test="${not empty mappingError}">
                 <div class="error">${mappingError}</div>
             </c:if>
@@ -57,18 +60,54 @@
             <c:if test="${not empty param.error}">
                 <div class="error">${param.error}</div>
             </c:if>
-            <p>Mã sinh viên: <strong><c:out value="${studentId}" default="-"/></strong></p>
+            <p>Ma sinh vien: <strong><c:out value="${studentId}" default="-"/></strong></p>
         </div>
 
         <div class="card">
-            <h3>Danh sách sách có sẵn</h3>
+            <h3>Bang gia sach hien hanh</h3>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Tên sách</th>
-                        <th>Còn lại</th>
-                        <th>Hành động</th>
+                        <th>Ten sach</th>
+                        <th>Gia</th>
+                        <th>Tien te</th>
+                        <th>Ghi chu</th>
+                        <th>Con lai</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach var="price" items="${bookPrices}">
+                        <tr>
+                            <td>${price.bookID}</td>
+                            <td>${price.bookName}</td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${price.amount > 0}">${price.amount}</c:when>
+                                    <c:otherwise>Chua cap nhat</c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td><c:out value="${price.currency}" default="-"/></td>
+                            <td><c:out value="${price.note}" default="-"/></td>
+                            <td>${price.available}</td>
+                        </tr>
+                    </c:forEach>
+                    <c:if test="${empty bookPrices}">
+                        <tr><td colspan="6" class="empty">Chua co bang gia sach.</td></tr>
+                    </c:if>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>Danh sach sach co san</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ten sach</th>
+                        <th>Con lai</th>
+                        <th>Hanh dong</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -78,40 +117,40 @@
                             <td>${book.bookName}</td>
                             <td>${book.available}</td>
                             <td>
-                                <div style="display:flex; gap:5px;">
+                                <div class="actions">
                                     <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;">
                                         <input type="hidden" name="action" value="borrow">
                                         <input type="hidden" name="bookID" value="${book.bookID}">
-                                        <button class="btn btn-borrow" type="submit">Mượn</button>
+                                        <button class="btn btn-borrow" type="submit">Muon</button>
                                     </form>
                                     <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;">
                                         <input type="hidden" name="action" value="buy">
                                         <input type="hidden" name="bookID" value="${book.bookID}">
-                                        <button class="btn btn-return" style="background:#f59e0b;" type="submit">Mua</button>
+                                        <button class="btn btn-buy" type="submit">Mua</button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty availableBooks}">
-                        <tr><td colspan="4" class="empty">Không có sách sẵn sàng để mượn/mua.</td></tr>
+                        <tr><td colspan="4" class="empty">Khong co sach san sang de muon hoac mua.</td></tr>
                     </c:if>
                 </tbody>
             </table>
         </div>
 
         <div class="card">
-            <h3>Sách đang mượn của bạn</h3>
+            <h3>Sach dang muon cua ban</h3>
             <table>
                 <thead>
                     <tr>
                         <th>Borrow ID</th>
-                        <th>Ngày mượn</th>
-                        <th>Hạn trả</th>
-                        <th>Ngày trả</th>
-                        <th>Trạng thái</th>
-                        <th>Sách</th>
-                        <th>Hành động</th>
+                        <th>Ngay muon</th>
+                        <th>Han tra</th>
+                        <th>Ngay tra</th>
+                        <th>Trang thai</th>
+                        <th>Sach</th>
+                        <th>Hanh dong</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -135,14 +174,14 @@
                                     <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;">
                                         <input type="hidden" name="action" value="requestReturn">
                                         <input type="hidden" name="borrowID" value="${b.borrowID}">
-                                        <button class="btn btn-return" type="submit">Trả sách</button>
+                                        <button class="btn btn-return" type="submit">Tra sach</button>
                                     </form>
                                 </c:if>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty borrows}">
-                        <tr><td colspan="7" class="empty">Bạn chưa có phiếu mượn nào.</td></tr>
+                        <tr><td colspan="7" class="empty">Ban chua co phieu muon nao.</td></tr>
                     </c:if>
                 </tbody>
             </table>
