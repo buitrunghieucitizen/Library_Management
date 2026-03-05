@@ -1,4 +1,6 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <footer class="main-footer">
-    Student portal integrated from Huynh branch and adapted to current master.
+    Library Management System
 </footer>
+
+

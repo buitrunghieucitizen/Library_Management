@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,6 +36,8 @@ public class AuthFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
 
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
@@ -77,7 +81,8 @@ public class AuthFilter implements Filter {
             } else if (isStudentOnly) {
                 res.sendRedirect(contextPath + "/home");
             } else {
-                res.sendRedirect(contextPath + "/index.jsp?error=Access Denied");
+                String errorMessage = URLEncoder.encode("Truy cập bị từ chối", StandardCharsets.UTF_8);
+                res.sendRedirect(contextPath + "/index.jsp?error=" + errorMessage);
             }
             return;
         }

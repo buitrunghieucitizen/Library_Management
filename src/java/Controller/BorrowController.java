@@ -129,7 +129,7 @@ public class BorrowController extends HttpServlet {
         }
 
         if (!canAccessAdminSection(req)) {
-            resp.sendRedirect(req.getContextPath() + PUBLIC_BORROWS_PATH + "?action=list&error=Access Denied");
+            resp.sendRedirect(req.getContextPath() + PUBLIC_BORROWS_PATH + "?action=list&error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
             return;
         }
 
@@ -873,3 +873,4 @@ public class BorrowController extends HttpServlet {
         }
     }
 }
+

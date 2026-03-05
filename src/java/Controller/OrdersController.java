@@ -26,7 +26,7 @@ public class OrdersController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (!canManageOrders(req)) {
-            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");
+            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
             return;
         }
 
@@ -42,7 +42,7 @@ public class OrdersController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (!canManageOrders(req)) {
-            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Access Denied");
+            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
             return;
         }
 
@@ -335,3 +335,4 @@ public class OrdersController extends HttpServlet {
         }
     }
 }
+

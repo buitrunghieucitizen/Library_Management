@@ -1,29 +1,15 @@
-﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8"><title>Thêm Tác giả</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; }
-        .navbar { background: linear-gradient(135deg, #1e3c72, #2a5298); padding: 15px 30px; display: flex; align-items: center; gap: 30px; }
-        .navbar h1 { color: #fff; font-size: 22px; }
-        .navbar a { color: #dce6f5; text-decoration: none; padding: 8px 16px; border-radius: 6px; }
-        .container { max-width: 600px; margin: 30px auto; padding: 0 20px; }
-        .card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-        h2 { color: #1e3c72; margin-bottom: 20px; }
-        label { display: block; font-weight: 600; color: #333; margin: 14px 0 6px; }
-        input { width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
-        input:focus { outline: none; border-color: #2a5298; }
-        .btn { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; margin-top: 20px; text-decoration: none; display: inline-block; }
-        .btn-primary { background: #2a5298; color: #fff; }
-        .btn-secondary { background: #6c757d; color: #fff; margin-left: 8px; }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
+    
 </head>
 <body>
-    <div class="navbar"><h1>📚 Library Manager</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/admin/authors">Authors</a></div>
+    <div class="navbar"><h1>Quản lý thư viện</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/admin/authors">Tác giả</a></div>
     <div class="container"><div class="card">
-        <h2>➕ Thêm Tác giả</h2>
+        <h2>Thêm Tác giả</h2>
         <form method="POST" action="${pageContext.request.contextPath}/admin/authors?action=create">
             <label>Tên tác giả</label><input type="text" name="authorName" required>
             <button class="btn btn-primary" type="submit">Lưu</button>
@@ -32,4 +18,8 @@
     </div></div>
 </body>
 </html>
+
+
+
+
 

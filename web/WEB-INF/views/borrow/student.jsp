@@ -1,56 +1,28 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Man hinh hoc sinh - Muon tra sach</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f3f6fb; color: #1e293b; }
-        .navbar { background: linear-gradient(135deg, #0f4c81, #1f6aa5); padding: 14px 28px; display: flex; align-items: center; gap: 20px; }
-        .navbar h1 { color: #fff; font-size: 20px; margin-right: 20px; }
-        .navbar a { color: #dbeafe; text-decoration: none; font-size: 14px; padding: 8px 12px; border-radius: 6px; }
-        .navbar a:hover { background: rgba(255,255,255,0.15); color: #fff; }
-        .nav-right { margin-left: auto; color: #dbeafe; font-size: 14px; display: flex; align-items: center; gap: 12px; }
-        .container { max-width: 1100px; margin: 28px auto; padding: 0 16px; }
-        .card { background: #fff; border-radius: 12px; box-shadow: 0 3px 14px rgba(15, 76, 129, 0.12); padding: 18px; margin-bottom: 18px; }
-        h2 { color: #0f4c81; margin-bottom: 12px; font-size: 20px; }
-        h3 { color: #0f4c81; margin-bottom: 10px; font-size: 17px; }
-        .msg { background: #d1fae5; color: #065f46; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; }
-        .error { background: #fee2e2; color: #991b1b; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; }
-        table { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; }
-        th { background: #e9f2fa; color: #0f4c81; text-align: left; padding: 11px 12px; font-size: 13px; }
-        td { padding: 10px 12px; border-top: 1px solid #eef2f7; font-size: 14px; vertical-align: top; }
-        .btn { border: none; cursor: pointer; border-radius: 6px; padding: 7px 12px; font-size: 13px; font-weight: 600; }
-        .btn-borrow { background: #2563eb; color: #fff; }
-        .btn-borrow:hover { background: #1d4ed8; }
-        .btn-return { background: #16a34a; color: #fff; }
-        .btn-return:hover { background: #15803d; }
-        .btn-buy { background: #f59e0b; color: #fff; }
-        .btn-buy:hover { background: #d97706; }
-        .status-borrowing { color: #1d4ed8; font-weight: 600; }
-        .status-returned { color: #15803d; font-weight: 600; }
-        .status-overdue { color: #dc2626; font-weight: 600; }
-        .empty { text-align: center; color: #64748b; padding: 18px 8px; }
-        .actions { display: flex; gap: 5px; }
-    </style>
+    <title>Cổng sinh viên - Mượn trả sách</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
+    
 </head>
 <body>
     <div class="navbar">
-        <h1>Library Manager</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/books">Books</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va Mua sach</a>
+        <h1>Quản lý thư viện</h1>
+        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/books">Sách</a>
+        <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
         <div class="nav-right">
-            <span>Xin chao, ${sessionScope.staff.staffName} (Hoc sinh)</span>
-            <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
+            <span>Xin chào, ${sessionScope.staff.staffName} (Sinh viên)</span>
+            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2>Man hinh Hoc sinh</h2>
+            <h2>Màn hình sinh viên</h2>
             <c:if test="${not empty mappingError}">
                 <div class="error">${mappingError}</div>
             </c:if>
@@ -60,20 +32,20 @@
             <c:if test="${not empty param.error}">
                 <div class="error">${param.error}</div>
             </c:if>
-            <p>Ma sinh vien: <strong><c:out value="${studentId}" default="-"/></strong></p>
+            <p>Mã sinh viên: <strong><c:out value="${studentId}" default="-"/></strong></p>
         </div>
 
         <div class="card">
-            <h3>Bang gia sach hien hanh</h3>
+            <h3>Bảng giá sách hiện hành</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Ten sach</th>
-                        <th>Gia</th>
-                        <th>Tien te</th>
-                        <th>Ghi chu</th>
-                        <th>Con lai</th>
+                        <th>Mã</th>
+                        <th>Tên sách</th>
+                        <th>Giá</th>
+                        <th>Tiền tệ</th>
+                        <th>Ghi chú</th>
+                        <th>Còn lại</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -84,7 +56,7 @@
                             <td>
                                 <c:choose>
                                     <c:when test="${price.amount > 0}">${price.amount}</c:when>
-                                    <c:otherwise>Chua cap nhat</c:otherwise>
+                                    <c:otherwise>Chưa cập nhật</c:otherwise>
                                 </c:choose>
                             </td>
                             <td><c:out value="${price.currency}" default="-"/></td>
@@ -93,21 +65,21 @@
                         </tr>
                     </c:forEach>
                     <c:if test="${empty bookPrices}">
-                        <tr><td colspan="6" class="empty">Chua co bang gia sach.</td></tr>
+                        <tr><td colspan="6" class="empty">Chưa có bảng giá sách.</td></tr>
                     </c:if>
                 </tbody>
             </table>
         </div>
 
         <div class="card">
-            <h3>Danh sach sach co san</h3>
+            <h3>Danh sách sách có sẵn</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Ten sach</th>
-                        <th>Con lai</th>
-                        <th>Hanh dong</th>
+                        <th>Mã</th>
+                        <th>Tên sách</th>
+                        <th>Còn lại</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -118,12 +90,12 @@
                             <td>${book.available}</td>
                             <td>
                                 <div class="actions">
-                                    <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;">
+                                    <form method="POST" action="${pageContext.request.contextPath}/borrows" class="inline-form">
                                         <input type="hidden" name="action" value="borrow">
                                         <input type="hidden" name="bookID" value="${book.bookID}">
-                                        <button class="btn btn-borrow" type="submit">Muon</button>
+                                        <button class="btn btn-borrow" type="submit">Mượn</button>
                                     </form>
-                                    <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;">
+                                    <form method="POST" action="${pageContext.request.contextPath}/borrows" class="inline-form">
                                         <input type="hidden" name="action" value="buy">
                                         <input type="hidden" name="bookID" value="${book.bookID}">
                                         <button class="btn btn-buy" type="submit">Mua</button>
@@ -133,24 +105,24 @@
                         </tr>
                     </c:forEach>
                     <c:if test="${empty availableBooks}">
-                        <tr><td colspan="4" class="empty">Khong co sach san sang de muon hoac mua.</td></tr>
+                        <tr><td colspan="4" class="empty">Không có sách sẵn sàng để mượn hoặc mua.</td></tr>
                     </c:if>
                 </tbody>
             </table>
         </div>
 
         <div class="card">
-            <h3>Sach dang muon cua ban</h3>
+            <h3>Sách đang mượn của bạn</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Borrow ID</th>
-                        <th>Ngay muon</th>
-                        <th>Han tra</th>
-                        <th>Ngay tra</th>
-                        <th>Trang thai</th>
-                        <th>Sach</th>
-                        <th>Hanh dong</th>
+                        <th>Mã phiếu mượn</th>
+                        <th>Ngày mượn</th>
+                        <th>Hạn trả</th>
+                        <th>Ngày trả</th>
+                        <th>Trạng thái</th>
+                        <th>Sách</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -162,26 +134,26 @@
                             <td><c:out value="${b.returnDate}" default="-"/></td>
                             <td>
                                 <c:choose>
-                                    <c:when test="${b.status eq 'Borrowing'}"><span class="status-borrowing">${b.status}</span></c:when>
-                                    <c:when test="${b.status eq 'Returned'}"><span class="status-returned">${b.status}</span></c:when>
-                                    <c:when test="${b.status eq 'Overdue'}"><span class="status-overdue">${b.status}</span></c:when>
+                                    <c:when test="${b.status eq 'Borrowing'}"><span class="status-borrowing">Đang mượn</span></c:when>
+                                    <c:when test="${b.status eq 'Returned'}"><span class="status-returned">Đã trả</span></c:when>
+                                    <c:when test="${b.status eq 'Overdue'}"><span class="status-overdue">Quá hạn</span></c:when>
                                     <c:otherwise>${b.status}</c:otherwise>
                                 </c:choose>
                             </td>
                             <td>${b.items}</td>
                             <td>
                                 <c:if test="${b.status ne 'Returned'}">
-                                    <form method="POST" action="${pageContext.request.contextPath}/borrows" style="margin:0;">
+                                    <form method="POST" action="${pageContext.request.contextPath}/borrows" class="inline-form">
                                         <input type="hidden" name="action" value="requestReturn">
                                         <input type="hidden" name="borrowID" value="${b.borrowID}">
-                                        <button class="btn btn-return" type="submit">Tra sach</button>
+                                        <button class="btn btn-return" type="submit">Trả sách</button>
                                     </form>
                                 </c:if>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty borrows}">
-                        <tr><td colspan="7" class="empty">Ban chua co phieu muon nao.</td></tr>
+                        <tr><td colspan="7" class="empty">Bạn chưa có phiếu mượn nào.</td></tr>
                     </c:if>
                 </tbody>
             </table>
@@ -189,3 +161,5 @@
     </div>
 </body>
 </html>
+
+

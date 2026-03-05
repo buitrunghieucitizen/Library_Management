@@ -1,35 +1,37 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
     String currentPath = request.getRequestURI();
 %>
 <aside class="sidebar-left">
-    <div class="section-title">Portal</div>
+    <div class="section-title">Cổng</div>
     <div class="nav-item">
         <a href="<%=request.getContextPath()%>/home" class="<%= currentPath.contains("/home") ? "active" : "" %>">
-            Student Home
+            Trang sinh viên
         </a>
     </div>
     <div class="nav-item">
         <a href="<%=request.getContextPath()%>/books">
-            Book Catalog
+            Danh mục sách
         </a>
     </div>
     <div class="nav-item">
         <a href="<%=request.getContextPath()%>/borrows?action=list">
-            Borrow Center
+            Trung tâm mượn trả
         </a>
     </div>
 
     <div class="divider"></div>
-    <div class="section-title">Account</div>
+    <div class="section-title">Tài khoản</div>
     <div class="nav-item">
         <a href="<%=request.getContextPath()%>/index.jsp">
-            Dashboard
+            Bảng điều khiển
         </a>
     </div>
     <div class="nav-item">
         <a href="<%=request.getContextPath()%>/logout">
-            Dang xuat
+            Đăng xuất
         </a>
     </div>
 </aside>
+
+
