@@ -6,6 +6,11 @@ import Entities.OrderDetail;
 import Entities.Staff;
 import Entities.Student;
 import Model.DAOBook;
+import Model.DAOBookPrice;
+import Model.DAOBorrow;
+import Model.DAOBorrowItem;
+import Model.DAOOrderDetail;
+import Model.DAOOrders;
 import Model.DAOStudent;
 import Model.DBConnection;
 import Utils.RoleUtils;
@@ -18,11 +23,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,6 +38,11 @@ public class BorrowController extends HttpServlet {
 
     private final DAOStudent daoStudent = new DAOStudent();
     private final DAOBook daoBook = new DAOBook();
+    private final DAOBorrow daoBorrow = new DAOBorrow();
+    private final DAOBorrowItem daoBorrowItem = new DAOBorrowItem();
+    private final DAOOrders daoOrders = new DAOOrders();
+    private final DAOOrderDetail daoOrderDetail = new DAOOrderDetail();
+    private final DAOBookPrice daoBookPrice = new DAOBookPrice();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -121,8 +127,8 @@ public class BorrowController extends HttpServlet {
             } else {
                 req.setAttribute("studentId", studentId);
                 req.setAttribute("availableBooks", fetchBorrowableBooks());
-                req.setAttribute("bookPrices", fetchBookPriceRows());
-                req.setAttribute("borrows", fetchBorrowRowsByStudent(studentId));
+                req.setAttribute("bookPrices", daoBookPrice.getBookPriceRows());
+                req.setAttribute("borrows", daoBorrow.getBorrowRowsByStudent(studentId));
             }
             req.getRequestDispatcher("/WEB-INF/views/borrow/student.jsp").forward(req, resp);
             return;
@@ -133,7 +139,7 @@ public class BorrowController extends HttpServlet {
             return;
         }
 
-        req.setAttribute("borrows", fetchBorrowRows());
+        req.setAttribute("borrows", daoBorrow.getBorrowRows());
         req.getRequestDispatcher("/WEB-INF/views/borrow/list.jsp").forward(req, resp);
     }
 
@@ -269,22 +275,25 @@ public class BorrowController extends HttpServlet {
         try {
             con.setAutoCommit(false);
 
-            int available = getBookAvailable(con, bookId);
+            int available = daoBook.getAvailable(con, bookId);
             if (available <= 0) {
                 con.rollback();
                 redirectWithMessage(req, resp, "error", "Sach da het hang.");
                 return;
             }
 
-            double unitPrice = getBookSellingPrice(con, bookId);
+            double unitPrice = daoBookPrice.getCurrentSellingPrice(con, bookId);
             if (unitPrice <= 0) {
                 con.rollback();
                 redirectWithMessage(req, resp, "error", "Sach chua co gia ban hop le.");
                 return;
             }
 
-            int orderId = insertOrder(con, studentId, staff.getStaffID(), unitPrice);
-            insertOrderDetail(con, new OrderDetail(orderId, bookId, 1, unitPrice));
+            int orderId = daoOrders.insertPending(con, studentId, staff.getStaffID(), unitPrice);
+            int affected = daoOrderDetail.insert(con, new OrderDetail(orderId, bookId, 1, unitPrice));
+            if (affected == 0) {
+                throw new SQLException("Khong the tao chi tiet don hang.");
+            }
 
             con.commit();
             redirectWithMessage(req, resp, "msg", "Da gui yeu cau mua sach. Vui long cho Staff/Admin xac nhan.");
@@ -323,7 +332,7 @@ public class BorrowController extends HttpServlet {
             return;
         }
 
-        if (!isBorrowOwnedByStudentAndNotReturned(borrowId, studentId)) {
+        if (!daoBorrow.existsOwnedByStudentAndNotReturned(borrowId, studentId)) {
             redirectWithMessage(req, resp, "error", "Khong tim thay phieu muon hop le de yeu cau tra.");
             return;
         }
@@ -341,15 +350,23 @@ public class BorrowController extends HttpServlet {
         try {
             con.setAutoCommit(false);
 
-            int available = getBookAvailable(con, bookId);
+            int available = daoBook.getAvailable(con, bookId);
             if (available < quantity) {
                 con.rollback();
                 throw new SQLException("So luong sach con lai khong du. Con lai: " + available);
             }
 
-            int borrowId = insertBorrow(con, studentId, staffId, borrowDate, dueDate);
-            insertBorrowItem(con, borrowId, bookId, quantity);
-            decreaseBookAvailable(con, bookId, quantity);
+            int borrowId = daoBorrow.insert(con, studentId, staffId, borrowDate, dueDate, "Borrowing");
+
+            int borrowItemAffected = daoBorrowItem.insert(con, new BorrowItem(borrowId, bookId, quantity));
+            if (borrowItemAffected == 0) {
+                throw new SQLException("Khong the tao chi tiet muon.");
+            }
+
+            int decreaseAffected = daoBook.decreaseAvailable(con, bookId, quantity);
+            if (decreaseAffected == 0) {
+                throw new SQLException("Khong du so luong sach de muon.");
+            }
 
             con.commit();
         } catch (SQLException e) {
@@ -383,7 +400,7 @@ public class BorrowController extends HttpServlet {
         try {
             con.setAutoCommit(false);
 
-            String status = getBorrowStatusForUpdate(con, borrowId);
+            String status = daoBorrow.getStatusForUpdate(con, borrowId);
             if (status == null) {
                 con.rollback();
                 redirectWithMessage(req, resp, "error", "Khong tim thay phieu muon.");
@@ -396,7 +413,7 @@ public class BorrowController extends HttpServlet {
                 return;
             }
 
-            List<BorrowItem> items = getBorrowItems(con, borrowId);
+            List<BorrowItem> items = daoBorrowItem.getByBorrowId(con, borrowId);
             if (items.isEmpty()) {
                 con.rollback();
                 redirectWithMessage(req, resp, "error", "Phieu muon khong co sach de tra.");
@@ -404,10 +421,16 @@ public class BorrowController extends HttpServlet {
             }
 
             for (BorrowItem item : items) {
-                increaseBookAvailable(con, item.getBookID(), item.getQuantity());
+                int increased = daoBook.increaseAvailable(con, item.getBookID(), item.getQuantity());
+                if (increased == 0) {
+                    throw new SQLException("Khong tim thay sach id=" + item.getBookID());
+                }
             }
 
-            updateBorrowReturned(con, borrowId);
+            if (daoBorrow.updateReturned(con, borrowId) == 0) {
+                throw new SQLException("Cap nhat tra sach that bai.");
+            }
+
             con.commit();
             redirectWithMessage(req, resp, "msg", "Xac nhan tra sach thanh cong.");
         } catch (SQLException e) {
@@ -496,238 +519,6 @@ public class BorrowController extends HttpServlet {
         return value;
     }
 
-    private int getBookAvailable(Connection con, int bookId) throws SQLException {
-        String sql = "SELECT Available FROM Book WHERE BookID = ?";
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, bookId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("Available");
-                }
-            }
-        }
-        throw new SQLException("Khong tim thay sach id=" + bookId);
-    }
-
-    private double getBookSellingPrice(Connection con, int bookId) throws SQLException {
-        String sql = "SELECT TOP 1 p.Amount "
-                + "FROM BookPrice bp "
-                + "JOIN Price p ON p.PriceID = bp.PriceID "
-                + "WHERE bp.BookID = ? AND bp.StartDate <= CAST(GETDATE() AS DATE) "
-                + "AND (bp.EndDate IS NULL OR bp.EndDate >= CAST(GETDATE() AS DATE)) "
-                + "ORDER BY bp.StartDate DESC, bp.PriceID DESC";
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, bookId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getDouble("Amount");
-                }
-            }
-        }
-        return 0;
-    }
-
-    private boolean isBorrowOwnedByStudentAndNotReturned(int borrowId, int studentId) throws SQLException {
-        String sql = "SELECT 1 FROM Borrow WHERE BorrowID = ? AND StudentID = ? AND Status <> 'Returned'";
-        Connection con = DBConnection.getConnection();
-        if (con == null) {
-            throw new SQLException("Cannot connect to database!");
-        }
-
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, borrowId);
-            ps.setInt(2, studentId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } finally {
-            con.close();
-        }
-    }
-
-    private int insertBorrow(Connection con, int studentId, int staffId, LocalDate borrowDate, LocalDate dueDate) throws SQLException {
-        String sql = "INSERT INTO Borrow(StudentID, StaffID, BorrowDate, DueDate, Status) VALUES(?,?,?,?,?)";
-        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, studentId);
-            ps.setInt(2, staffId);
-            ps.setDate(3, Date.valueOf(borrowDate));
-            ps.setDate(4, Date.valueOf(dueDate));
-            ps.setString(5, "Borrowing");
-            int affected = ps.executeUpdate();
-            if (affected == 0) {
-                throw new SQLException("Khong the tao phieu muon.");
-            }
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new SQLException("Khong lay duoc BorrowID moi.");
-    }
-
-    private int insertOrder(Connection con, int studentId, int staffId, double totalAmount) throws SQLException {
-        String sql = "INSERT INTO Orders(StudentID, StaffID, OrderDate, TotalAmount, Status) VALUES(?,?,GETDATE(),?,?)";
-        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, studentId);
-            ps.setInt(2, staffId);
-            ps.setDouble(3, totalAmount);
-            ps.setString(4, "Pending");
-            int affected = ps.executeUpdate();
-            if (affected == 0) {
-                throw new SQLException("Khong the tao don hang.");
-            }
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
-        throw new SQLException("Khong lay duoc OrderID moi.");
-    }
-
-    private void insertBorrowItem(Connection con, int borrowId, int bookId, int quantity) throws SQLException {
-        String sql = "INSERT INTO BorrowItem(BorrowID, BookID, Quantity) VALUES(?,?,?)";
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, borrowId);
-            ps.setInt(2, bookId);
-            ps.setInt(3, quantity);
-            int affected = ps.executeUpdate();
-            if (affected == 0) {
-                throw new SQLException("Khong the tao chi tiet muon.");
-            }
-        }
-    }
-
-    private void insertOrderDetail(Connection con, OrderDetail orderDetail) throws SQLException {
-        String sql = "INSERT INTO OrderDetail(OrderID, BookID, Quantity, UnitPrice) VALUES(?,?,?,?)";
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, orderDetail.getOrderID());
-            ps.setInt(2, orderDetail.getBookID());
-            ps.setInt(3, orderDetail.getQuantity());
-            ps.setDouble(4, orderDetail.getUnitPrice());
-            int affected = ps.executeUpdate();
-            if (affected == 0) {
-                throw new SQLException("Khong the tao chi tiet don hang.");
-            }
-        }
-    }
-
-    private void decreaseBookAvailable(Connection con, int bookId, int quantity) throws SQLException {
-        String sql = "UPDATE Book SET Available = Available - ? WHERE BookID = ? AND Available >= ?";
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, quantity);
-            ps.setInt(2, bookId);
-            ps.setInt(3, quantity);
-            int affected = ps.executeUpdate();
-            if (affected == 0) {
-                throw new SQLException("Khong du so luong sach de muon.");
-            }
-        }
-    }
-
-    private String getBorrowStatusForUpdate(Connection con, int borrowId) throws SQLException {
-        String sql = "SELECT Status FROM Borrow WITH (UPDLOCK, ROWLOCK) WHERE BorrowID = ?";
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, borrowId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getString("Status");
-                }
-            }
-        }
-        return null;
-    }
-
-    private List<BorrowItem> getBorrowItems(Connection con, int borrowId) throws SQLException {
-        String sql = "SELECT BorrowID, BookID, Quantity FROM BorrowItem WHERE BorrowID = ?";
-        List<BorrowItem> items = new ArrayList<>();
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, borrowId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    items.add(new BorrowItem(
-                            rs.getInt("BorrowID"),
-                            rs.getInt("BookID"),
-                            rs.getInt("Quantity")));
-                }
-            }
-        }
-        return items;
-    }
-
-    private void increaseBookAvailable(Connection con, int bookId, int quantity) throws SQLException {
-        String sql = "UPDATE Book SET Available = Available + ? WHERE BookID = ?";
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, quantity);
-            ps.setInt(2, bookId);
-            int affected = ps.executeUpdate();
-            if (affected == 0) {
-                throw new SQLException("Khong tim thay sach id=" + bookId);
-            }
-        }
-    }
-
-    private void updateBorrowReturned(Connection con, int borrowId) throws SQLException {
-        String sql = "UPDATE Borrow SET Status = ?, ReturnDate = CAST(GETDATE() AS DATE) WHERE BorrowID = ?";
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, "Returned");
-            ps.setInt(2, borrowId);
-            int affected = ps.executeUpdate();
-            if (affected == 0) {
-                throw new SQLException("Cap nhat tra sach that bai.");
-            }
-        }
-    }
-
-    private List<BorrowRow> fetchBorrowRows() throws SQLException {
-        return fetchBorrowRowsByStudent(null);
-    }
-
-    private List<BorrowRow> fetchBorrowRowsByStudent(Integer studentId) throws SQLException {
-        String sql = "SELECT b.BorrowID, s.StudentName, st.StaffName, "
-                + "CONVERT(varchar(10), b.BorrowDate, 23) AS BorrowDate, "
-                + "CONVERT(varchar(10), b.DueDate, 23) AS DueDate, "
-                + "b.Status, "
-                + "CONVERT(varchar(10), b.ReturnDate, 23) AS ReturnDate, "
-                + "ISNULL(STRING_AGG(CASE WHEN bi.BookID IS NULL THEN NULL ELSE CONCAT(bo.BookName, ' (x', bi.Quantity, ')') END, ', '), '') AS Items "
-                + "FROM Borrow b "
-                + "JOIN Student s ON s.StudentID = b.StudentID "
-                + "JOIN Staff st ON st.StaffID = b.StaffID "
-                + "LEFT JOIN BorrowItem bi ON bi.BorrowID = b.BorrowID "
-                + "LEFT JOIN Book bo ON bo.BookID = bi.BookID "
-                + (studentId != null ? "WHERE b.StudentID = ? " : "")
-                + "GROUP BY b.BorrowID, s.StudentName, st.StaffName, b.BorrowDate, b.DueDate, b.Status, b.ReturnDate "
-                + "ORDER BY b.BorrowID DESC";
-
-        List<BorrowRow> rows = new ArrayList<>();
-        Connection con = DBConnection.getConnection();
-        if (con == null) {
-            throw new SQLException("Cannot connect to database!");
-        }
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            if (studentId != null) {
-                ps.setInt(1, studentId);
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    rows.add(new BorrowRow(
-                            rs.getInt("BorrowID"),
-                            rs.getString("StudentName"),
-                            rs.getString("StaffName"),
-                            rs.getString("BorrowDate"),
-                            rs.getString("DueDate"),
-                            rs.getString("Status"),
-                            rs.getString("ReturnDate"),
-                            rs.getString("Items")));
-                }
-            }
-        } finally {
-            con.close();
-        }
-        return rows;
-    }
-
     private List<Book> fetchBorrowableBooks() throws SQLException {
         List<Book> allBooks = daoBook.getAll();
         List<Book> availableBooks = new ArrayList<>();
@@ -738,139 +529,4 @@ public class BorrowController extends HttpServlet {
         }
         return availableBooks;
     }
-
-    private List<BookPriceRow> fetchBookPriceRows() throws SQLException {
-        String sql = "SELECT b.BookID, b.BookName, b.Available, p.Amount, p.Currency, p.Note "
-                + "FROM Book b "
-                + "LEFT JOIN ("
-                + "    SELECT bp.BookID, bp.PriceID, bp.StartDate, "
-                + "           ROW_NUMBER() OVER (PARTITION BY bp.BookID ORDER BY bp.StartDate DESC, bp.PriceID DESC) AS rn "
-                + "    FROM BookPrice bp "
-                + "    WHERE bp.StartDate <= CAST(GETDATE() AS DATE) "
-                + "      AND (bp.EndDate IS NULL OR bp.EndDate >= CAST(GETDATE() AS DATE))"
-                + ") currentPrice ON currentPrice.BookID = b.BookID AND currentPrice.rn = 1 "
-                + "LEFT JOIN Price p ON p.PriceID = currentPrice.PriceID "
-                + "ORDER BY b.BookID DESC";
-
-        List<BookPriceRow> rows = new ArrayList<>();
-        Connection con = DBConnection.getConnection();
-        if (con == null) {
-            throw new SQLException("Cannot connect to database!");
-        }
-
-        try (PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                rows.add(new BookPriceRow(
-                        rs.getInt("BookID"),
-                        rs.getString("BookName"),
-                        rs.getInt("Available"),
-                        rs.getDouble("Amount"),
-                        rs.getString("Currency"),
-                        rs.getString("Note")));
-            }
-        } finally {
-            con.close();
-        }
-
-        return rows;
-    }
-
-    public static class BorrowRow {
-        private final int borrowID;
-        private final String studentName;
-        private final String staffName;
-        private final String borrowDate;
-        private final String dueDate;
-        private final String status;
-        private final String returnDate;
-        private final String items;
-
-        public BorrowRow(int borrowID, String studentName, String staffName, String borrowDate, String dueDate,
-                String status, String returnDate, String items) {
-            this.borrowID = borrowID;
-            this.studentName = studentName;
-            this.staffName = staffName;
-            this.borrowDate = borrowDate;
-            this.dueDate = dueDate;
-            this.status = status;
-            this.returnDate = returnDate;
-            this.items = items;
-        }
-
-        public int getBorrowID() {
-            return borrowID;
-        }
-
-        public String getStudentName() {
-            return studentName;
-        }
-
-        public String getStaffName() {
-            return staffName;
-        }
-
-        public String getBorrowDate() {
-            return borrowDate;
-        }
-
-        public String getDueDate() {
-            return dueDate;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public String getReturnDate() {
-            return returnDate;
-        }
-
-        public String getItems() {
-            return items;
-        }
-    }
-
-    public static class BookPriceRow {
-        private final int bookID;
-        private final String bookName;
-        private final int available;
-        private final double amount;
-        private final String currency;
-        private final String note;
-
-        public BookPriceRow(int bookID, String bookName, int available, double amount, String currency, String note) {
-            this.bookID = bookID;
-            this.bookName = bookName;
-            this.available = available;
-            this.amount = amount;
-            this.currency = currency;
-            this.note = note;
-        }
-
-        public int getBookID() {
-            return bookID;
-        }
-
-        public String getBookName() {
-            return bookName;
-        }
-
-        public int getAvailable() {
-            return available;
-        }
-
-        public double getAmount() {
-            return amount;
-        }
-
-        public String getCurrency() {
-            return currency;
-        }
-
-        public String getNote() {
-            return note;
-        }
-    }
 }
-

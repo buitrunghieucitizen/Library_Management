@@ -5,7 +5,6 @@ import Entities.BookFile;
 import Entities.Staff;
 import Model.DAOBook;
 import Model.DAOBookFile;
-import Model.DBConnection;
 import Utils.RoleUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,11 +12,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet(name = "BookFileController", urlPatterns = {"/admin/bookfiles"})
@@ -95,7 +90,7 @@ public class BookFileController extends HttpServlet {
     }
 
     private void showList(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        req.setAttribute("bookFiles", fetchBookFileRows());
+        req.setAttribute("bookFiles", daoBookFile.getBookFileRows());
         req.setAttribute("isAdmin", RoleUtils.isAdmin(req));
         req.getRequestDispatcher("/WEB-INF/views/bookfile/list.jsp").forward(req, resp);
     }
@@ -114,7 +109,7 @@ public class BookFileController extends HttpServlet {
 
     private void createBookFile(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
         BookFile bookFile = readBookFile(req, false);
-       daoBookFile.insert(bookFile);
+        daoBookFile.insert(bookFile);
         resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?msg=Them%20bookfile%20thanh%20cong");
     }
 
@@ -160,102 +155,4 @@ public class BookFileController extends HttpServlet {
         req.setAttribute("books", books);
         req.setAttribute("bookFile", bookFile);
     }
-
-    private List<BookFileRow> fetchBookFileRows() throws SQLException {
-        String sql = "SELECT bf.BookFileID, bf.FileName, bf.FileUrl, bf.FileType, bf.FileSize, "
-                + "CONVERT(varchar(19), bf.UploadAt, 120) AS UploadAt, bf.IsActive, "
-                + "b.BookName, s.StaffName "
-                + "FROM BookFile bf "
-                + "JOIN Book b ON b.BookID = bf.BookID "
-                + "JOIN Staff s ON s.StaffID = bf.StaffID "
-                + "ORDER BY bf.BookFileID DESC";
-
-        List<BookFileRow> rows = new ArrayList<>();
-        Connection con = DBConnection.getConnection();
-        if (con == null) {
-            throw new SQLException("Cannot connect to database!");
-        }
-
-        try (PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                rows.add(new BookFileRow(
-                        rs.getInt("BookFileID"),
-                        rs.getString("BookName"),
-                        rs.getString("StaffName"),
-                        rs.getString("FileName"),
-                        rs.getString("FileUrl"),
-                        rs.getString("FileType"),
-                        rs.getLong("FileSize"),
-                        rs.getString("UploadAt"),
-                        rs.getBoolean("IsActive")));
-            }
-        } finally {
-            con.close();
-        }
-
-        return rows;
-    }
-
-    public static class BookFileRow {
-        private final int bookFileID;
-        private final String bookName;
-        private final String staffName;
-        private final String fileName;
-        private final String fileUrl;
-        private final String fileType;
-        private final long fileSize;
-        private final String uploadAt;
-        private final boolean active;
-
-        public BookFileRow(int bookFileID, String bookName, String staffName, String fileName, String fileUrl,
-                String fileType, long fileSize, String uploadAt, boolean active) {
-            this.bookFileID = bookFileID;
-            this.bookName = bookName;
-            this.staffName = staffName;
-            this.fileName = fileName;
-            this.fileUrl = fileUrl;
-            this.fileType = fileType;
-            this.fileSize = fileSize;
-            this.uploadAt = uploadAt;
-            this.active = active;
-        }
-
-        public int getBookFileID() {
-            return bookFileID;
-        }
-
-        public String getBookName() {
-            return bookName;
-        }
-
-        public String getStaffName() {
-            return staffName;
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public String getFileUrl() {
-            return fileUrl;
-        }
-
-        public String getFileType() {
-            return fileType;
-        }
-
-        public long getFileSize() {
-            return fileSize;
-        }
-
-        public String getUploadAt() {
-            return uploadAt;
-        }
-
-        public boolean isActive() {
-            return active;
-        }
-    }
 }
-

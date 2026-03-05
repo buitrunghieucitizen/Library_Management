@@ -1,18 +1,14 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package Model;
 
 import Entities.Book;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author Administrator
- */
 public class DAOBook {
 
     public List<Book> getAll() throws SQLException {
@@ -65,49 +61,24 @@ public class DAOBook {
     }
 
     public int insert(Book b) throws SQLException {
-        String sql = "INSERT INTO Book(BookName, Quantity, Available, CategoryID, PublisherID) VALUES(?,?,?,?,?)";
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
         }
-        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, b.getBookName());
-            ps.setInt(2, b.getQuantity());
-            ps.setInt(3, b.getAvailable());
-            ps.setInt(4, b.getCategoryID());
-            ps.setInt(5, b.getPublisherID());
-
-            int affected = ps.executeUpdate();
-
-            // lấy ID mới (nếu cần)
-            if (affected > 0) {
-                try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        b.setBookID(keys.getInt(1));
-                    }
-                }
-            }
-            return affected;
+        try {
+            return insert(con, b);
         } finally {
             con.close();
         }
     }
 
     public int update(Book b) throws SQLException {
-        String sql = "UPDATE Book SET BookName=?, Quantity=?, Available=?, CategoryID=?, PublisherID=? WHERE BookID=?";
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
         }
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, b.getBookName());
-            ps.setInt(2, b.getQuantity());
-            ps.setInt(3, b.getAvailable());
-            ps.setInt(4, b.getCategoryID());
-            ps.setInt(5, b.getPublisherID());
-            ps.setInt(6, b.getBookID());
-
-            return ps.executeUpdate();
+        try {
+            return update(con, b);
         } finally {
             con.close();
         }
@@ -185,5 +156,84 @@ public class DAOBook {
         }
         return list;
     }
-}
 
+    public int insert(Connection con, Book b) throws SQLException {
+        String sql = "INSERT INTO Book(BookName, Quantity, Available, CategoryID, PublisherID) VALUES(?,?,?,?,?)";
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, b.getBookName());
+            ps.setInt(2, b.getQuantity());
+            ps.setInt(3, b.getAvailable());
+            ps.setInt(4, b.getCategoryID());
+            ps.setInt(5, b.getPublisherID());
+
+            int affected = ps.executeUpdate();
+            if (affected > 0) {
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        b.setBookID(keys.getInt(1));
+                    }
+                }
+            }
+            return affected;
+        }
+    }
+
+    public int update(Connection con, Book b) throws SQLException {
+        String sql = "UPDATE Book SET BookName=?, Quantity=?, Available=?, CategoryID=?, PublisherID=? WHERE BookID=?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, b.getBookName());
+            ps.setInt(2, b.getQuantity());
+            ps.setInt(3, b.getAvailable());
+            ps.setInt(4, b.getCategoryID());
+            ps.setInt(5, b.getPublisherID());
+            ps.setInt(6, b.getBookID());
+            return ps.executeUpdate();
+        }
+    }
+
+    public int getAvailable(Connection con, int bookId) throws SQLException {
+        String sql = "SELECT Available FROM Book WHERE BookID = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, bookId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("Available");
+                }
+            }
+        }
+        throw new SQLException("Khong tim thay sach id=" + bookId);
+    }
+
+    public int decreaseAvailable(Connection con, int bookId, int quantity) throws SQLException {
+        String sql = "UPDATE Book SET Available = Available - ? WHERE BookID = ? AND Available >= ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, bookId);
+            ps.setInt(3, quantity);
+            return ps.executeUpdate();
+        }
+    }
+
+    public int increaseAvailable(Connection con, int bookId, int quantity) throws SQLException {
+        String sql = "UPDATE Book SET Available = Available + ? WHERE BookID = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, bookId);
+            return ps.executeUpdate();
+        }
+    }
+
+    public int decreaseStockAndAvailable(Connection con, int bookId, int quantity) throws SQLException {
+        String sql = "UPDATE Book "
+                + "SET Quantity = Quantity - ?, Available = Available - ? "
+                + "WHERE BookID = ? AND Quantity >= ? AND Available >= ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, quantity);
+            ps.setInt(3, bookId);
+            ps.setInt(4, quantity);
+            ps.setInt(5, quantity);
+            return ps.executeUpdate();
+        }
+    }
+}
