@@ -38,14 +38,26 @@ public class CategoryController extends HttpServlet {
                     req.getRequestDispatcher("/WEB-INF/views/category/create.jsp").forward(req, resp);
                     break;
                 case "edit": {
-                    int id = Integer.parseInt(req.getParameter("id"));
+                    Integer id = parseInt(req.getParameter("id"));
+                    if (id == null || id <= 0) {
+                        resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list&error=Id%20th%E1%BB%83%20lo%E1%BA%A1i%20kh%C3%B4ng%20h%E1%BB%A3p%20l%E1%BB%87");
+                        return;
+                    }
                     Category c = dao.getById(id);
+                    if (c == null) {
+                        resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list&error=Kh%C3%B4ng%20t%C3%ACm%20th%E1%BA%A5y%20th%E1%BB%83%20lo%E1%BA%A1i");
+                        return;
+                    }
                     req.setAttribute("category", c);
                     req.getRequestDispatcher("/WEB-INF/views/category/edit.jsp").forward(req, resp);
                     break;
                 }
                 case "delete": {
-                    int id = Integer.parseInt(req.getParameter("id"));
+                    Integer id = parseInt(req.getParameter("id"));
+                    if (id == null || id <= 0) {
+                        resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list&error=Id%20th%E1%BB%83%20lo%E1%BA%A1i%20kh%C3%B4ng%20h%E1%BB%A3p%20l%E1%BB%87");
+                        return;
+                    }
                     dao.delete(id);
                     resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list");
                     break;
@@ -75,24 +87,106 @@ public class CategoryController extends HttpServlet {
         if (action == null)
             action = "create";
 
+        if ("create".equals(action)) {
+            handleCreate(req, resp);
+            return;
+        }
+        if ("edit".equals(action)) {
+            handleEdit(req, resp);
+            return;
+        }
+        resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list");
+    }
+
+    private void handleCreate(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String categoryName = trimToNull(req.getParameter("categoryName"));
+        if (categoryName == null) {
+            req.setAttribute("error", "Tên thể loại không được để trống.");
+            req.setAttribute("categoryName", "");
+            req.getRequestDispatcher("/WEB-INF/views/category/create.jsp").forward(req, resp);
+            return;
+        }
+
         try {
-            if ("create".equals(action)) {
-                Category c = new Category(req.getParameter("categoryName"));
-                dao.insert(c);
-                resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list");
+            Category c = new Category(categoryName);
+            dao.insert(c);
+            resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list");
+        } catch (SQLException e) {
+            if (isDuplicateKeyError(e)) {
+                req.setAttribute("error", "Tên thể loại đã tồn tại.");
+                req.setAttribute("categoryName", categoryName);
+                req.getRequestDispatcher("/WEB-INF/views/category/create.jsp").forward(req, resp);
                 return;
             }
-            if ("edit".equals(action)) {
-                Category c = new Category(req.getParameter("categoryName"));
-                c.setCategoryID(Integer.parseInt(req.getParameter("categoryID")));
-                dao.update(c);
-                resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list");
+            throw new ServletException(e);
+        }
+    }
+
+    private void handleEdit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Integer categoryId = parseInt(req.getParameter("categoryID"));
+        if (categoryId == null || categoryId <= 0) {
+            resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list&error=Id%20th%E1%BB%83%20lo%E1%BA%A1i%20kh%C3%B4ng%20h%E1%BB%A3p%20l%E1%BB%87");
+            return;
+        }
+
+        String categoryName = trimToNull(req.getParameter("categoryName"));
+        Category c = new Category(categoryName);
+        c.setCategoryID(categoryId);
+
+        if (categoryName == null) {
+            req.setAttribute("error", "Tên thể loại không được để trống.");
+            req.setAttribute("category", c);
+            req.getRequestDispatcher("/WEB-INF/views/category/edit.jsp").forward(req, resp);
+            return;
+        }
+
+        try {
+            int affected = dao.update(c);
+            if (affected == 0) {
+                resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list&error=Kh%C3%B4ng%20t%C3%ACm%20th%E1%BA%A5y%20th%E1%BB%83%20lo%E1%BA%A1i");
                 return;
             }
             resp.sendRedirect(req.getContextPath() + CATEGORIES_PATH + "?action=list");
         } catch (SQLException e) {
+            if (isDuplicateKeyError(e)) {
+                req.setAttribute("error", "Tên thể loại đã tồn tại.");
+                req.setAttribute("category", c);
+                req.getRequestDispatcher("/WEB-INF/views/category/edit.jsp").forward(req, resp);
+                return;
+            }
             throw new ServletException(e);
         }
+    }
+
+    private Integer parseInt(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private boolean isDuplicateKeyError(SQLException e) {
+        SQLException current = e;
+        while (current != null) {
+            int errorCode = current.getErrorCode();
+            if (errorCode == 2601 || errorCode == 2627) {
+                return true;
+            }
+            current = current.getNextException();
+        }
+        return false;
     }
 }
 

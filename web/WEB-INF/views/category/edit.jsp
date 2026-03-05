@@ -1,4 +1,5 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -10,6 +11,9 @@
     <div class="navbar"><h1>Quản lý thư viện</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/admin/categories">Thể loại</a></div>
     <div class="container"><div class="card">
         <h2>Sửa Thể loại</h2>
+        <c:if test="${not empty error}">
+            <div class="error">${error}</div>
+        </c:if>
         <form method="POST" action="${pageContext.request.contextPath}/admin/categories?action=edit">
             <input type="hidden" name="categoryID" value="${category.categoryID}">
             <label>Tên thể loại</label><input type="text" name="categoryName" value="${category.categoryName}" required>
