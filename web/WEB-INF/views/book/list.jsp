@@ -4,9 +4,8 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sách sách</title>
+    <title>Danh sach sach</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-    
 </head>
 <body>
     <c:set var="isAdmin" value="false" />
@@ -27,35 +26,31 @@
         </c:forEach>
     </c:if>
 
-    <div class="navbar">
-        <h1>Quản lý thư viện</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-        <c:choose>
-            <c:when test="${isAdminSection}">
-                <a href="${pageContext.request.contextPath}/admin/books">Sách</a>
-                <a href="${pageContext.request.contextPath}/admin/students">Sinh viên</a>
-                <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Mượn trả</a>
-                <a href="${pageContext.request.contextPath}/admin/orders">Đơn hàng</a>
-                <a href="${pageContext.request.contextPath}/admin/bookfiles">Tệp sách</a>
-                <c:if test="${isAdmin}">
-                    <a href="${pageContext.request.contextPath}/admin/authors">Tác giả</a>
-                    <a href="${pageContext.request.contextPath}/admin/categories">Thể loại</a>
-                    <a href="${pageContext.request.contextPath}/admin/publishers">Nhà xuất bản</a>
-                    <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Nhân viên</a>
-                </c:if>
-            </c:when>
-            <c:otherwise>
-                <a href="${pageContext.request.contextPath}/books">Sách</a>
-                <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
-            </c:otherwise>
-        </c:choose>
-    </div>
+    <c:choose>
+        <c:when test="${isAdminSection}">
+            <c:set var="activeTab" value="books" />
+            <%@ include file="../admin/_header.jsp" %>
+        </c:when>
+        <c:otherwise>
+            <div class="navbar">
+                <h1>Quan ly thu vien</h1>
+                <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
+                <a class="active" href="${pageContext.request.contextPath}/books?action=list">Sach</a>
+                <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va mua sach</a>
+                <div class="nav-right">
+                    <span><c:out value="${sessionScope.staff.staffName}" default=""/></span>
+                    <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
+                </div>
+            </div>
+        </c:otherwise>
+    </c:choose>
 
     <div class="container">
-        <h2>Danh sách sách</h2>
+        <h2>Danh sach sach</h2>
         <c:if test="${isAdminSection && isAdmin}">
-            <a class="btn btn-primary btn-inline" href="${pageContext.request.contextPath}/admin/books?action=create">+ Thêm sách mới</a>
+            <a class="btn btn-primary btn-inline" href="${pageContext.request.contextPath}/admin/books?action=create">+ Them sach moi</a>
         </c:if>
+        <div class="note">Tong ban ghi: ${totalItems}</div>
 
         <c:if test="${not empty msg}">
             <div class="msg">${msg}</div>
@@ -64,13 +59,13 @@
         <table>
             <thead>
                 <tr>
-                    <th>Mã</th>
-                    <th>Tên sách</th>
-                    <th>Số lượng</th>
-                    <th>Còn lại</th>
-                    <th>Mã thể loại</th>
-                    <th>Mã nhà xuất bản</th>
-                    <th>Hành động</th>
+                    <th>Ma</th>
+                    <th>Ten sach</th>
+                    <th>So luong</th>
+                    <th>Con lai</th>
+                    <th>Ma the loai</th>
+                    <th>Ma nha xuat ban</th>
+                    <th>Hanh dong</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,22 +79,77 @@
                         <td>${b.publisherID}</td>
                         <td class="actions">
                             <c:if test="${isAdminSection && isAdmin}">
-                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/books?action=edit&id=${b.bookID}">Sửa</a>
-                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/books?action=delete&id=${b.bookID}" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</a>
+                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/books?action=edit&id=${b.bookID}">Sua</a>
+                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/books?action=delete&id=${b.bookID}" onclick="return confirm('Ban co chac muon xoa?')">Xoa</a>
                             </c:if>
                             <c:if test="${not isAdminSection || not isAdmin}">
-                                <span class="text-subtle">Chỉ xem</span>
+                                <span class="text-subtle">Chi xem</span>
                             </c:if>
                         </td>
                     </tr>
                 </c:forEach>
                 <c:if test="${empty books}">
-                    <tr><td colspan="7" class="empty-row-lg">Chưa có sách nào.</td></tr>
+                    <tr><td colspan="7" class="empty-row-lg">Chua co sach nao.</td></tr>
                 </c:if>
             </tbody>
         </table>
+
+        <c:if test="${totalPages > 1}">
+            <div class="pagination">
+                <c:choose>
+                    <c:when test="${isAdminSection}">
+                        <c:if test="${currentPage > 1}">
+                            <c:url var="prevUrl" value="/admin/books">
+                                <c:param name="action" value="list"/>
+                                <c:param name="page" value="${currentPage - 1}"/>
+                            </c:url>
+                            <a class="page-link" href="${pageContext.request.contextPath}${prevUrl}">Trang truoc</a>
+                        </c:if>
+
+                        <c:forEach begin="1" end="${totalPages}" var="p">
+                            <c:url var="pageUrl" value="/admin/books">
+                                <c:param name="action" value="list"/>
+                                <c:param name="page" value="${p}"/>
+                            </c:url>
+                            <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageContext.request.contextPath}${pageUrl}">${p}</a>
+                        </c:forEach>
+
+                        <c:if test="${currentPage < totalPages}">
+                            <c:url var="nextUrl" value="/admin/books">
+                                <c:param name="action" value="list"/>
+                                <c:param name="page" value="${currentPage + 1}"/>
+                            </c:url>
+                            <a class="page-link" href="${pageContext.request.contextPath}${nextUrl}">Trang sau</a>
+                        </c:if>
+                    </c:when>
+                    <c:otherwise>
+                        <c:if test="${currentPage > 1}">
+                            <c:url var="prevUrl" value="/books">
+                                <c:param name="action" value="list"/>
+                                <c:param name="page" value="${currentPage - 1}"/>
+                            </c:url>
+                            <a class="page-link" href="${pageContext.request.contextPath}${prevUrl}">Trang truoc</a>
+                        </c:if>
+
+                        <c:forEach begin="1" end="${totalPages}" var="p">
+                            <c:url var="pageUrl" value="/books">
+                                <c:param name="action" value="list"/>
+                                <c:param name="page" value="${p}"/>
+                            </c:url>
+                            <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageContext.request.contextPath}${pageUrl}">${p}</a>
+                        </c:forEach>
+
+                        <c:if test="${currentPage < totalPages}">
+                            <c:url var="nextUrl" value="/books">
+                                <c:param name="action" value="list"/>
+                                <c:param name="page" value="${currentPage + 1}"/>
+                            </c:url>
+                            <a class="page-link" href="${pageContext.request.contextPath}${nextUrl}">Trang sau</a>
+                        </c:if>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </c:if>
     </div>
 </body>
 </html>
-
-

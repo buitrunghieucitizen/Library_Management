@@ -9,6 +9,8 @@
     
 </head>
 <body>
+    <c:set var="activeTab" value="staffs" />
+    <%@ include file="../admin/_header.jsp" %>
     <div class="container">
         <div class="card">
             <h2>Sửa nhân viên</h2>

@@ -2,6 +2,8 @@ package Controller;
 
 import Model.DAOCategory;
 import Entities.Category;
+import ViewModel.PageSlice;
+import Utils.PaginationUtils;
 import Utils.RoleUtils;
 
 import jakarta.servlet.ServletException;
@@ -18,6 +20,7 @@ import java.util.List;
 public class CategoryController extends HttpServlet {
 
     private static final String CATEGORIES_PATH = "/admin/categories";
+    private static final int PAGE_SIZE = 10;
 
     private final DAOCategory dao = new DAOCategory();
 
@@ -64,8 +67,13 @@ public class CategoryController extends HttpServlet {
                 }
                 case "list":
                 default: {
+                    int page = PaginationUtils.parsePage(req.getParameter("page"), 1);
                     List<Category> list = dao.getAll();
-                    req.setAttribute("categories", list);
+                    PageSlice<Category> pageSlice = PaginationUtils.paginate(list, page, PAGE_SIZE);
+                    req.setAttribute("categories", pageSlice.getItems());
+                    req.setAttribute("currentPage", pageSlice.getPage());
+                    req.setAttribute("totalPages", pageSlice.getTotalPages());
+                    req.setAttribute("totalItems", pageSlice.getTotalItems());
                     req.getRequestDispatcher("/WEB-INF/views/category/list.jsp").forward(req, resp);
                     break;
                 }

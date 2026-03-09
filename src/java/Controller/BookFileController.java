@@ -6,6 +6,9 @@ import Entities.Staff;
 import Model.DAOBook;
 import Model.DAOBookFile;
 import Utils.RoleUtils;
+import Utils.PaginationUtils;
+import ViewModel.BookFileRow;
+import ViewModel.PageSlice;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,6 +22,7 @@ import java.util.List;
 public class BookFileController extends HttpServlet {
 
     private static final String BOOKFILES_PATH = "/admin/bookfiles";
+    private static final int PAGE_SIZE = 10;
 
     private final DAOBookFile daoBookFile = new DAOBookFile();
     private final DAOBook daoBook = new DAOBook();
@@ -90,7 +94,13 @@ public class BookFileController extends HttpServlet {
     }
 
     private void showList(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
-        req.setAttribute("bookFiles", daoBookFile.getBookFileRows());
+        int page = PaginationUtils.parsePage(req.getParameter("page"), 1);
+        List<BookFileRow> rows = daoBookFile.getBookFileRows();
+        PageSlice<BookFileRow> pageSlice = PaginationUtils.paginate(rows, page, PAGE_SIZE);
+        req.setAttribute("bookFiles", pageSlice.getItems());
+        req.setAttribute("currentPage", pageSlice.getPage());
+        req.setAttribute("totalPages", pageSlice.getTotalPages());
+        req.setAttribute("totalItems", pageSlice.getTotalItems());
         req.setAttribute("isAdmin", RoleUtils.isAdmin(req));
         req.getRequestDispatcher("/WEB-INF/views/bookfile/list.jsp").forward(req, resp);
     }

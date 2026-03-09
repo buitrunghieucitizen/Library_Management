@@ -9,11 +9,9 @@
     
 </head>
 <body>
-    <div class="navbar">
-        <h1>Quản lý thư viện</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-        <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Mượn trả</a>
-    </div>
+    <c:set var="activeTab" value="borrows" />
+    <%@ include file="../admin/_header.jsp" %>
+
 
     <div class="container">
         <h2>Tạo phiếu mượn sách</h2>

@@ -8,11 +8,10 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
-    <div class="navbar">
-        <h1>Qu&#7843;n l&#253; th&#432; vi&#7879;n</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang ch&#7911;</a>
-        <a href="${pageContext.request.contextPath}/admin/categories">Th&#7875; lo&#7841;i</a>
-    </div>
+    <c:set var="activeTab" value="categories" />
+    <%@ include file="../admin/_header.jsp" %>
+
+
     <div class="container">
         <div class="card">
             <h2>Th&#234;m Th&#7875; lo&#7841;i</h2>

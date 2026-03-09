@@ -2,6 +2,8 @@ package Controller;
 
 import Model.DAOStudent;
 import Entities.Student;
+import ViewModel.PageSlice;
+import Utils.PaginationUtils;
 import Utils.RoleUtils;
 
 import jakarta.servlet.ServletException;
@@ -18,6 +20,7 @@ import java.util.List;
 public class StudentController extends HttpServlet {
 
     private static final String STUDENTS_PATH = "/admin/students";
+    private static final int PAGE_SIZE = 10;
 
     private final DAOStudent dao = new DAOStudent();
 
@@ -56,8 +59,13 @@ public class StudentController extends HttpServlet {
                     break;
                 case "list":
                 default: {
+                    int page = PaginationUtils.parsePage(req.getParameter("page"), 1);
                     List<Student> list = dao.getAll();
-                    req.setAttribute("students", list);
+                    PageSlice<Student> pageSlice = PaginationUtils.paginate(list, page, PAGE_SIZE);
+                    req.setAttribute("students", pageSlice.getItems());
+                    req.setAttribute("currentPage", pageSlice.getPage());
+                    req.setAttribute("totalPages", pageSlice.getTotalPages());
+                    req.setAttribute("totalItems", pageSlice.getTotalItems());
                     req.getRequestDispatcher("/WEB-INF/views/student/list.jsp").forward(req, resp);
                     break;
                 }

@@ -15,6 +15,7 @@ import Model.DAOStudent;
 import Model.DBConnection;
 import Utils.RoleUtils;
 import ViewModel.BookPriceRow;
+import ViewModel.BorrowRow;
 import ViewModel.BuyListSnapshot;
 import ViewModel.OrderRow;
 import ViewModel.PageSlice;
@@ -43,6 +44,7 @@ import java.util.Map;
 public class BorrowController extends HttpServlet {
 
     private static final int DEFAULT_STUDENT_BORROW_DAYS = 7;
+    private static final int ADMIN_BORROW_PAGE_SIZE = 10;
     private static final int STUDENT_BOOK_PAGE_SIZE = 8;
     private static final int STUDENT_PURCHASE_PAGE_SIZE = 8;
     private static final String PUBLIC_BORROWS_PATH = "/borrows";
@@ -205,7 +207,13 @@ public class BorrowController extends HttpServlet {
             return;
         }
 
-        req.setAttribute("borrows", daoBorrow.getBorrowRows());
+        int page = parsePage(req.getParameter("page"), 1);
+        List<BorrowRow> rows = daoBorrow.getBorrowRows();
+        PageSlice<BorrowRow> pageSlice = paginate(rows, page, ADMIN_BORROW_PAGE_SIZE);
+        req.setAttribute("borrows", pageSlice.getItems());
+        req.setAttribute("currentPage", pageSlice.getPage());
+        req.setAttribute("totalPages", pageSlice.getTotalPages());
+        req.setAttribute("totalItems", pageSlice.getTotalItems());
         req.getRequestDispatcher("/WEB-INF/views/borrow/list.jsp").forward(req, resp);
     }
 

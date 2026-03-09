@@ -2,6 +2,8 @@ package Controller;
 
 import Model.DAOAuthor;
 import Entities.Author;
+import ViewModel.PageSlice;
+import Utils.PaginationUtils;
 import Utils.RoleUtils;
 
 import jakarta.servlet.ServletException;
@@ -18,6 +20,7 @@ import java.util.List;
 public class AuthorController extends HttpServlet {
 
     private static final String AUTHORS_PATH = "/admin/authors";
+    private static final int PAGE_SIZE = 10;
 
     private final DAOAuthor dao = new DAOAuthor();
 
@@ -52,8 +55,13 @@ public class AuthorController extends HttpServlet {
                 }
                 case "list":
                 default: {
+                    int page = PaginationUtils.parsePage(req.getParameter("page"), 1);
                     List<Author> list = dao.getAll();
-                    req.setAttribute("authors", list);
+                    PageSlice<Author> pageSlice = PaginationUtils.paginate(list, page, PAGE_SIZE);
+                    req.setAttribute("authors", pageSlice.getItems());
+                    req.setAttribute("currentPage", pageSlice.getPage());
+                    req.setAttribute("totalPages", pageSlice.getTotalPages());
+                    req.setAttribute("totalItems", pageSlice.getTotalItems());
                     req.getRequestDispatcher("/WEB-INF/views/author/list.jsp").forward(req, resp);
                     break;
                 }

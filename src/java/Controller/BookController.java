@@ -7,7 +7,9 @@ import Model.DAOBookPrice;
 import Model.DAOPrice;
 import Model.DBConnection;
 import Utils.RoleUtils;
+import Utils.PaginationUtils;
 import ViewModel.CurrentPriceInfo;
+import ViewModel.PageSlice;
 import ViewModel.PriceInput;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -25,6 +27,7 @@ public class BookController extends HttpServlet {
 
     private static final String PUBLIC_BOOKS_PATH = "/books";
     private static final String ADMIN_BOOKS_PATH = "/admin/books";
+    private static final int PAGE_SIZE = 10;
 
     private final DAOBook daoBook = new DAOBook();
     private final DAOPrice daoPrice = new DAOPrice();
@@ -69,8 +72,13 @@ public class BookController extends HttpServlet {
 
                 case "list":
                 default:
+                    int page = PaginationUtils.parsePage(req.getParameter("page"), 1);
                     List<Book> list = daoBook.getAll();
-                    req.setAttribute("books", list);
+                    PageSlice<Book> pageSlice = PaginationUtils.paginate(list, page, PAGE_SIZE);
+                    req.setAttribute("books", pageSlice.getItems());
+                    req.setAttribute("currentPage", pageSlice.getPage());
+                    req.setAttribute("totalPages", pageSlice.getTotalPages());
+                    req.setAttribute("totalItems", pageSlice.getTotalItems());
                     req.setAttribute("adminSection", isAdminSection(req));
                     req.getRequestDispatcher("/WEB-INF/views/book/list.jsp").forward(req, resp);
                     break;

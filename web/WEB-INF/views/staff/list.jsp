@@ -4,28 +4,17 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý nhân viên</title>
+    <title>Quan ly nhan vien</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-    
 </head>
 <body>
-    <div class="navbar">
-        <h1>Quản lý thư viện</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-        <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Mượn trả</a>
-        <a href="${pageContext.request.contextPath}/admin/orders">Đơn hàng</a>
-        <a href="${pageContext.request.contextPath}/admin/bookfiles">Tệp sách</a>
-        <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Nhân viên</a>
-        <div class="nav-right">
-            <span>${sessionScope.staff.staffName}</span>
-            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
-        </div>
-    </div>
+    <c:set var="activeTab" value="staffs" />
+    <%@ include file="../admin/_header.jsp" %>
 
     <div class="container">
         <div class="panel">
-            <h2>Quản lý nhân viên</h2>
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/staffs?action=create">Thêm nhân viên</a>
+            <h2>Quan ly nhan vien</h2>
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/staffs?action=create">Them nhan vien</a>
 
             <c:if test="${not empty param.msg}">
                 <div class="msg">${param.msg}</div>
@@ -33,16 +22,17 @@
             <c:if test="${not empty param.error}">
                 <div class="error">${param.error}</div>
             </c:if>
+            <div class="note">Tong ban ghi: ${totalItems}</div>
 
             <table>
                 <thead>
                     <tr>
-                        <th>Mã</th>
-                        <th>Tên</th>
-                        <th>Tên đăng nhập</th>
-                        <th>Mật khẩu</th>
-                        <th>Vai trò</th>
-                        <th>Hành động</th>
+                        <th>Ma</th>
+                        <th>Ten</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Vai tro</th>
+                        <th>Hanh dong</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -55,22 +45,48 @@
                             <td>${row.roleNames}</td>
                             <td>
                                 <div class="actions">
-                                    <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/staffs?action=edit&id=${row.staff.staffID}">Sửa</a>
-                                    <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/staffs?action=delete&id=${row.staff.staffID}" onclick="return confirm('Xóa nhân viên này?')">Xóa</a>
+                                    <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/staffs?action=edit&id=${row.staff.staffID}">Sua</a>
+                                    <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/staffs?action=delete&id=${row.staff.staffID}" onclick="return confirm('Xoa nhan vien nay?')">Xoa</a>
                                 </div>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty staffRows}">
                         <tr>
-                            <td colspan="6" class="empty-row">Chưa có tài khoản nhân viên nào.</td>
+                            <td colspan="6" class="empty-row">Chua co tai khoan nhan vien nao.</td>
                         </tr>
                     </c:if>
                 </tbody>
             </table>
+
+            <c:if test="${totalPages > 1}">
+                <div class="pagination">
+                    <c:if test="${currentPage > 1}">
+                        <c:url var="prevUrl" value="/admin/staffs">
+                            <c:param name="action" value="list"/>
+                            <c:param name="page" value="${currentPage - 1}"/>
+                        </c:url>
+                        <a class="page-link" href="${pageContext.request.contextPath}${prevUrl}">Trang truoc</a>
+                    </c:if>
+
+                    <c:forEach begin="1" end="${totalPages}" var="p">
+                        <c:url var="pageUrl" value="/admin/staffs">
+                            <c:param name="action" value="list"/>
+                            <c:param name="page" value="${p}"/>
+                        </c:url>
+                        <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageContext.request.contextPath}${pageUrl}">${p}</a>
+                    </c:forEach>
+
+                    <c:if test="${currentPage < totalPages}">
+                        <c:url var="nextUrl" value="/admin/staffs">
+                            <c:param name="action" value="list"/>
+                            <c:param name="page" value="${currentPage + 1}"/>
+                        </c:url>
+                        <a class="page-link" href="${pageContext.request.contextPath}${nextUrl}">Trang sau</a>
+                    </c:if>
+                </div>
+            </c:if>
         </div>
     </div>
 </body>
 </html>
-
-
