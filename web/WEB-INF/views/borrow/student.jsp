@@ -4,24 +4,25 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Cong sinh vien - Muon va mua sach</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng sinh viên - Mượn và mua sách</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
     <div class="navbar">
-        <h1>Quan ly thu vien</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/books">Sach</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va mua sach</a>
+        <h1>Quản lý thư viện</h1>
+        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/books">Sách</a>
+        <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
         <div class="nav-right">
-            <span>Xin chao, ${sessionScope.staff.staffName} (Sinh vien)</span>
-            <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
+            <span>Xin chào, ${sessionScope.staff.staffName} (Sinh viên)</span>
+            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2>Trung tam sinh vien</h2>
+            <h2>Trung tâm sinh viên</h2>
             <c:if test="${not empty mappingError}">
                 <div class="error">${mappingError}</div>
             </c:if>
@@ -31,20 +32,20 @@
             <c:if test="${not empty param.error}">
                 <div class="error">${param.error}</div>
             </c:if>
-            <p>Ma sinh vien: <strong><c:out value="${studentId}" default="-"/></strong></p>
+            <p>Mã sinh viên: <strong><c:out value="${studentId}" default="-"/></strong></p>
         </div>
 
         <div class="card">
-            <h3>Bang gia sach hien hanh</h3>
+            <h3>Bảng giá sách hiện hành</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Ten sach</th>
-                        <th>Gia</th>
-                        <th>Tien te</th>
-                        <th>Ghi chu</th>
-                        <th>Con lai</th>
+                        <th>Mã</th>
+                        <th>Tên sách</th>
+                        <th>Giá</th>
+                        <th>Tiền tệ</th>
+                        <th>Ghi chú</th>
+                        <th>Còn lại</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -55,7 +56,7 @@
                             <td>
                                 <c:choose>
                                     <c:when test="${price.amount > 0}">${price.amount}</c:when>
-                                    <c:otherwise>Chua cap nhat</c:otherwise>
+                                    <c:otherwise>Chưa cập nhật</c:otherwise>
                                 </c:choose>
                             </td>
                             <td><c:out value="${price.currency}" default="-"/></td>
@@ -64,7 +65,7 @@
                         </tr>
                     </c:forEach>
                     <c:if test="${empty bookPrices}">
-                        <tr><td colspan="6" class="empty">Chua co bang gia sach.</td></tr>
+                        <tr><td colspan="6" class="empty">Chưa có bảng giá sách.</td></tr>
                     </c:if>
                 </tbody>
             </table>
@@ -72,17 +73,17 @@
 
         <div class="card">
             <div class="section-header">
-                <h3 class="mb-0">Danh sach sach co san</h3>
-                <span class="note">Tong: ${bookTotalItems}</span>
+                <h3 class="mb-0">Danh sách sách có sẵn</h3>
+                <span class="note">Tổng: ${bookTotalItems}</span>
             </div>
             <form method="get" action="${pageContext.request.contextPath}/borrows" class="search-form">
                 <input type="hidden" name="action" value="list">
                 <div class="search-row search-row-student">
-                    <input type="text" name="bookSearch" value="${bookSearch}" placeholder="Tim theo ma hoac ten sach">
-                    <input type="text" name="purchaseSearch" value="${purchaseSearch}" placeholder="Tim trong danh sach da mua">
+                    <input type="text" name="bookSearch" value="${bookSearch}" placeholder="Tìm theo mã hoặc tên sách">
+                    <input type="text" name="purchaseSearch" value="${purchaseSearch}" placeholder="Tìm trong danh sách đã mua">
                     <div class="search-actions">
-                        <button class="btn-apply" type="submit">Loc</button>
-                        <a class="btn-reset" href="${pageContext.request.contextPath}/borrows?action=list">Dat lai</a>
+                        <button class="btn-apply" type="submit">Lọc</button>
+                        <a class="btn-reset" href="${pageContext.request.contextPath}/borrows?action=list">Đặt lại</a>
                     </div>
                 </div>
             </form>
@@ -90,10 +91,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Ten sach</th>
-                        <th>Con lai</th>
-                        <th>Hanh dong</th>
+                        <th>Mã</th>
+                        <th>Tên sách</th>
+                        <th>Còn lại</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,7 +108,7 @@
                                     <form method="POST" action="${pageContext.request.contextPath}/borrows" class="inline-form">
                                         <input type="hidden" name="action" value="borrow">
                                         <input type="hidden" name="bookID" value="${book.bookID}">
-                                        <button class="btn btn-borrow" type="submit">Muon</button>
+                                        <button class="btn btn-borrow" type="submit">Mượn</button>
                                     </form>
                                     <form method="POST" action="${pageContext.request.contextPath}/borrows" class="inline-form">
                                         <input type="hidden" name="action" value="buy">
@@ -117,14 +118,14 @@
                                     <form method="POST" action="${pageContext.request.contextPath}/borrows" class="inline-form">
                                         <input type="hidden" name="action" value="addBuyList">
                                         <input type="hidden" name="bookID" value="${book.bookID}">
-                                        <button class="btn btn-secondary" type="submit">Them vao can mua</button>
+                                        <button class="btn btn-secondary" type="submit">Thêm vào cần mua</button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty availableBooks}">
-                        <tr><td colspan="4" class="empty">Khong co sach phu hop bo loc.</td></tr>
+                        <tr><td colspan="4" class="empty">Không có sách phù hợp bộ lọc.</td></tr>
                     </c:if>
                 </tbody>
             </table>
@@ -139,7 +140,7 @@
                             <c:param name="bookPage" value="${bookCurrentPage - 1}"/>
                             <c:param name="purchasePage" value="${purchaseCurrentPage}"/>
                         </c:url>
-                        <a class="page-link" href="${pageContext.request.contextPath}${prevBookUrl}">Trang truoc</a>
+                        <a class="page-link" href="${pageContext.request.contextPath}${prevBookUrl}">Trang trước</a>
                     </c:if>
 
                     <c:forEach begin="1" end="${bookTotalPages}" var="p">
@@ -169,20 +170,20 @@
 
         <div class="card">
             <div class="section-header">
-                <h3 class="mb-0">Danh sach book can mua</h3>
-                <span class="note">Tong tam tinh: ${buyListTotal}</span>
+                <h3 class="mb-0">Danh sách sách cần mua</h3>
+                <span class="note">Tổng tạm tính: ${buyListTotal}</span>
             </div>
 
             <table>
                 <thead>
                     <tr>
-                        <th>Ma sach</th>
-                        <th>Ten sach</th>
-                        <th>So luong</th>
-                        <th>Con lai</th>
-                        <th>Don gia</th>
-                        <th>Thanh tien</th>
-                        <th>Hanh dong</th>
+                        <th>Mã sách</th>
+                        <th>Tên sách</th>
+                        <th>Số lượng</th>
+                        <th>Còn lại</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -195,7 +196,7 @@
                                     <input type="hidden" name="action" value="updateBuyQty">
                                     <input type="hidden" name="bookID" value="${item.bookID}">
                                     <input class="qty-input" type="number" min="1" value="${item.quantity}" name="quantity">
-                                    <button class="btn btn-secondary" type="submit">Cap nhat</button>
+                                    <button class="btn btn-secondary" type="submit">Cập nhật</button>
                                 </form>
                             </td>
                             <td>${item.available}</td>
@@ -206,22 +207,22 @@
                                     <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form">
                                         <input type="hidden" name="action" value="orderBuyItem">
                                         <input type="hidden" name="bookID" value="${item.bookID}">
-                                        <button class="btn btn-approve" type="submit" ${item.canOrder ? '' : 'disabled'}>Gui duyet sach nay</button>
+                                        <button class="btn btn-approve" type="submit" ${item.canOrder ? '' : 'disabled'}>Gửi duyệt sách này</button>
                                     </form>
                                     <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form">
                                         <input type="hidden" name="action" value="removeBuyItem">
                                         <input type="hidden" name="bookID" value="${item.bookID}">
-                                        <button class="btn btn-reject" type="submit">Xoa</button>
+                                        <button class="btn btn-reject" type="submit">Xóa</button>
                                     </form>
                                 </div>
                                 <c:if test="${not item.canOrder}">
-                                    <div class="note">Khong the gui: het hang hoac chua co gia.</div>
+                                    <div class="note">Không thể gửi: hết hàng hoặc chưa có giá.</div>
                                 </c:if>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty buyListItems}">
-                        <tr><td colspan="7" class="empty">Danh sach can mua dang trong.</td></tr>
+                        <tr><td colspan="7" class="empty">Danh sách cần mua đang trống.</td></tr>
                     </c:if>
                 </tbody>
             </table>
@@ -229,24 +230,24 @@
             <c:if test="${not empty buyListItems}">
                 <form method="post" action="${pageContext.request.contextPath}/borrows" class="mt-4">
                     <input type="hidden" name="action" value="orderBuyAll">
-                    <button class="btn btn-approve" type="submit">Gui duyet tat ca</button>
+                    <button class="btn btn-approve" type="submit">Gửi duyệt tất cả</button>
                 </form>
             </c:if>
         </div>
 
         <div class="card">
             <div class="section-header">
-                <h3 class="mb-0">Danh sach da mua (da duyet)</h3>
-                <span class="note">Tong: ${purchaseTotalItems}</span>
+                <h3 class="mb-0">Danh sách đã mua (đã duyệt)</h3>
+                <span class="note">Tổng: ${purchaseTotalItems}</span>
             </div>
 
             <form method="get" action="${pageContext.request.contextPath}/borrows" class="search-form">
                 <input type="hidden" name="action" value="list">
                 <input type="hidden" name="bookSearch" value="${bookSearch}">
                 <div class="search-row search-row-student">
-                    <input type="text" name="purchaseSearch" value="${purchaseSearch}" placeholder="Tim theo ma don hoac ten sach">
+                    <input type="text" name="purchaseSearch" value="${purchaseSearch}" placeholder="Tìm theo mã đơn hoặc tên sách">
                     <div class="search-actions">
-                        <button class="btn-apply" type="submit">Tim</button>
+                        <button class="btn-apply" type="submit">Tìm</button>
                     </div>
                 </div>
             </form>
@@ -254,10 +255,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ma don</th>
-                        <th>Ngay dat</th>
-                        <th>Tong tien</th>
-                        <th>Chi tiet</th>
+                        <th>Mã đơn</th>
+                        <th>Ngày đặt</th>
+                        <th>Tổng tiền</th>
+                        <th>Chi tiết</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -266,11 +267,11 @@
                             <td>${order.orderID}</td>
                             <td>${order.orderDate}</td>
                             <td>${order.totalAmount}</td>
-                            <td>${empty order.items ? 'Khong co chi tiet' : order.items}</td>
+                            <td>${empty order.items ? 'Không có chi tiết' : order.items}</td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty purchasedOrders}">
-                        <tr><td colspan="4" class="empty">Ban chua co don mua da duyet.</td></tr>
+                        <tr><td colspan="4" class="empty">Bạn chưa có đơn mua đã duyệt.</td></tr>
                     </c:if>
                 </tbody>
             </table>
@@ -285,7 +286,7 @@
                             <c:param name="bookPage" value="${bookCurrentPage}"/>
                             <c:param name="purchasePage" value="${purchaseCurrentPage - 1}"/>
                         </c:url>
-                        <a class="page-link" href="${pageContext.request.contextPath}${prevPurchaseUrl}">Trang truoc</a>
+                        <a class="page-link" href="${pageContext.request.contextPath}${prevPurchaseUrl}">Trang trước</a>
                     </c:if>
 
                     <c:forEach begin="1" end="${purchaseTotalPages}" var="p">
@@ -314,17 +315,17 @@
         </div>
 
         <div class="card">
-            <h3>Sach dang muon cua ban</h3>
+            <h3>Sách đang mượn của bạn</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Ma phieu muon</th>
-                        <th>Ngay muon</th>
-                        <th>Han tra</th>
-                        <th>Ngay tra</th>
-                        <th>Trang thai</th>
-                        <th>Sach</th>
-                        <th>Hanh dong</th>
+                        <th>Mã phiếu mượn</th>
+                        <th>Ngày mượn</th>
+                        <th>Hạn trả</th>
+                        <th>Ngày trả</th>
+                        <th>Trạng thái</th>
+                        <th>Sách</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -336,9 +337,9 @@
                             <td><c:out value="${b.returnDate}" default="-"/></td>
                             <td>
                                 <c:choose>
-                                    <c:when test="${b.status eq 'Borrowing'}"><span class="status-borrowing">Dang muon</span></c:when>
-                                    <c:when test="${b.status eq 'Returned'}"><span class="status-returned">Da tra</span></c:when>
-                                    <c:when test="${b.status eq 'Overdue'}"><span class="status-overdue">Qua han</span></c:when>
+                                    <c:when test="${b.status eq 'Borrowing'}"><span class="status-borrowing">Đang mượn</span></c:when>
+                                    <c:when test="${b.status eq 'Returned'}"><span class="status-returned">Đã trả</span></c:when>
+                                    <c:when test="${b.status eq 'Overdue'}"><span class="status-overdue">Quá hạn</span></c:when>
                                     <c:otherwise>${b.status}</c:otherwise>
                                 </c:choose>
                             </td>
@@ -348,14 +349,14 @@
                                     <form method="POST" action="${pageContext.request.contextPath}/borrows" class="inline-form">
                                         <input type="hidden" name="action" value="requestReturn">
                                         <input type="hidden" name="borrowID" value="${b.borrowID}">
-                                        <button class="btn btn-return" type="submit">Gui yeu cau tra</button>
+                                        <button class="btn btn-return" type="submit">Gửi yêu cầu trả</button>
                                     </form>
                                 </c:if>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty borrows}">
-                        <tr><td colspan="7" class="empty">Ban chua co phieu muon nao.</td></tr>
+                        <tr><td colspan="7" class="empty">Bạn chưa có phiếu mượn nào.</td></tr>
                     </c:if>
                 </tbody>
             </table>

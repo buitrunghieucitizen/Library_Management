@@ -39,7 +39,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cong sinh vien</title>
+    <title>Cổng sinh viên</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -50,16 +50,16 @@
 
         <main class="content">
             <section class="hero">
-                <h1>Cong thu vien sinh vien</h1>
-                <p>Tim sach, loc theo tac gia/the loai/nha xuat ban, va mo nhanh trung tam muon tra.</p>
+                <h1>Cổng thư viện sinh viên</h1>
+                <p>Tìm sách, lọc theo tác giả/thể loại/nhà xuất bản, và mở nhanh trung tâm mượn trả.</p>
             </section>
 
             <form class="search-form" method="get" action="<%=request.getContextPath()%>/home">
                 <div class="search-row">
-                    <input type="text" name="search" placeholder="Tim theo ten sach" value="<%= search %>">
-                    <input type="text" name="author" placeholder="Tac gia" value="<%= author %>">
+                    <input type="text" name="search" placeholder="Tìm theo tên sách" value="<%= search %>">
+                    <input type="text" name="author" placeholder="Tác giả" value="<%= author %>">
                     <select name="categoryId">
-                        <option value="">Tat ca the loai</option>
+                        <option value="">Tất cả thể loại</option>
                         <% for (Category category : categories) { %>
                             <option value="<%= category.getCategoryID() %>" <%= categoryId.equals(String.valueOf(category.getCategoryID())) ? "selected" : "" %>>
                                 <%= category.getCategoryName() %>
@@ -67,7 +67,7 @@
                         <% } %>
                     </select>
                     <select name="publisherId">
-                        <option value="">Tat ca nha xuat ban</option>
+                        <option value="">Tất cả nhà xuất bản</option>
                         <% for (Publisher publisher : publishers) { %>
                             <option value="<%= publisher.getPublisherID() %>" <%= publisherId.equals(String.valueOf(publisher.getPublisherID())) ? "selected" : "" %>>
                                 <%= publisher.getPublisherName() %>
@@ -75,14 +75,14 @@
                         <% } %>
                     </select>
                     <div class="search-actions">
-                        <button class="btn-apply" type="submit">Loc</button>
-                        <a class="btn-reset" href="<%=request.getContextPath()%>/home">Dat lai</a>
+                        <button class="btn-apply" type="submit">Lọc</button>
+                        <a class="btn-reset" href="<%=request.getContextPath()%>/home">Đặt lại</a>
                     </div>
                 </div>
 
                 <div class="letter-strip">
                     <a href="<%=request.getContextPath()%>/home?letter=ALL&<%= baseQuery %>&page=1"
-                       class="<%= "ALL".equalsIgnoreCase(letter) ? "active" : "" %>">Tat ca</a>
+                       class="<%= "ALL".equalsIgnoreCase(letter) ? "active" : "" %>">Tất cả</a>
                     <% for (char c = 'A'; c <= 'Z'; c++) { %>
                         <a href="<%=request.getContextPath()%>/home?letter=<%= c %>&<%= baseQuery %>&page=1"
                            class="<%= letter.equalsIgnoreCase(String.valueOf(c)) ? "active" : "" %>"><%= c %></a>
@@ -91,20 +91,20 @@
             </form>
 
             <div class="section-header">
-                <h2><%= "ALL".equalsIgnoreCase(letter) ? "Bo suu tap sach" : "Sach bat dau bang " + letter %></h2>
-                <span class="note">Tong ket qua: <%= totalBooks %></span>
-                <a href="<%=request.getContextPath()%>/borrows?action=list" class="section-link">Mo trung tam muon tra</a>
+                <h2><%= "ALL".equalsIgnoreCase(letter) ? "Bộ sưu tập sách" : "Sách bắt đầu bằng " + letter %></h2>
+                <span class="note">Tổng kết quả: <%= totalBooks %></span>
+                <a href="<%=request.getContextPath()%>/borrows?action=list" class="section-link">Mở trung tâm mượn trả</a>
             </div>
 
             <% if (books == null || books.isEmpty()) { %>
-                <div class="empty-box">Khong tim thay sach phu hop voi bo loc hien tai.</div>
+                <div class="empty-box">Không tìm thấy sách phù hợp với bộ lọc hiện tại.</div>
             <% } else { %>
                 <div class="book-grid">
                     <% for (Book book : books) { %>
                         <a class="book-card" href="<%=request.getContextPath()%>/home/book?id=<%= book.getBookID() %>">
                             <div class="book-visual">
                                 <% if (book.getImageUrl() != null && !book.getImageUrl().isEmpty()) { %>
-                                    <img src="<%= book.getImageUrl() %>" alt="<%= book.getBookName() %>" class="book-image">
+                                    <img src="<%= book.getImageUrl() %>" alt="<%= book.getBookName() %>" class="book-image" loading="lazy" decoding="async">
                                 <% } else { %>
                                     <span><%= book.getBookName().substring(0, 1).toUpperCase() %></span>
                                 <% } %>
@@ -112,7 +112,7 @@
                             <div class="book-meta">
                                 <h3 class="book-title"><%= book.getBookName() %></h3>
                                 <span class="pill <%= book.getAvailable() > 0 ? "ok" : "out" %>">
-                                    <%= book.getAvailable() > 0 ? (book.getAvailable() + " co san") : "Het sach" %>
+                                    <%= book.getAvailable() > 0 ? (book.getAvailable() + " có sẵn") : "Hết sách" %>
                                 </span>
                             </div>
                         </a>
@@ -123,7 +123,7 @@
             <% if (totalPages > 1) { %>
                 <div class="pagination">
                     <% if (currentPage > 1) { %>
-                        <a class="page-link" href="<%=request.getContextPath()%>/home?letter=<%= letter %>&<%= baseQuery %>&page=<%= currentPage - 1 %>">Trang truoc</a>
+                        <a class="page-link" href="<%=request.getContextPath()%>/home?letter=<%= letter %>&<%= baseQuery %>&page=<%= currentPage - 1 %>">Trang trước</a>
                     <% } %>
 
                     <% for (int p = 1; p <= totalPages; p++) { %>
@@ -139,19 +139,19 @@
         </main>
 
         <aside class="sidebar-right">
-            <div class="section-title">Phieu muon hien tai</div>
+            <div class="section-title">Phiếu mượn hiện tại</div>
             <% if (holds == null || holds.isEmpty()) { %>
-                <div class="empty-box">Khong co sach dang muon.</div>
+                <div class="empty-box">Không có sách đang mượn.</div>
             <% } else { %>
                 <% for (Borrow hold : holds) { %>
                     <div class="hold-card">
-                        <h3>Phieu muon #<%= hold.getBorrowID() %></h3>
+                        <h3>Phiếu mượn #<%= hold.getBorrowID() %></h3>
                         <div class="hold-meta">
-                            Ngay muon: <%= hold.getBorrowDate() %><br>
-                            Han tra: <%= hold.getDueDate() %>
+                            Ngày mượn: <%= hold.getBorrowDate() %><br>
+                            Hạn trả: <%= hold.getDueDate() %>
                         </div>
                         <span class="hold-status <%= "Overdue".equalsIgnoreCase(hold.getStatus()) ? "overdue" : "borrowing" %>">
-                            <%= "Overdue".equalsIgnoreCase(hold.getStatus()) ? "Qua han" : ("Borrowing".equalsIgnoreCase(hold.getStatus()) ? "Dang muon" : hold.getStatus()) %>
+                            <%= "Overdue".equalsIgnoreCase(hold.getStatus()) ? "Quá hạn" : ("Borrowing".equalsIgnoreCase(hold.getStatus()) ? "Đang mượn" : hold.getStatus()) %>
                         </span>
                     </div>
                 <% } %>
