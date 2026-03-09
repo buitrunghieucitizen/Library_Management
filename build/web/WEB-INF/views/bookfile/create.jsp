@@ -9,6 +9,8 @@
     
 </head>
 <body>
+    <c:set var="activeTab" value="bookfiles" />
+    <%@ include file="../admin/_header.jsp" %>
     <div class="container">
         <div class="card">
             <h2>Thêm tệp sách</h2>

@@ -9,25 +9,9 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
-    <div class="navbar">
-        <h1>Quản lý thư viện</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-        <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Mượn trả</a>
-        <a href="${pageContext.request.contextPath}/admin/orders">Đơn hàng</a>
-        <a href="${pageContext.request.contextPath}/admin/bookfiles">Tệp sách</a>
-        <c:if test="${isAdmin}">
-            <a href="${pageContext.request.contextPath}/admin/books">Sách</a>
-            <a href="${pageContext.request.contextPath}/admin/students">Sinh viên</a>
-            <a href="${pageContext.request.contextPath}/admin/authors">Tác giả</a>
-            <a href="${pageContext.request.contextPath}/admin/categories">Thể loại</a>
-            <a href="${pageContext.request.contextPath}/admin/publishers">Nhà xuất bản</a>
-            <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Nhân viên</a>
-        </c:if>
-        <div class="nav-right">
-            <span>${sessionScope.staff.staffName}</span>
-            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
-        </div>
-    </div>
+    <c:set var="activeTab" value="orders" />
+    <%@ include file="../admin/_header.jsp" %>
+
 
     <div class="container">
         <div class="panel">
