@@ -152,7 +152,12 @@ public class DAOOrders {
     }
 
     public List<OrderRow> getOrderRows() throws SQLException {
-        String sql = "SELECT o.OrderID, s.StudentName, "
+        return getOrderRows(null, null, null);
+    }
+
+    public List<OrderRow> getOrderRows(Integer studentId, String keyword, String status) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+                "SELECT o.OrderID, s.StudentName, "
                 + "CASE WHEN o.Status = 'Pending' THEN N'Chua xu ly' ELSE st.StaffName END AS StaffName, "
                 + "CONVERT(varchar(10), o.OrderDate, 23) AS OrderDate, "
                 + "o.TotalAmount, o.Status, "
@@ -162,8 +167,39 @@ public class DAOOrders {
                 + "JOIN Staff st ON st.StaffID = o.StaffID "
                 + "LEFT JOIN OrderDetail od ON od.OrderID = o.OrderID "
                 + "LEFT JOIN Book b ON b.BookID = od.BookID "
-                + "GROUP BY o.OrderID, s.StudentName, st.StaffName, o.OrderDate, o.TotalAmount, o.Status "
-                + "ORDER BY o.OrderID DESC";
+                + "WHERE 1=1 ");
+
+        List<Object> params = new ArrayList<>();
+
+        if (studentId != null) {
+            sql.append("AND o.StudentID = ? ");
+            params.add(studentId);
+        }
+
+        String normalizedStatus = status == null ? "" : status.trim();
+        if (!normalizedStatus.isEmpty() && !"ALL".equalsIgnoreCase(normalizedStatus)) {
+            sql.append("AND o.Status = ? ");
+            params.add(normalizedStatus);
+        }
+
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        if (!normalizedKeyword.isEmpty()) {
+            sql.append("AND (CAST(o.OrderID AS varchar(20)) LIKE ? "
+                    + "OR s.StudentName LIKE ? "
+                    + "OR EXISTS ("
+                    + "    SELECT 1 "
+                    + "    FROM OrderDetail od2 "
+                    + "    JOIN Book b2 ON b2.BookID = od2.BookID "
+                    + "    WHERE od2.OrderID = o.OrderID AND b2.BookName LIKE ?"
+                    + ")) ");
+            String likeValue = "%" + normalizedKeyword + "%";
+            params.add(likeValue);
+            params.add(likeValue);
+            params.add(likeValue);
+        }
+
+        sql.append("GROUP BY o.OrderID, s.StudentName, st.StaffName, o.OrderDate, o.TotalAmount, o.Status ")
+                .append("ORDER BY o.OrderID DESC");
 
         List<OrderRow> rows = new ArrayList<>();
         Connection con = DBConnection.getConnection();
@@ -171,17 +207,21 @@ public class DAOOrders {
             throw new SQLException("Cannot connect to database!");
         }
 
-        try (PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                rows.add(new OrderRow(
-                        rs.getInt("OrderID"),
-                        rs.getString("StudentName"),
-                        rs.getString("StaffName"),
-                        rs.getString("OrderDate"),
-                        rs.getDouble("TotalAmount"),
-                        rs.getString("Status"),
-                        rs.getString("Items")));
+        try (PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    rows.add(new OrderRow(
+                            rs.getInt("OrderID"),
+                            rs.getString("StudentName"),
+                            rs.getString("StaffName"),
+                            rs.getString("OrderDate"),
+                            rs.getDouble("TotalAmount"),
+                            rs.getString("Status"),
+                            rs.getString("Items")));
+                }
             }
         } finally {
             con.close();

@@ -24,7 +24,7 @@
         <%@ include file="../_sidebar.jsp" %>
 
         <main class="content">
-            <a class="back-link" href="<%=request.getContextPath()%>/home">Quay về trang sinh viên</a>
+            <a class="back-link" href="<%=request.getContextPath()%>/home">Quay ve trang sinh vien</a>
 
             <section class="detail-card">
                 <div class="book-cover">
@@ -38,30 +38,30 @@
                 <div>
                     <h1 class="detail-title"><%= book.getBookName() %></h1>
                     <p class="detail-author">
-                        <%= (authors != null && !authors.isEmpty()) ? String.join(", ", authors) : "Không có thông tin tác giả" %>
+                        <%= (authors != null && !authors.isEmpty()) ? String.join(", ", authors) : "Khong co thong tin tac gia" %>
                     </p>
 
                     <div class="meta-grid">
                         <div class="meta-card">
-                            <span>Thể loại</span>
+                            <span>The loai</span>
                             <strong><%= category != null ? category.getCategoryName() : "-" %></strong>
                         </div>
                         <div class="meta-card">
-                            <span>Nhà xuất bản</span>
+                            <span>Nha xuat ban</span>
                             <strong><%= publisher != null ? publisher.getPublisherName() : "-" %></strong>
                         </div>
                         <div class="meta-card">
-                            <span>Số lượng</span>
-                            <strong><%= book.getQuantity() %> cuốn</strong>
+                            <span>So luong</span>
+                            <strong><%= book.getQuantity() %> cuon</strong>
                         </div>
                         <div class="meta-card">
-                            <span>Có sẵn</span>
-                            <strong><%= book.getAvailable() %> cuốn</strong>
+                            <span>Co san</span>
+                            <strong><%= book.getAvailable() %> cuon</strong>
                         </div>
                     </div>
 
                     <span class="status-pill <%= book.getAvailable() > 0 ? "ok" : "out" %>">
-                        <%= book.getAvailable() > 0 ? "Có thể mượn" : "Tạm hết sách" %>
+                        <%= book.getAvailable() > 0 ? "Co the muon" : "Tam het sach" %>
                     </span>
 
                     <div class="action-row">
@@ -69,19 +69,28 @@
                             <form method="post" action="<%=request.getContextPath()%>/borrows">
                                 <input type="hidden" name="action" value="borrow">
                                 <input type="hidden" name="bookID" value="<%= book.getBookID() %>">
-                                <button class="btn-primary" type="submit">Mượn sách</button>
+                                <button class="btn-primary" type="submit">Muon sach</button>
                             </form>
                         <% } %>
+
+                        <form method="post" action="<%=request.getContextPath()%>/borrows">
+                            <input type="hidden" name="action" value="addBuyList">
+                            <input type="hidden" name="bookID" value="<%= book.getBookID() %>">
+                            <button class="btn-secondary" type="submit">Them vao danh sach can mua</button>
+                        </form>
+
                         <form method="post" action="<%=request.getContextPath()%>/borrows">
                             <input type="hidden" name="action" value="buy">
                             <input type="hidden" name="bookID" value="<%= book.getBookID() %>">
-                            <button class="btn-secondary" type="submit">Đặt mua</button>
+                            <button class="btn-buy" type="submit">Mua nhanh</button>
                         </form>
-                        <a class="btn-ghost" href="<%=request.getContextPath()%>/borrows?action=list">Mở trung tâm mượn trả</a>
+
+                        <a class="btn-ghost" href="<%=request.getContextPath()%>/borrows?action=list">Mo trung tam muon tra</a>
                     </div>
 
                     <div class="detail-note">
-                        Giao diện chi tiết sách đã được tích hợp từ nhánh Huynh và điều chỉnh theo luồng hiện tại trên nhánh chính. Thao tác mượn vẫn đi qua controller hiện có để đảm bảo tương thích với cơ sở dữ liệu và màn hình duyệt của quản trị.
+                        Ban co the them sach vao danh sach can mua de gui duyet tung quyen hoac gui duyet tat ca
+                        tai man hinh Trung tam muon va mua sach.
                     </div>
                 </div>
             </section>
@@ -91,5 +100,3 @@
     <%@ include file="../_footer.jsp" %>
 </body>
 </html>
-
-

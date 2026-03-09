@@ -19,6 +19,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -27,14 +28,20 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet(name = "BorrowController", urlPatterns = {"/borrows", "/admin/borrows"})
 public class BorrowController extends HttpServlet {
 
     private static final int DEFAULT_STUDENT_BORROW_DAYS = 7;
+    private static final int STUDENT_BOOK_PAGE_SIZE = 8;
+    private static final int STUDENT_PURCHASE_PAGE_SIZE = 8;
     private static final String PUBLIC_BORROWS_PATH = "/borrows";
     private static final String ADMIN_BORROWS_PATH = "/admin/borrows";
+    private static final String BUY_LIST_SESSION_KEY = "studentBuyList";
 
     private final DAOStudent daoStudent = new DAOStudent();
     private final DAOBook daoBook = new DAOBook();
@@ -98,6 +105,21 @@ public class BorrowController extends HttpServlet {
                 case "buy":
                     buyBookAsStudent(req, resp);
                     break;
+                case "addBuyList":
+                    addToBuyList(req, resp);
+                    break;
+                case "removeBuyItem":
+                    removeFromBuyList(req, resp);
+                    break;
+                case "updateBuyQty":
+                    updateBuyListQuantity(req, resp);
+                    break;
+                case "orderBuyItem":
+                    orderOneFromBuyList(req, resp);
+                    break;
+                case "orderBuyAll":
+                    orderAllFromBuyList(req, resp);
+                    break;
                 case "requestReturn":
                     requestReturnAsStudent(req, resp);
                     break;
@@ -124,10 +146,48 @@ public class BorrowController extends HttpServlet {
                 req.setAttribute("availableBooks", Collections.emptyList());
                 req.setAttribute("bookPrices", Collections.emptyList());
                 req.setAttribute("borrows", Collections.emptyList());
+                req.setAttribute("buyListItems", Collections.emptyList());
+                req.setAttribute("purchasedOrders", Collections.emptyList());
+                req.setAttribute("bookCurrentPage", 1);
+                req.setAttribute("bookTotalPages", 1);
+                req.setAttribute("purchaseCurrentPage", 1);
+                req.setAttribute("purchaseTotalPages", 1);
+                req.setAttribute("bookSearch", "");
+                req.setAttribute("purchaseSearch", "");
+                req.setAttribute("buyListTotal", 0.0d);
             } else {
+                String bookSearch = trim(req.getParameter("bookSearch"));
+                String purchaseSearch = trim(req.getParameter("purchaseSearch"));
+                int bookPage = parsePage(req.getParameter("bookPage"), 1);
+                int purchasePage = parsePage(req.getParameter("purchasePage"), 1);
+
+                List<Book> allBooks = daoBook.getAll();
+                List<Book> availableBooks = filterBooksByKeyword(filterBorrowableBooks(allBooks), bookSearch);
+                PageSlice<Book> availablePage = paginate(availableBooks, bookPage, STUDENT_BOOK_PAGE_SIZE);
+
+                List<DAOBookPrice.BookPriceRow> bookPrices = daoBookPrice.getBookPriceRows();
+                BuyListSnapshot buyListSnapshot = buildBuyListSnapshot(req, allBooks, bookPrices);
+
+                List<DAOOrders.OrderRow> purchasedOrders = daoOrders.getOrderRows(studentId, purchaseSearch, "Approved");
+                PageSlice<DAOOrders.OrderRow> purchasePageSlice = paginate(purchasedOrders, purchasePage, STUDENT_PURCHASE_PAGE_SIZE);
+
                 req.setAttribute("studentId", studentId);
-                req.setAttribute("availableBooks", fetchBorrowableBooks());
-                req.setAttribute("bookPrices", daoBookPrice.getBookPriceRows());
+                req.setAttribute("availableBooks", availablePage.items);
+                req.setAttribute("bookCurrentPage", availablePage.page);
+                req.setAttribute("bookTotalPages", availablePage.totalPages);
+                req.setAttribute("bookTotalItems", availablePage.totalItems);
+                req.setAttribute("bookSearch", bookSearch);
+
+                req.setAttribute("bookPrices", bookPrices);
+                req.setAttribute("buyListItems", buyListSnapshot.items);
+                req.setAttribute("buyListTotal", buyListSnapshot.totalAmount);
+
+                req.setAttribute("purchasedOrders", purchasePageSlice.items);
+                req.setAttribute("purchaseCurrentPage", purchasePageSlice.page);
+                req.setAttribute("purchaseTotalPages", purchasePageSlice.totalPages);
+                req.setAttribute("purchaseTotalItems", purchasePageSlice.totalItems);
+                req.setAttribute("purchaseSearch", purchaseSearch);
+
                 req.setAttribute("borrows", daoBorrow.getBorrowRowsByStudent(studentId));
             }
             req.getRequestDispatcher("/WEB-INF/views/borrow/student.jsp").forward(req, resp);
@@ -303,6 +363,201 @@ public class BorrowController extends HttpServlet {
         } finally {
             con.setAutoCommit(true);
             con.close();
+        }
+    }
+
+    private void addToBuyList(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+        if (!RoleUtils.isStudentOnly(req)) {
+            redirectWithMessage(req, resp, "error", "Chi tai khoan hoc sinh moi duoc them vao danh sach mua.");
+            return;
+        }
+
+        int bookId;
+        try {
+            bookId = parsePositiveInt(req.getParameter("bookID"), "Book");
+        } catch (Exception e) {
+            redirectWithMessage(req, resp, "error", "BookID khong hop le.");
+            return;
+        }
+
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+
+        try {
+            int available = daoBook.getAvailable(con, bookId);
+            if (available <= 0) {
+                redirectWithMessage(req, resp, "error", "Sach da het hang.");
+                return;
+            }
+
+            double unitPrice = daoBookPrice.getCurrentSellingPrice(con, bookId);
+            if (unitPrice <= 0) {
+                redirectWithMessage(req, resp, "error", "Sach chua co gia ban hop le.");
+                return;
+            }
+
+            LinkedHashMap<Integer, Integer> buyList = getOrCreateBuyList(req);
+            int currentQty = buyList.getOrDefault(bookId, 0);
+            if (currentQty + 1 > available) {
+                redirectWithMessage(req, resp, "error", "So luong vuot qua ton kho hien tai.");
+                return;
+            }
+
+            buyList.put(bookId, currentQty + 1);
+            redirectWithMessage(req, resp, "msg", "Da them sach vao danh sach can mua.");
+        } finally {
+            con.close();
+        }
+    }
+
+    private void removeFromBuyList(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        if (!RoleUtils.isStudentOnly(req)) {
+            redirectWithMessage(req, resp, "error", "Chi tai khoan hoc sinh moi duoc sua danh sach mua.");
+            return;
+        }
+
+        int bookId;
+        try {
+            bookId = parsePositiveInt(req.getParameter("bookID"), "Book");
+        } catch (Exception e) {
+            redirectWithMessage(req, resp, "error", "BookID khong hop le.");
+            return;
+        }
+
+        LinkedHashMap<Integer, Integer> buyList = getOrCreateBuyList(req);
+        if (buyList.remove(bookId) != null) {
+            redirectWithMessage(req, resp, "msg", "Da xoa sach khoi danh sach can mua.");
+        } else {
+            redirectWithMessage(req, resp, "error", "Sach khong ton tai trong danh sach can mua.");
+        }
+    }
+
+    private void updateBuyListQuantity(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+        if (!RoleUtils.isStudentOnly(req)) {
+            redirectWithMessage(req, resp, "error", "Chi tai khoan hoc sinh moi duoc sua danh sach mua.");
+            return;
+        }
+
+        int bookId;
+        int quantity;
+        try {
+            bookId = parsePositiveInt(req.getParameter("bookID"), "Book");
+            quantity = parsePositiveInt(req.getParameter("quantity"), "Quantity");
+        } catch (Exception e) {
+            redirectWithMessage(req, resp, "error", "Du lieu cap nhat so luong khong hop le.");
+            return;
+        }
+
+        LinkedHashMap<Integer, Integer> buyList = getOrCreateBuyList(req);
+        if (!buyList.containsKey(bookId)) {
+            redirectWithMessage(req, resp, "error", "Sach khong ton tai trong danh sach can mua.");
+            return;
+        }
+
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try {
+            int available = daoBook.getAvailable(con, bookId);
+            if (quantity > available) {
+                redirectWithMessage(req, resp, "error", "So luong vuot qua ton kho hien tai.");
+                return;
+            }
+
+            buyList.put(bookId, quantity);
+            redirectWithMessage(req, resp, "msg", "Da cap nhat so luong.");
+        } finally {
+            con.close();
+        }
+    }
+
+    private void orderOneFromBuyList(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+        if (!RoleUtils.isStudentOnly(req)) {
+            redirectWithMessage(req, resp, "error", "Chi tai khoan hoc sinh moi duoc gui don mua.");
+            return;
+        }
+
+        Staff staff = RoleUtils.getLoggedStaff(req);
+        if (staff == null) {
+            resp.sendRedirect(req.getContextPath() + "/LoginURL");
+            return;
+        }
+
+        Integer studentId = resolveStudentIdForStaff(staff);
+        if (studentId == null) {
+            redirectWithMessage(req, resp, "error", "Khong xac dinh duoc ma sinh vien.");
+            return;
+        }
+
+        int bookId;
+        try {
+            bookId = parsePositiveInt(req.getParameter("bookID"), "Book");
+        } catch (Exception e) {
+            redirectWithMessage(req, resp, "error", "BookID khong hop le.");
+            return;
+        }
+
+        LinkedHashMap<Integer, Integer> buyList = getOrCreateBuyList(req);
+        Integer quantity = buyList.get(bookId);
+        if (quantity == null || quantity <= 0) {
+            redirectWithMessage(req, resp, "error", "Sach khong ton tai trong danh sach can mua.");
+            return;
+        }
+
+        PurchaseRequestItem item = new PurchaseRequestItem(bookId, quantity);
+        try {
+            int orderId = createPendingOrder(studentId, staff.getStaffID(), List.of(item));
+            buyList.remove(bookId);
+            redirectWithMessage(req, resp, "msg", "Da gui duyet 1 sach. Ma don: " + orderId);
+        } catch (SQLException e) {
+            redirectWithMessage(req, resp, "error", e.getMessage());
+        }
+    }
+
+    private void orderAllFromBuyList(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+        if (!RoleUtils.isStudentOnly(req)) {
+            redirectWithMessage(req, resp, "error", "Chi tai khoan hoc sinh moi duoc gui don mua.");
+            return;
+        }
+
+        Staff staff = RoleUtils.getLoggedStaff(req);
+        if (staff == null) {
+            resp.sendRedirect(req.getContextPath() + "/LoginURL");
+            return;
+        }
+
+        Integer studentId = resolveStudentIdForStaff(staff);
+        if (studentId == null) {
+            redirectWithMessage(req, resp, "error", "Khong xac dinh duoc ma sinh vien.");
+            return;
+        }
+
+        LinkedHashMap<Integer, Integer> buyList = getOrCreateBuyList(req);
+        if (buyList.isEmpty()) {
+            redirectWithMessage(req, resp, "error", "Danh sach can mua dang trong.");
+            return;
+        }
+
+        List<PurchaseRequestItem> items = new ArrayList<>();
+        for (Map.Entry<Integer, Integer> entry : buyList.entrySet()) {
+            if (entry.getValue() != null && entry.getValue() > 0) {
+                items.add(new PurchaseRequestItem(entry.getKey(), entry.getValue()));
+            }
+        }
+        if (items.isEmpty()) {
+            redirectWithMessage(req, resp, "error", "Danh sach can mua dang trong.");
+            return;
+        }
+
+        try {
+            int orderId = createPendingOrder(studentId, staff.getStaffID(), items);
+            buyList.clear();
+            redirectWithMessage(req, resp, "msg", "Da gui duyet tat ca sach can mua. Ma don: " + orderId);
+        } catch (SQLException e) {
+            redirectWithMessage(req, resp, "error", e.getMessage());
         }
     }
 
@@ -519,14 +774,246 @@ public class BorrowController extends HttpServlet {
         return value;
     }
 
-    private List<Book> fetchBorrowableBooks() throws SQLException {
-        List<Book> allBooks = daoBook.getAll();
+    private int parsePage(String raw, int defaultPage) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return defaultPage;
+        }
+        try {
+            int page = Integer.parseInt(raw.trim());
+            return page > 0 ? page : defaultPage;
+        } catch (NumberFormatException e) {
+            return defaultPage;
+        }
+    }
+
+    private String trim(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private List<Book> filterBorrowableBooks(List<Book> allBooks) {
         List<Book> availableBooks = new ArrayList<>();
-        for (Book book : allBooks) {
+        for (Book book : allBooks == null ? Collections.<Book>emptyList() : allBooks) {
             if (book.getAvailable() > 0) {
                 availableBooks.add(book);
             }
         }
         return availableBooks;
+    }
+
+    private List<Book> filterBooksByKeyword(List<Book> books, String keyword) {
+        String normalizedKeyword = trim(keyword).toLowerCase();
+        if (normalizedKeyword.isEmpty()) {
+            return books;
+        }
+
+        List<Book> filtered = new ArrayList<>();
+        for (Book book : books) {
+            if (String.valueOf(book.getBookID()).contains(normalizedKeyword)
+                    || (book.getBookName() != null && book.getBookName().toLowerCase().contains(normalizedKeyword))) {
+                filtered.add(book);
+            }
+        }
+        return filtered;
+    }
+
+    private LinkedHashMap<Integer, Integer> getOrCreateBuyList(HttpServletRequest req) {
+        HttpSession session = req.getSession();
+        Object raw = session.getAttribute(BUY_LIST_SESSION_KEY);
+        if (raw instanceof LinkedHashMap<?, ?>) {
+            @SuppressWarnings("unchecked")
+            LinkedHashMap<Integer, Integer> existing = (LinkedHashMap<Integer, Integer>) raw;
+            return existing;
+        }
+        LinkedHashMap<Integer, Integer> created = new LinkedHashMap<>();
+        session.setAttribute(BUY_LIST_SESSION_KEY, created);
+        return created;
+    }
+
+    private BuyListSnapshot buildBuyListSnapshot(HttpServletRequest req, List<Book> allBooks,
+            List<DAOBookPrice.BookPriceRow> bookPrices) {
+        Map<Integer, Book> bookById = new HashMap<>();
+        for (Book book : allBooks) {
+            bookById.put(book.getBookID(), book);
+        }
+
+        Map<Integer, DAOBookPrice.BookPriceRow> priceByBookId = new HashMap<>();
+        for (DAOBookPrice.BookPriceRow priceRow : bookPrices) {
+            priceByBookId.put(priceRow.getBookID(), priceRow);
+        }
+
+        List<StudentBuyListRow> rows = new ArrayList<>();
+        double totalAmount = 0;
+
+        LinkedHashMap<Integer, Integer> buyList = getOrCreateBuyList(req);
+        for (Map.Entry<Integer, Integer> entry : buyList.entrySet()) {
+            int bookId = entry.getKey();
+            int quantity = entry.getValue() == null || entry.getValue() <= 0 ? 1 : entry.getValue();
+
+            Book book = bookById.get(bookId);
+            String bookName = book == null ? ("Book #" + bookId) : book.getBookName();
+            int available = book == null ? 0 : book.getAvailable();
+
+            DAOBookPrice.BookPriceRow priceRow = priceByBookId.get(bookId);
+            double unitPrice = priceRow == null ? 0 : priceRow.getAmount();
+            String currency = priceRow == null ? "" : priceRow.getCurrency();
+
+            boolean canOrder = book != null && available >= quantity && unitPrice > 0;
+            double lineTotal = unitPrice * quantity;
+            totalAmount += lineTotal;
+
+            rows.add(new StudentBuyListRow(bookId, bookName, quantity, available, unitPrice, currency, lineTotal, canOrder));
+        }
+
+        return new BuyListSnapshot(rows, totalAmount);
+    }
+
+    private int createPendingOrder(int studentId, int staffId, List<PurchaseRequestItem> items) throws SQLException {
+        if (items == null || items.isEmpty()) {
+            throw new SQLException("Don mua khong co sach.");
+        }
+
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+
+        try {
+            con.setAutoCommit(false);
+
+            double totalAmount = 0;
+            for (PurchaseRequestItem item : items) {
+                int available = daoBook.getAvailable(con, item.bookID);
+                if (available < item.quantity) {
+                    throw new SQLException("Khong du ton kho cho sach id=" + item.bookID);
+                }
+
+                double currentPrice = daoBookPrice.getCurrentSellingPrice(con, item.bookID);
+                if (currentPrice <= 0) {
+                    throw new SQLException("Sach id=" + item.bookID + " chua co gia ban hop le.");
+                }
+
+                item.unitPrice = currentPrice;
+                totalAmount += currentPrice * item.quantity;
+            }
+
+            int orderId = daoOrders.insertPending(con, studentId, staffId, totalAmount);
+            for (PurchaseRequestItem item : items) {
+                int affected = daoOrderDetail.insert(con,
+                        new OrderDetail(orderId, item.bookID, item.quantity, item.unitPrice));
+                if (affected == 0) {
+                    throw new SQLException("Khong the tao chi tiet don hang cho sach id=" + item.bookID);
+                }
+            }
+
+            con.commit();
+            return orderId;
+        } catch (SQLException e) {
+            con.rollback();
+            throw e;
+        } finally {
+            con.setAutoCommit(true);
+            con.close();
+        }
+    }
+
+    private <T> PageSlice<T> paginate(List<T> source, int requestedPage, int pageSize) {
+        int safePageSize = Math.max(1, pageSize);
+        int totalItems = source == null ? 0 : source.size();
+        int totalPages = Math.max(1, (int) Math.ceil(totalItems / (double) safePageSize));
+        int page = Math.max(1, Math.min(requestedPage, totalPages));
+        int fromIndex = (page - 1) * safePageSize;
+        int toIndex = Math.min(fromIndex + safePageSize, totalItems);
+        List<T> items = totalItems == 0 ? List.of() : source.subList(fromIndex, toIndex);
+        return new PageSlice<>(items, page, totalPages, totalItems);
+    }
+
+    private static class PurchaseRequestItem {
+        private final int bookID;
+        private final int quantity;
+        private double unitPrice;
+
+        private PurchaseRequestItem(int bookID, int quantity) {
+            this.bookID = bookID;
+            this.quantity = quantity;
+        }
+    }
+
+    public static class StudentBuyListRow {
+        private final int bookID;
+        private final String bookName;
+        private final int quantity;
+        private final int available;
+        private final double unitPrice;
+        private final String currency;
+        private final double lineTotal;
+        private final boolean canOrder;
+
+        public StudentBuyListRow(int bookID, String bookName, int quantity, int available,
+                double unitPrice, String currency, double lineTotal, boolean canOrder) {
+            this.bookID = bookID;
+            this.bookName = bookName;
+            this.quantity = quantity;
+            this.available = available;
+            this.unitPrice = unitPrice;
+            this.currency = currency;
+            this.lineTotal = lineTotal;
+            this.canOrder = canOrder;
+        }
+
+        public int getBookID() {
+            return bookID;
+        }
+
+        public String getBookName() {
+            return bookName;
+        }
+
+        public int getQuantity() {
+            return quantity;
+        }
+
+        public int getAvailable() {
+            return available;
+        }
+
+        public double getUnitPrice() {
+            return unitPrice;
+        }
+
+        public String getCurrency() {
+            return currency;
+        }
+
+        public double getLineTotal() {
+            return lineTotal;
+        }
+
+        public boolean isCanOrder() {
+            return canOrder;
+        }
+    }
+
+    private static class BuyListSnapshot {
+        private final List<StudentBuyListRow> items;
+        private final double totalAmount;
+
+        private BuyListSnapshot(List<StudentBuyListRow> items, double totalAmount) {
+            this.items = items;
+            this.totalAmount = totalAmount;
+        }
+    }
+
+    private static class PageSlice<T> {
+        private final List<T> items;
+        private final int page;
+        private final int totalPages;
+        private final int totalItems;
+
+        private PageSlice(List<T> items, int page, int totalPages, int totalItems) {
+            this.items = items;
+            this.page = page;
+            this.totalPages = totalPages;
+            this.totalItems = totalItems;
+        }
     }
 }

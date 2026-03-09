@@ -24,6 +24,8 @@ import java.util.List;
 @WebServlet(name = "StudentHome", urlPatterns = {"/home"})
 public class HomeController extends HttpServlet {
 
+    private static final int PAGE_SIZE = 12;
+
     private final DAOBook daoBook = new DAOBook();
     private final DAOCategory daoCategory = new DAOCategory();
     private final DAOPublisher daoPublisher = new DAOPublisher();
@@ -45,6 +47,7 @@ public class HomeController extends HttpServlet {
         String categoryIdRaw = trim(request.getParameter("categoryId"));
         String publisherIdRaw = trim(request.getParameter("publisherId"));
         String author = trim(request.getParameter("author"));
+        int requestedPage = parsePage(request.getParameter("page"), 1);
 
         Integer categoryId = parseNullableInt(categoryIdRaw);
         Integer publisherId = parseNullableInt(publisherIdRaw);
@@ -54,11 +57,12 @@ public class HomeController extends HttpServlet {
 
         try {
             List<Book> books = daoBook.getFiltered(search, letter, categoryId, publisherId, author);
+            PageSlice<Book> pageSlice = paginate(books, requestedPage, PAGE_SIZE);
             List<Category> categories = daoCategory.getAll();
             List<Publisher> publishers = daoPublisher.getAll();
             List<Borrow> holds = resolveActiveBorrows(request);
 
-            request.setAttribute("books", books);
+            request.setAttribute("books", pageSlice.items);
             request.setAttribute("categories", categories);
             request.setAttribute("publishers", publishers);
             request.setAttribute("holds", holds);
@@ -67,6 +71,9 @@ public class HomeController extends HttpServlet {
             request.setAttribute("categoryId", categoryIdRaw);
             request.setAttribute("publisherId", publisherIdRaw);
             request.setAttribute("author", author);
+            request.setAttribute("currentPage", pageSlice.page);
+            request.setAttribute("totalPages", pageSlice.totalPages);
+            request.setAttribute("totalBooks", pageSlice.totalItems);
 
             request.getRequestDispatcher("/WEB-INF/views/client/home/index.jsp").forward(request, response);
         } catch (SQLException e) {
@@ -136,5 +143,42 @@ public class HomeController extends HttpServlet {
 
     private String trim(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private int parsePage(String raw, int defaultPage) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return defaultPage;
+        }
+        try {
+            int page = Integer.parseInt(raw.trim());
+            return page > 0 ? page : defaultPage;
+        } catch (NumberFormatException e) {
+            return defaultPage;
+        }
+    }
+
+    private <T> PageSlice<T> paginate(List<T> source, int requestedPage, int pageSize) {
+        int safePageSize = Math.max(1, pageSize);
+        int totalItems = source == null ? 0 : source.size();
+        int totalPages = Math.max(1, (int) Math.ceil(totalItems / (double) safePageSize));
+        int page = Math.max(1, Math.min(requestedPage, totalPages));
+        int fromIndex = (page - 1) * safePageSize;
+        int toIndex = Math.min(fromIndex + safePageSize, totalItems);
+        List<T> items = totalItems == 0 ? List.of() : source.subList(fromIndex, toIndex);
+        return new PageSlice<>(items, page, totalPages, totalItems);
+    }
+
+    private static class PageSlice<T> {
+        private final List<T> items;
+        private final int page;
+        private final int totalPages;
+        private final int totalItems;
+
+        private PageSlice(List<T> items, int page, int totalPages, int totalItems) {
+            this.items = items;
+            this.page = page;
+            this.totalPages = totalPages;
+            this.totalItems = totalItems;
+        }
     }
 }
