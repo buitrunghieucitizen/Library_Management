@@ -7,6 +7,7 @@ import Model.DAORole;
 import Model.DAOStaff;
 import Model.DAOStaffRole;
 import Utils.RoleUtils;
+import ViewModel.StaffListRow;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -245,24 +246,6 @@ public class StaffController extends HttpServlet {
             return "No role";
         }
         return String.join(", ", names);
-    }
-
-    public static class StaffListRow {
-        private final Staff staff;
-        private final String roleNames;
-
-        public StaffListRow(Staff staff, String roleNames) {
-            this.staff = staff;
-            this.roleNames = roleNames;
-        }
-
-        public Staff getStaff() {
-            return staff;
-        }
-
-        public String getRoleNames() {
-            return roleNames;
-        }
     }
 }
 

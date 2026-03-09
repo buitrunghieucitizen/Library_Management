@@ -466,6 +466,14 @@ tr:hover td {
     margin-bottom: 12px;
 }
 
+.search-row-orders {
+    grid-template-columns: 2fr 1fr auto;
+}
+
+.search-row-student {
+    grid-template-columns: 1.5fr 1.5fr auto;
+}
+
 .search-row input,
 .search-row select,
 .search-row button,
@@ -779,6 +787,43 @@ tr:hover td {
     text-align: center;
 }
 
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #dbe4f0;
+    text-decoration: none;
+    color: #334155;
+    background: #fff;
+    font-weight: 700;
+}
+
+.page-link.active {
+    background: var(--brand-1);
+    border-color: var(--brand-1);
+    color: #fff;
+}
+
+.inline-edit-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qty-input {
+    width: 92px;
+}
+
 .section-link {
     text-decoration: none;
     font-weight: 700;
@@ -892,6 +937,11 @@ tr:hover td {
 
     .search-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .search-row-orders,
+    .search-row-student {
+        grid-template-columns: 1fr;
     }
 }
 

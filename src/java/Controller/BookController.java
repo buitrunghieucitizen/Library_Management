@@ -7,6 +7,8 @@ import Model.DAOBookPrice;
 import Model.DAOPrice;
 import Model.DBConnection;
 import Utils.RoleUtils;
+import ViewModel.CurrentPriceInfo;
+import ViewModel.PriceInput;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -216,7 +218,7 @@ public class BookController extends HttpServlet {
                 throw new SQLException("Cap nhat sach that bai.");
             }
 
-            DAOBookPrice.CurrentPriceInfo currentPrice = daoBookPrice.getCurrentPriceInfo(con, book.getBookID());
+            CurrentPriceInfo currentPrice = daoBookPrice.getCurrentPriceInfo(con, book.getBookID());
             if (currentPrice == null) {
                 Price price = priceInput.toEntity();
                 if (daoPrice.insert(con, price) == 0) {
@@ -260,7 +262,7 @@ public class BookController extends HttpServlet {
         }
     }
 
-    private boolean isPriceChanged(DAOBookPrice.CurrentPriceInfo currentPrice, PriceInput priceInput) {
+    private boolean isPriceChanged(CurrentPriceInfo currentPrice, PriceInput priceInput) {
         if (currentPrice == null) {
             return true;
         }
@@ -291,33 +293,5 @@ public class BookController extends HttpServlet {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
-    }
-
-    private static class PriceInput {
-        private final double amount;
-        private final String currency;
-        private final String note;
-
-        PriceInput(double amount, String currency, String note) {
-            this.amount = amount;
-            this.currency = currency;
-            this.note = note;
-        }
-
-        public double getAmount() {
-            return amount;
-        }
-
-        public String getCurrency() {
-            return currency;
-        }
-
-        public String getNote() {
-            return note;
-        }
-
-        public Price toEntity() {
-            return new Price(amount, currency, note);
-        }
     }
 }

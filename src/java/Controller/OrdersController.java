@@ -6,6 +6,9 @@ import Model.DAOOrderDetail;
 import Model.DAOOrders;
 import Model.DBConnection;
 import Utils.RoleUtils;
+import ViewModel.OrderItemRow;
+import ViewModel.OrderRow;
+import ViewModel.PageSlice;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -40,15 +43,15 @@ public class OrdersController extends HttpServlet {
         int requestedPage = parsePositiveInt(req.getParameter("page"), 1);
 
         try {
-            List<DAOOrders.OrderRow> filteredOrders = daoOrders.getOrderRows(null, search, status);
-            PageSlice<DAOOrders.OrderRow> pageSlice = paginate(filteredOrders, requestedPage, PAGE_SIZE);
+            List<OrderRow> filteredOrders = daoOrders.getOrderRows(null, search, status);
+            PageSlice<OrderRow> pageSlice = paginate(filteredOrders, requestedPage, PAGE_SIZE);
 
-            req.setAttribute("orders", pageSlice.items);
+            req.setAttribute("orders", pageSlice.getItems());
             req.setAttribute("search", search);
             req.setAttribute("status", status.isEmpty() ? "ALL" : status);
-            req.setAttribute("currentPage", pageSlice.page);
-            req.setAttribute("totalPages", pageSlice.totalPages);
-            req.setAttribute("totalItems", pageSlice.totalItems);
+            req.setAttribute("currentPage", pageSlice.getPage());
+            req.setAttribute("totalPages", pageSlice.getTotalPages());
+            req.setAttribute("totalItems", pageSlice.getTotalItems());
             req.setAttribute("isAdmin", RoleUtils.isAdmin(req));
             req.getRequestDispatcher("/WEB-INF/views/orders/list.jsp").forward(req, resp);
         } catch (SQLException e) {
@@ -117,12 +120,12 @@ public class OrdersController extends HttpServlet {
                 throw new SQLException("Chi co the duyet don Pending.");
             }
 
-            List<DAOOrderDetail.OrderItemRow> items = daoOrderDetail.getOrderItemsWithBookName(con, orderId);
+            List<OrderItemRow> items = daoOrderDetail.getOrderItemsWithBookName(con, orderId);
             if (items.isEmpty()) {
                 throw new SQLException("Don hang khong co chi tiet sach.");
             }
 
-            for (DAOOrderDetail.OrderItemRow item : items) {
+            for (OrderItemRow item : items) {
                 int affected = daoBook.decreaseStockAndAvailable(con, item.getBookID(), item.getQuantity());
                 if (affected == 0) {
                     throw new SQLException("Khong du ton kho de duyet don cho sach id=" + item.getBookID());
@@ -220,19 +223,5 @@ public class OrdersController extends HttpServlet {
         int toIndex = Math.min(fromIndex + safePageSize, totalItems);
         List<T> items = totalItems == 0 ? List.of() : source.subList(fromIndex, toIndex);
         return new PageSlice<>(items, page, totalPages, totalItems);
-    }
-
-    private static class PageSlice<T> {
-        private final List<T> items;
-        private final int page;
-        private final int totalPages;
-        private final int totalItems;
-
-        private PageSlice(List<T> items, int page, int totalPages, int totalItems) {
-            this.items = items;
-            this.page = page;
-            this.totalPages = totalPages;
-            this.totalItems = totalItems;
-        }
     }
 }

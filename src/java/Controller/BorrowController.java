@@ -14,6 +14,12 @@ import Model.DAOOrders;
 import Model.DAOStudent;
 import Model.DBConnection;
 import Utils.RoleUtils;
+import ViewModel.BookPriceRow;
+import ViewModel.BuyListSnapshot;
+import ViewModel.OrderRow;
+import ViewModel.PageSlice;
+import ViewModel.PurchaseRequestItem;
+import ViewModel.StudentBuyListRow;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -165,27 +171,27 @@ public class BorrowController extends HttpServlet {
                 List<Book> availableBooks = filterBooksByKeyword(filterBorrowableBooks(allBooks), bookSearch);
                 PageSlice<Book> availablePage = paginate(availableBooks, bookPage, STUDENT_BOOK_PAGE_SIZE);
 
-                List<DAOBookPrice.BookPriceRow> bookPrices = daoBookPrice.getBookPriceRows();
+                List<BookPriceRow> bookPrices = daoBookPrice.getBookPriceRows();
                 BuyListSnapshot buyListSnapshot = buildBuyListSnapshot(req, allBooks, bookPrices);
 
-                List<DAOOrders.OrderRow> purchasedOrders = daoOrders.getOrderRows(studentId, purchaseSearch, "Approved");
-                PageSlice<DAOOrders.OrderRow> purchasePageSlice = paginate(purchasedOrders, purchasePage, STUDENT_PURCHASE_PAGE_SIZE);
+                List<OrderRow> purchasedOrders = daoOrders.getOrderRows(studentId, purchaseSearch, "Approved");
+                PageSlice<OrderRow> purchasePageSlice = paginate(purchasedOrders, purchasePage, STUDENT_PURCHASE_PAGE_SIZE);
 
                 req.setAttribute("studentId", studentId);
-                req.setAttribute("availableBooks", availablePage.items);
-                req.setAttribute("bookCurrentPage", availablePage.page);
-                req.setAttribute("bookTotalPages", availablePage.totalPages);
-                req.setAttribute("bookTotalItems", availablePage.totalItems);
+                req.setAttribute("availableBooks", availablePage.getItems());
+                req.setAttribute("bookCurrentPage", availablePage.getPage());
+                req.setAttribute("bookTotalPages", availablePage.getTotalPages());
+                req.setAttribute("bookTotalItems", availablePage.getTotalItems());
                 req.setAttribute("bookSearch", bookSearch);
 
                 req.setAttribute("bookPrices", bookPrices);
-                req.setAttribute("buyListItems", buyListSnapshot.items);
-                req.setAttribute("buyListTotal", buyListSnapshot.totalAmount);
+                req.setAttribute("buyListItems", buyListSnapshot.getItems());
+                req.setAttribute("buyListTotal", buyListSnapshot.getTotalAmount());
 
-                req.setAttribute("purchasedOrders", purchasePageSlice.items);
-                req.setAttribute("purchaseCurrentPage", purchasePageSlice.page);
-                req.setAttribute("purchaseTotalPages", purchasePageSlice.totalPages);
-                req.setAttribute("purchaseTotalItems", purchasePageSlice.totalItems);
+                req.setAttribute("purchasedOrders", purchasePageSlice.getItems());
+                req.setAttribute("purchaseCurrentPage", purchasePageSlice.getPage());
+                req.setAttribute("purchaseTotalPages", purchasePageSlice.getTotalPages());
+                req.setAttribute("purchaseTotalItems", purchasePageSlice.getTotalItems());
                 req.setAttribute("purchaseSearch", purchaseSearch);
 
                 req.setAttribute("borrows", daoBorrow.getBorrowRowsByStudent(studentId));
@@ -830,14 +836,14 @@ public class BorrowController extends HttpServlet {
     }
 
     private BuyListSnapshot buildBuyListSnapshot(HttpServletRequest req, List<Book> allBooks,
-            List<DAOBookPrice.BookPriceRow> bookPrices) {
+            List<BookPriceRow> bookPrices) {
         Map<Integer, Book> bookById = new HashMap<>();
         for (Book book : allBooks) {
             bookById.put(book.getBookID(), book);
         }
 
-        Map<Integer, DAOBookPrice.BookPriceRow> priceByBookId = new HashMap<>();
-        for (DAOBookPrice.BookPriceRow priceRow : bookPrices) {
+        Map<Integer, BookPriceRow> priceByBookId = new HashMap<>();
+        for (BookPriceRow priceRow : bookPrices) {
             priceByBookId.put(priceRow.getBookID(), priceRow);
         }
 
@@ -853,7 +859,7 @@ public class BorrowController extends HttpServlet {
             String bookName = book == null ? ("Book #" + bookId) : book.getBookName();
             int available = book == null ? 0 : book.getAvailable();
 
-            DAOBookPrice.BookPriceRow priceRow = priceByBookId.get(bookId);
+            BookPriceRow priceRow = priceByBookId.get(bookId);
             double unitPrice = priceRow == null ? 0 : priceRow.getAmount();
             String currency = priceRow == null ? "" : priceRow.getCurrency();
 
@@ -882,26 +888,26 @@ public class BorrowController extends HttpServlet {
 
             double totalAmount = 0;
             for (PurchaseRequestItem item : items) {
-                int available = daoBook.getAvailable(con, item.bookID);
-                if (available < item.quantity) {
-                    throw new SQLException("Khong du ton kho cho sach id=" + item.bookID);
+                int available = daoBook.getAvailable(con, item.getBookID());
+                if (available < item.getQuantity()) {
+                    throw new SQLException("Khong du ton kho cho sach id=" + item.getBookID());
                 }
 
-                double currentPrice = daoBookPrice.getCurrentSellingPrice(con, item.bookID);
+                double currentPrice = daoBookPrice.getCurrentSellingPrice(con, item.getBookID());
                 if (currentPrice <= 0) {
-                    throw new SQLException("Sach id=" + item.bookID + " chua co gia ban hop le.");
+                    throw new SQLException("Sach id=" + item.getBookID() + " chua co gia ban hop le.");
                 }
 
-                item.unitPrice = currentPrice;
-                totalAmount += currentPrice * item.quantity;
+                item.setUnitPrice(currentPrice);
+                totalAmount += currentPrice * item.getQuantity();
             }
 
             int orderId = daoOrders.insertPending(con, studentId, staffId, totalAmount);
             for (PurchaseRequestItem item : items) {
                 int affected = daoOrderDetail.insert(con,
-                        new OrderDetail(orderId, item.bookID, item.quantity, item.unitPrice));
+                        new OrderDetail(orderId, item.getBookID(), item.getQuantity(), item.getUnitPrice()));
                 if (affected == 0) {
-                    throw new SQLException("Khong the tao chi tiet don hang cho sach id=" + item.bookID);
+                    throw new SQLException("Khong the tao chi tiet don hang cho sach id=" + item.getBookID());
                 }
             }
 
@@ -927,93 +933,4 @@ public class BorrowController extends HttpServlet {
         return new PageSlice<>(items, page, totalPages, totalItems);
     }
 
-    private static class PurchaseRequestItem {
-        private final int bookID;
-        private final int quantity;
-        private double unitPrice;
-
-        private PurchaseRequestItem(int bookID, int quantity) {
-            this.bookID = bookID;
-            this.quantity = quantity;
-        }
-    }
-
-    public static class StudentBuyListRow {
-        private final int bookID;
-        private final String bookName;
-        private final int quantity;
-        private final int available;
-        private final double unitPrice;
-        private final String currency;
-        private final double lineTotal;
-        private final boolean canOrder;
-
-        public StudentBuyListRow(int bookID, String bookName, int quantity, int available,
-                double unitPrice, String currency, double lineTotal, boolean canOrder) {
-            this.bookID = bookID;
-            this.bookName = bookName;
-            this.quantity = quantity;
-            this.available = available;
-            this.unitPrice = unitPrice;
-            this.currency = currency;
-            this.lineTotal = lineTotal;
-            this.canOrder = canOrder;
-        }
-
-        public int getBookID() {
-            return bookID;
-        }
-
-        public String getBookName() {
-            return bookName;
-        }
-
-        public int getQuantity() {
-            return quantity;
-        }
-
-        public int getAvailable() {
-            return available;
-        }
-
-        public double getUnitPrice() {
-            return unitPrice;
-        }
-
-        public String getCurrency() {
-            return currency;
-        }
-
-        public double getLineTotal() {
-            return lineTotal;
-        }
-
-        public boolean isCanOrder() {
-            return canOrder;
-        }
-    }
-
-    private static class BuyListSnapshot {
-        private final List<StudentBuyListRow> items;
-        private final double totalAmount;
-
-        private BuyListSnapshot(List<StudentBuyListRow> items, double totalAmount) {
-            this.items = items;
-            this.totalAmount = totalAmount;
-        }
-    }
-
-    private static class PageSlice<T> {
-        private final List<T> items;
-        private final int page;
-        private final int totalPages;
-        private final int totalItems;
-
-        private PageSlice(List<T> items, int page, int totalPages, int totalItems) {
-            this.items = items;
-            this.page = page;
-            this.totalPages = totalPages;
-            this.totalItems = totalItems;
-        }
-    }
 }

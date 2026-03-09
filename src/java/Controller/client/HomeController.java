@@ -11,6 +11,7 @@ import Model.DAOCategory;
 import Model.DAOPublisher;
 import Model.DAOStudent;
 import Utils.RoleUtils;
+import ViewModel.PageSlice;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -62,7 +63,7 @@ public class HomeController extends HttpServlet {
             List<Publisher> publishers = daoPublisher.getAll();
             List<Borrow> holds = resolveActiveBorrows(request);
 
-            request.setAttribute("books", pageSlice.items);
+            request.setAttribute("books", pageSlice.getItems());
             request.setAttribute("categories", categories);
             request.setAttribute("publishers", publishers);
             request.setAttribute("holds", holds);
@@ -71,9 +72,9 @@ public class HomeController extends HttpServlet {
             request.setAttribute("categoryId", categoryIdRaw);
             request.setAttribute("publisherId", publisherIdRaw);
             request.setAttribute("author", author);
-            request.setAttribute("currentPage", pageSlice.page);
-            request.setAttribute("totalPages", pageSlice.totalPages);
-            request.setAttribute("totalBooks", pageSlice.totalItems);
+            request.setAttribute("currentPage", pageSlice.getPage());
+            request.setAttribute("totalPages", pageSlice.getTotalPages());
+            request.setAttribute("totalBooks", pageSlice.getTotalItems());
 
             request.getRequestDispatcher("/WEB-INF/views/client/home/index.jsp").forward(request, response);
         } catch (SQLException e) {
@@ -168,17 +169,4 @@ public class HomeController extends HttpServlet {
         return new PageSlice<>(items, page, totalPages, totalItems);
     }
 
-    private static class PageSlice<T> {
-        private final List<T> items;
-        private final int page;
-        private final int totalPages;
-        private final int totalItems;
-
-        private PageSlice(List<T> items, int page, int totalPages, int totalItems) {
-            this.items = items;
-            this.page = page;
-            this.totalPages = totalPages;
-            this.totalItems = totalItems;
-        }
-    }
 }
