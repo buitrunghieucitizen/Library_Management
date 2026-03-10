@@ -153,13 +153,15 @@ public class DAOOrders {
 
     public List<OrderRow> getOrderRows() throws SQLException {
         String sql = "SELECT o.OrderID, s.StudentName, "
-                + "CASE WHEN o.Status = 'Pending' THEN N'Chua xu ly' ELSE st.StaffName END AS StaffName, "
+                // 1. Đã cập nhật thêm trạng thái Sẵn sàng và Hàng chờ
+                + "CASE WHEN o.Status IN ('Pending', N'Sẵn sàng', N'Hàng chờ') THEN N'Chưa xử lý' ELSE st.StaffName END AS StaffName, "
                 + "CONVERT(varchar(10), o.OrderDate, 23) AS OrderDate, "
                 + "o.TotalAmount, o.Status, "
                 + "ISNULL(STRING_AGG(CONCAT(b.BookName, ' (x', od.Quantity, ', ', CONVERT(varchar(20), od.UnitPrice), ')'), ', '), '') AS Items "
                 + "FROM Orders o "
                 + "JOIN Student s ON s.StudentID = o.StudentID "
-                + "JOIN Staff st ON st.StaffID = o.StaffID "
+                // 2. ĐÃ SỬA THÀNH LEFT JOIN ĐỂ KHÔNG BỊ MẤT ĐƠN HÀNG
+                + "LEFT JOIN Staff st ON st.StaffID = o.StaffID "
                 + "LEFT JOIN OrderDetail od ON od.OrderID = o.OrderID "
                 + "LEFT JOIN Book b ON b.BookID = od.BookID "
                 + "GROUP BY o.OrderID, s.StudentName, st.StaffName, o.OrderDate, o.TotalAmount, o.Status "
@@ -171,8 +173,7 @@ public class DAOOrders {
             throw new SQLException("Cannot connect to database!");
         }
 
-        try (PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 rows.add(new OrderRow(
                         rs.getInt("OrderID"),
@@ -190,7 +191,73 @@ public class DAOOrders {
         return rows;
     }
 
+    // 1. Hàm lấy danh sách đơn mua của riêng 1 sinh viên
+    public List<OrderRow> getOrderRowsByStudent(int studentId) throws SQLException {
+        String sql = "SELECT o.OrderID, s.StudentName, "
+                + "CASE WHEN o.Status IN ('Pending', N'Hàng chờ', N'Sẵn sàng') THEN N'Chưa xử lý' ELSE st.StaffName END AS StaffName, "
+                + "CONVERT(varchar(10), o.OrderDate, 23) AS OrderDate, "
+                + "o.TotalAmount, o.Status, "
+                + "ISNULL(STRING_AGG(CONCAT(b.BookName, ' (x', od.Quantity, ', ', CONVERT(varchar(20), od.UnitPrice), ')'), ', '), '') AS Items "
+                + "FROM Orders o "
+                + "JOIN Student s ON s.StudentID = o.StudentID "
+                + "LEFT JOIN Staff st ON st.StaffID = o.StaffID "
+                + "LEFT JOIN OrderDetail od ON od.OrderID = o.OrderID "
+                + "LEFT JOIN Book b ON b.BookID = od.BookID "
+                + "WHERE o.StudentID = ? "
+                + "GROUP BY o.OrderID, s.StudentName, st.StaffName, o.OrderDate, o.TotalAmount, o.Status "
+                + "ORDER BY o.OrderID DESC";
+
+        List<OrderRow> rows = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    rows.add(new OrderRow(
+                            rs.getInt("OrderID"),
+                            rs.getString("StudentName"),
+                            rs.getString("StaffName"),
+                            rs.getString("OrderDate"),
+                            rs.getDouble("TotalAmount"),
+                            rs.getString("Status"),
+                            rs.getString("Items")
+                    ));
+                }
+            }
+        } finally {
+            con.close();
+        }
+        return rows;
+    }
+
+    // 2. Hàm tạo đơn hàng với Trạng thái tùy chỉnh
+    public int insertOrderCustomStatus(Connection con, int studentId, int staffId, double totalAmount, String status) throws SQLException {
+        String sql = "INSERT INTO Orders(StudentID, StaffID, OrderDate, TotalAmount, Status) VALUES(?,?,GETDATE(),?,?)";
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, studentId);
+            ps.setInt(2, staffId);
+            ps.setDouble(3, totalAmount);
+            ps.setString(4, status); // Chèn N'Sẵn sàng' hoặc N'Hàng chờ'
+
+            int affected = ps.executeUpdate();
+            if (affected == 0) {
+                throw new SQLException("Không thể tạo đơn hàng.");
+            }
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1); // Trả về OrderID vừa được IDENTITY(1,1) sinh ra
+                }
+            }
+        }
+        throw new SQLException("Không lấy được OrderID mới.");
+    }
+
     public static class OrderRow {
+
         private final int orderID;
         private final String studentName;
         private final String staffName;

@@ -3,7 +3,26 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/web/META-INF/context.xml</file>
+            <file>file:/D:/SWD_code/Library_Management/web/WEB-INF/views/borrow/student.jsp</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Filter/AuthFilter.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Controller/BookController.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Controller/OrderStaffController.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Controller/BuyController.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Utils/RoleUtils.java</file>
+            <file>file:/D:/SWD_code/Library_Management/web/WEB-INF/views/buy/student_buy.jsp</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Entities/StaffRole.java</file>
+            <file>file:/D:/SWD_code/Library_Management/web/WEB-INF/views/borrow/list.jsp</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Model/DAOBookPrice.java</file>
+            <file>file:/D:/SWD_code/Library_Management/web/WEB-INF/views/borrow/create.jsp</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Controller/OrdersController.java</file>
+            <file>file:/D:/SWD_code/Library_Management/web/WEB-INF/views/orders/list.jsp</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Entities/WaitlistItem.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Model/DAOStaffRole.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Model/DAOBorrow.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Controller/BorrowController.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Model/DAOOrders.java</file>
+            <file>file:/D:/SWD_code/Library_Management/web/index.jsp</file>
+            <file>file:/D:/SWD_code/Library_Management/web/index.html</file>
         </group>
     </open-files>
 </project-private>

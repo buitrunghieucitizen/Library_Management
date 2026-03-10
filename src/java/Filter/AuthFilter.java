@@ -93,7 +93,7 @@ public class AuthFilter implements Filter {
         }
 
         if (isStudentOnly) {
-            if (path.equals("/books") || path.equals("/borrows") || path.equals("/index.jsp")
+            if (path.equals("/books") || path.equals("/borrows") ||path.equals("/buy") || path.equals("/index.jsp")
                     || path.equals("/") || path.equals("/logout")) {
                 chain.doFilter(request, response);
             } else {
