@@ -228,10 +228,9 @@
             </table>
 
             <c:if test="${not empty buyListItems}">
-                <form method="post" action="${pageContext.request.contextPath}/borrows" class="mt-4">
-                    <input type="hidden" name="action" value="orderBuyAll">
-                    <button class="btn btn-approve" type="submit">Gửi duyệt tất cả</button>
-                </form>
+                <div class="actions mt-4">
+                    <a class="btn btn-approve" href="${pageContext.request.contextPath}/borrows?action=checkout">Checkout đơn mua</a>
+                </div>
             </c:if>
         </div>
 

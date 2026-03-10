@@ -126,4 +126,16 @@ public class DAOOrderDetail {
         return items;
     }
 
+    public List<OrderItemRow> getOrderItemsWithBookName(int orderId) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try {
+            return getOrderItemsWithBookName(con, orderId);
+        } finally {
+            con.close();
+        }
+    }
+
 }

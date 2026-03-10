@@ -3,6 +3,7 @@ package Controller;
 import Entities.Book;
 import Entities.BorrowItem;
 import Entities.OrderDetail;
+import Entities.Orders;
 import Entities.Staff;
 import Entities.Student;
 import Model.DAOBook;
@@ -17,6 +18,7 @@ import Utils.RoleUtils;
 import ViewModel.BookPriceRow;
 import ViewModel.BorrowRow;
 import ViewModel.BuyListSnapshot;
+import ViewModel.OrderItemRow;
 import ViewModel.OrderRow;
 import ViewModel.PageSlice;
 import ViewModel.PurchaseRequestItem;
@@ -75,6 +77,12 @@ public class BorrowController extends HttpServlet {
             switch (action) {
                 case "create":
                     showCreate(req, resp);
+                    break;
+                case "checkout":
+                    showCheckout(req, resp);
+                    break;
+                case "checkoutSuccess":
+                    showCheckoutSuccess(req, resp);
                     break;
                 case "list":
                 default:
@@ -215,6 +223,103 @@ public class BorrowController extends HttpServlet {
         req.setAttribute("totalPages", pageSlice.getTotalPages());
         req.setAttribute("totalItems", pageSlice.getTotalItems());
         req.getRequestDispatcher("/WEB-INF/views/borrow/list.jsp").forward(req, resp);
+    }
+
+    private void showCheckout(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
+        if (!RoleUtils.isStudentOnly(req)) {
+            redirectWithMessage(req, resp, "error", "Chi tai khoan hoc sinh moi duoc checkout.");
+            return;
+        }
+
+        Staff staff = RoleUtils.getLoggedStaff(req);
+        if (staff == null) {
+            resp.sendRedirect(req.getContextPath() + "/LoginURL");
+            return;
+        }
+
+        Integer studentId = resolveStudentIdForStaff(staff);
+        if (studentId == null) {
+            redirectWithMessage(req, resp, "error", "Khong xac dinh duoc ma sinh vien.");
+            return;
+        }
+
+        List<Book> allBooks = daoBook.getAll();
+        List<BookPriceRow> bookPrices = daoBookPrice.getBookPriceRows();
+        BuyListSnapshot buyListSnapshot = buildBuyListSnapshot(req, allBooks, bookPrices);
+
+        List<StudentBuyListRow> checkoutItems = buyListSnapshot.getItems();
+        if (checkoutItems.isEmpty()) {
+            redirectWithMessage(req, resp, "error", "Danh sach can mua dang trong.");
+            return;
+        }
+
+        int invalidCount = 0;
+        int totalQuantity = 0;
+        for (StudentBuyListRow item : checkoutItems) {
+            if (!item.isCanOrder()) {
+                invalidCount++;
+            }
+            totalQuantity += Math.max(item.getQuantity(), 0);
+        }
+
+        req.setAttribute("studentId", studentId);
+        req.setAttribute("checkoutItems", checkoutItems);
+        req.setAttribute("checkoutItemCount", checkoutItems.size());
+        req.setAttribute("checkoutQuantity", totalQuantity);
+        req.setAttribute("checkoutTotal", buyListSnapshot.getTotalAmount());
+        req.setAttribute("checkoutInvalidCount", invalidCount);
+        req.getRequestDispatcher("/WEB-INF/views/borrow/checkout.jsp").forward(req, resp);
+    }
+
+    private void showCheckoutSuccess(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
+        if (!RoleUtils.isStudentOnly(req)) {
+            redirectWithMessage(req, resp, "error", "Chi tai khoan hoc sinh moi duoc xem ket qua checkout.");
+            return;
+        }
+
+        Staff staff = RoleUtils.getLoggedStaff(req);
+        if (staff == null) {
+            resp.sendRedirect(req.getContextPath() + "/LoginURL");
+            return;
+        }
+
+        Integer studentId = resolveStudentIdForStaff(staff);
+        if (studentId == null) {
+            redirectWithMessage(req, resp, "error", "Khong xac dinh duoc ma sinh vien.");
+            return;
+        }
+
+        int orderId;
+        try {
+            orderId = parsePositiveInt(req.getParameter("orderID"), "OrderID");
+        } catch (Exception e) {
+            redirectWithMessage(req, resp, "error", "OrderID khong hop le.");
+            return;
+        }
+
+        Orders order = daoOrders.getById(orderId);
+        if (order == null || order.getStudentID() != studentId) {
+            redirectWithMessage(req, resp, "error", "Khong tim thay don hang vua dat.");
+            return;
+        }
+
+        List<OrderItemRow> orderItems = daoOrderDetail.getOrderItemsWithBookName(orderId);
+        if (orderItems.isEmpty()) {
+            redirectWithMessage(req, resp, "error", "Don hang khong co chi tiet.");
+            return;
+        }
+
+        int totalQuantity = 0;
+        for (OrderItemRow item : orderItems) {
+            totalQuantity += Math.max(item.getQuantity(), 0);
+        }
+
+        req.setAttribute("studentId", studentId);
+        req.setAttribute("successOrder", order);
+        req.setAttribute("successItems", orderItems);
+        req.setAttribute("successItemCount", orderItems.size());
+        req.setAttribute("successTotalQuantity", totalQuantity);
+        req.getRequestDispatcher("/WEB-INF/views/borrow/checkout-success.jsp").forward(req, resp);
     }
 
     private void showCreate(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
@@ -370,7 +475,7 @@ public class BorrowController extends HttpServlet {
             }
 
             con.commit();
-            redirectWithMessage(req, resp, "msg", "Da gui yeu cau mua sach. Vui long cho Staff/Admin xac nhan.");
+            redirectToCheckoutSuccess(req, resp, orderId);
         } catch (SQLException e) {
             con.rollback();
             throw e;
@@ -525,7 +630,7 @@ public class BorrowController extends HttpServlet {
         try {
             int orderId = createPendingOrder(studentId, staff.getStaffID(), List.of(item));
             buyList.remove(bookId);
-            redirectWithMessage(req, resp, "msg", "Da gui duyet 1 sach. Ma don: " + orderId);
+            redirectToCheckoutSuccess(req, resp, orderId);
         } catch (SQLException e) {
             redirectWithMessage(req, resp, "error", e.getMessage());
         }
@@ -569,7 +674,7 @@ public class BorrowController extends HttpServlet {
         try {
             int orderId = createPendingOrder(studentId, staff.getStaffID(), items);
             buyList.clear();
-            redirectWithMessage(req, resp, "msg", "Da gui duyet tat ca sach can mua. Ma don: " + orderId);
+            redirectToCheckoutSuccess(req, resp, orderId);
         } catch (SQLException e) {
             redirectWithMessage(req, resp, "error", e.getMessage());
         }
@@ -762,6 +867,10 @@ public class BorrowController extends HttpServlet {
     private void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp, String key, String value) throws IOException {
         String encoded = URLEncoder.encode(value, StandardCharsets.UTF_8);
         resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list&" + key + "=" + encoded);
+    }
+
+    private void redirectToCheckoutSuccess(HttpServletRequest req, HttpServletResponse resp, int orderId) throws IOException {
+        resp.sendRedirect(req.getContextPath() + PUBLIC_BORROWS_PATH + "?action=checkoutSuccess&orderID=" + orderId);
     }
 
     private boolean shouldRedirectToAdminRoute(HttpServletRequest req) {
