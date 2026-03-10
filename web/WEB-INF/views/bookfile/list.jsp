@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quan ly tep sach</title>
+    <title>Quản lý tệp sách</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -13,8 +13,8 @@
 
     <div class="container">
         <div class="panel">
-            <h2>Quan ly tep sach</h2>
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/bookfiles?action=create">Them tep sach</a>
+            <h2>Quản lý tệp sách</h2>
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/bookfiles?action=create">Thêm tệp sách</a>
 
             <c:if test="${not empty param.msg}">
                 <div class="msg mb-3">${param.msg}</div>
@@ -22,21 +22,21 @@
             <c:if test="${not empty param.error}">
                 <div class="error mb-3">${param.error}</div>
             </c:if>
-            <div class="note">Tong ban ghi: ${totalItems}</div>
+            <div class="note">Tổng bản ghi: ${totalItems}</div>
 
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Sach</th>
-                        <th>Nhan vien</th>
-                        <th>Tep</th>
-                        <th>Lien ket</th>
-                        <th>Loai</th>
-                        <th>Kich thuoc</th>
-                        <th>Ngay tai</th>
-                        <th>Kich hoat</th>
-                        <th>Hanh dong</th>
+                        <th>Mã</th>
+                        <th>Sách</th>
+                        <th>Nhân viên</th>
+                        <th>Tệp</th>
+                        <th>Liên kết</th>
+                        <th>Loại</th>
+                        <th>Kích thước</th>
+                        <th>Ngày tải</th>
+                        <th>Kích hoạt</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,18 +50,18 @@
                             <td>${row.fileType}</td>
                             <td>${row.fileSize}</td>
                             <td>${row.uploadAt}</td>
-                            <td>${row.active ? 'Co' : 'Khong'}</td>
+                            <td>${row.active ? 'Có' : 'Không'}</td>
                             <td>
                                 <div class="actions">
-                                    <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/bookfiles?action=edit&id=${row.bookFileID}">Sua</a>
-                                    <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/bookfiles?action=delete&id=${row.bookFileID}" onclick="return confirm('Xoa tep sach nay?')">Xoa</a>
+                                    <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/bookfiles?action=edit&id=${row.bookFileID}">Sửa</a>
+                                    <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/bookfiles?action=delete&id=${row.bookFileID}" onclick="return confirm('Xóa tệp sách này?')">Xóa</a>
                                 </div>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty bookFiles}">
                         <tr>
-                            <td colspan="10" class="empty-row">Chua co tep sach nao.</td>
+                            <td colspan="10" class="empty-row">Chưa có tệp sách nào.</td>
                         </tr>
                     </c:if>
                 </tbody>
@@ -74,7 +74,7 @@
                             <c:param name="action" value="list"/>
                             <c:param name="page" value="${currentPage - 1}"/>
                         </c:url>
-                        <a class="page-link" href="${prevUrl}">Trang truoc</a>
+                        <a class="page-link" href="${prevUrl}">Trang trước</a>
                     </c:if>
 
                     <c:forEach begin="1" end="${totalPages}" var="p">

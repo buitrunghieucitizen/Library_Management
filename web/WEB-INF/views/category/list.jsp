@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sach the loai</title>
+    <title>Danh sách thể loại</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -12,19 +12,19 @@
     <%@ include file="../admin/_header.jsp" %>
 
     <div class="container">
-        <h2>Danh sach the loai</h2>
+        <h2>Danh sách thể loại</h2>
         <c:if test="${not empty param.error}">
             <div class="error"><c:out value="${param.error}" /></div>
         </c:if>
-        <a class="btn btn-primary btn-inline" href="${pageContext.request.contextPath}/admin/categories?action=create">+ Them the loai</a>
-        <div class="note">Tong ban ghi: ${totalItems}</div>
+        <a class="btn btn-primary btn-inline" href="${pageContext.request.contextPath}/admin/categories?action=create">+ Thêm thể loại</a>
+        <div class="note">Tổng bản ghi: ${totalItems}</div>
 
         <table>
             <thead>
                 <tr>
-                    <th>Ma</th>
-                    <th>Ten the loai</th>
-                    <th>Hanh dong</th>
+                    <th>Mã</th>
+                    <th>Tên thể loại</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,13 +33,13 @@
                         <td>${c.categoryID}</td>
                         <td>${c.categoryName}</td>
                         <td class="actions">
-                            <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/categories?action=edit&id=${c.categoryID}">Sua</a>
-                            <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/categories?action=delete&id=${c.categoryID}" onclick="return confirm('Xoa?')">Xoa</a>
+                            <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/categories?action=edit&id=${c.categoryID}">Sửa</a>
+                            <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/categories?action=delete&id=${c.categoryID}" onclick="return confirm('Xóa?')">Xóa</a>
                         </td>
                     </tr>
                 </c:forEach>
                 <c:if test="${empty categories}">
-                    <tr><td colspan="3" class="empty-row-lg">Chua co the loai.</td></tr>
+                    <tr><td colspan="3" class="empty-row-lg">Chưa có thể loại.</td></tr>
                 </c:if>
             </tbody>
         </table>
@@ -51,7 +51,7 @@
                         <c:param name="action" value="list"/>
                         <c:param name="page" value="${currentPage - 1}"/>
                     </c:url>
-                    <a class="page-link" href="${prevUrl}">Trang truoc</a>
+                    <a class="page-link" href="${prevUrl}">Trang trước</a>
                 </c:if>
 
                 <c:forEach begin="1" end="${totalPages}" var="p">
