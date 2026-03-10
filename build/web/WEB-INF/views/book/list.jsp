@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sach sach</title>
+    <title>Danh sách sách</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -33,24 +33,24 @@
         </c:when>
         <c:otherwise>
             <div class="navbar">
-                <h1>Quan ly thu vien</h1>
-                <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-                <a class="active" href="${pageContext.request.contextPath}/books?action=list">Sach</a>
-                <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va mua sach</a>
+                <h1>Quản lý thư viện</h1>
+                <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
+                <a class="active" href="${pageContext.request.contextPath}/books?action=list">Sách</a>
+                <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
                 <div class="nav-right">
                     <span><c:out value="${sessionScope.staff.staffName}" default=""/></span>
-                    <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
+                    <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
                 </div>
             </div>
         </c:otherwise>
     </c:choose>
 
     <div class="container">
-        <h2>Danh sach sach</h2>
+        <h2>Danh sách sách</h2>
         <c:if test="${isAdminSection && isAdmin}">
-            <a class="btn btn-primary btn-inline" href="${pageContext.request.contextPath}/admin/books?action=create">+ Them sach moi</a>
+            <a class="btn btn-primary btn-inline" href="${pageContext.request.contextPath}/admin/books?action=create">+ Thêm sách mới</a>
         </c:if>
-        <div class="note">Tong ban ghi: ${totalItems}</div>
+        <div class="note">Tổng bản ghi: ${totalItems}</div>
 
         <c:if test="${not empty msg}">
             <div class="msg">${msg}</div>
@@ -59,13 +59,13 @@
         <table>
             <thead>
                 <tr>
-                    <th>Ma</th>
-                    <th>Ten sach</th>
-                    <th>So luong</th>
-                    <th>Con lai</th>
-                    <th>Ma the loai</th>
-                    <th>Ma nha xuat ban</th>
-                    <th>Hanh dong</th>
+                    <th>Mã</th>
+                    <th>Tên sách</th>
+                    <th>Số lượng</th>
+                    <th>Còn lại</th>
+                    <th>Mã thể loại</th>
+                    <th>Mã nhà xuất bản</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
             <tbody>
@@ -79,17 +79,17 @@
                         <td>${b.publisherID}</td>
                         <td class="actions">
                             <c:if test="${isAdminSection && isAdmin}">
-                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/books?action=edit&id=${b.bookID}">Sua</a>
-                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/books?action=delete&id=${b.bookID}" onclick="return confirm('Ban co chac muon xoa?')">Xoa</a>
+                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/books?action=edit&id=${b.bookID}">Sửa</a>
+                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/books?action=delete&id=${b.bookID}" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</a>
                             </c:if>
                             <c:if test="${not isAdminSection || not isAdmin}">
-                                <span class="text-subtle">Chi xem</span>
+                                <span class="text-subtle">Chỉ xem</span>
                             </c:if>
                         </td>
                     </tr>
                 </c:forEach>
                 <c:if test="${empty books}">
-                    <tr><td colspan="7" class="empty-row-lg">Chua co sach nao.</td></tr>
+                    <tr><td colspan="7" class="empty-row-lg">Chưa có sách nào.</td></tr>
                 </c:if>
             </tbody>
         </table>
@@ -103,7 +103,7 @@
                                 <c:param name="action" value="list"/>
                                 <c:param name="page" value="${currentPage - 1}"/>
                             </c:url>
-                            <a class="page-link" href="${prevUrl}">Trang truoc</a>
+                            <a class="page-link" href="${prevUrl}">Trang trước</a>
                         </c:if>
 
                         <c:forEach begin="1" end="${totalPages}" var="p">
@@ -128,7 +128,7 @@
                                 <c:param name="action" value="list"/>
                                 <c:param name="page" value="${currentPage - 1}"/>
                             </c:url>
-                            <a class="page-link" href="${prevUrl}">Trang truoc</a>
+                            <a class="page-link" href="${prevUrl}">Trang trước</a>
                         </c:if>
 
                         <c:forEach begin="1" end="${totalPages}" var="p">
