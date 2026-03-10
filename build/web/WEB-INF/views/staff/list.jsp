@@ -66,7 +66,7 @@
                             <c:param name="action" value="list"/>
                             <c:param name="page" value="${currentPage - 1}"/>
                         </c:url>
-                        <a class="page-link" href="${pageContext.request.contextPath}${prevUrl}">Trang truoc</a>
+                        <a class="page-link" href="${prevUrl}">Trang truoc</a>
                     </c:if>
 
                     <c:forEach begin="1" end="${totalPages}" var="p">
@@ -74,7 +74,7 @@
                             <c:param name="action" value="list"/>
                             <c:param name="page" value="${p}"/>
                         </c:url>
-                        <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageContext.request.contextPath}${pageUrl}">${p}</a>
+                        <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageUrl}">${p}</a>
                     </c:forEach>
 
                     <c:if test="${currentPage < totalPages}">
@@ -82,7 +82,7 @@
                             <c:param name="action" value="list"/>
                             <c:param name="page" value="${currentPage + 1}"/>
                         </c:url>
-                        <a class="page-link" href="${pageContext.request.contextPath}${nextUrl}">Trang sau</a>
+                        <a class="page-link" href="${nextUrl}">Trang sau</a>
                     </c:if>
                 </div>
             </c:if>
