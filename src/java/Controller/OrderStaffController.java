@@ -77,6 +77,14 @@ public class OrderStaffController extends HttpServlet {
                 cancelOrder(orderId, staff.getStaffID());
                 resp.sendRedirect(req.getContextPath() + "/admin/orders?msg=" + java.net.URLEncoder.encode("Đã hủy đơn hàng #" + orderId, "UTF-8"));
                 return;
+            } else if ("approve".equals(action)) {
+                approveOrder(orderId, staff.getStaffID());
+                resp.sendRedirect(req.getContextPath() + "/admin/orders?msg=" + java.net.URLEncoder.encode("Đã duyệt đơn hàng #" + orderId + " thành công!", "UTF-8"));
+                return;
+            } else if ("reject".equals(action)) {
+                rejectOrder(orderId, staff.getStaffID());
+                resp.sendRedirect(req.getContextPath() + "/admin/orders?msg=" + java.net.URLEncoder.encode("Đã từ chối đơn hàng #" + orderId, "UTF-8"));
+                return;
             } else {
                 resp.sendRedirect(req.getContextPath() + "/admin/orders?error=" + java.net.URLEncoder.encode("Hành động không hợp lệ", "UTF-8"));
                 return;
@@ -126,6 +134,62 @@ public class OrderStaffController extends HttpServlet {
         try {
             con.setAutoCommit(false);
             daoOrders.updateStatus(con, orderId, "Đã hủy", staffId);
+            con.commit();
+        } catch (SQLException e) {
+            con.rollback();
+            throw e;
+        } finally {
+            con.setAutoCommit(true);
+            con.close();
+        }
+    }
+
+    private void approveOrder(int orderId, int staffId) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) throw new SQLException("Lỗi kết nối CSDL!");
+
+        try {
+            con.setAutoCommit(false);
+
+            String status = daoOrders.getStatusForUpdate(con, orderId);
+            if (status == null) throw new SQLException("Không tìm thấy đơn hàng.");
+            if (!"Pending".equalsIgnoreCase(status)) throw new SQLException("Chỉ có thể duyệt đơn Pending.");
+
+            List<DAOOrderDetail.OrderItemRow> items = daoOrderDetail.getOrderItemsWithBookName(con, orderId);
+            if (items.isEmpty()) throw new SQLException("Đơn hàng không có chi tiết sách.");
+
+            for (DAOOrderDetail.OrderItemRow item : items) {
+                int affected = daoBook.decreaseStockAndAvailable(con, item.getBookID(), item.getQuantity());
+                if (affected == 0) throw new SQLException("Không đủ tồn kho để duyệt đơn cho sách '" + item.getBookName() + "'");
+            }
+
+            if (daoOrders.updateStatus(con, orderId, "Approved", staffId) == 0) {
+                throw new SQLException("Cập nhật trạng thái đơn hàng thất bại.");
+            }
+            con.commit();
+        } catch (SQLException e) {
+            con.rollback();
+            throw e;
+        } finally {
+            con.setAutoCommit(true);
+            con.close();
+        }
+    }
+
+    private void rejectOrder(int orderId, int staffId) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) throw new SQLException("Lỗi kết nối CSDL!");
+
+        try {
+            con.setAutoCommit(false);
+
+            String status = daoOrders.getStatusForUpdate(con, orderId);
+            if (status == null) throw new SQLException("Không tìm thấy đơn hàng.");
+            if (!"Pending".equalsIgnoreCase(status)) throw new SQLException("Chỉ có thể từ chối đơn Pending.");
+
+            if (daoOrders.updateStatus(con, orderId, "Rejected", staffId) == 0) {
+                throw new SQLException("Cập nhật trạng thái đơn hàng thất bại.");
+            }
             con.commit();
         } catch (SQLException e) {
             con.rollback();
