@@ -21,7 +21,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet(name = "OrdersController", urlPatterns = {"/admin/orders"})
+@WebServlet(name = "OrdersController", urlPatterns = {"/admin/orders_old"})
 public class OrdersController extends HttpServlet {
 
     private static final String ORDERS_PATH = "/admin/orders";

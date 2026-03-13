@@ -6,7 +6,6 @@
     <meta charset="UTF-8" />
     <title>Quản lý thư viện</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-    
 </head>
 <body>
     <c:set var="isAdmin" value="false" />
@@ -50,7 +49,8 @@
               </c:when>
               <c:when test="${isStudent}">
                   <a href="${pageContext.request.contextPath}/home">Cổng sinh viên</a>
-                  <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
+                  <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn sách</a>
+                  <a href="${pageContext.request.contextPath}/buy">Mua sách</a>
               </c:when>
           </c:choose>
       </div>
@@ -73,7 +73,7 @@
             </c:when>
             <c:when test="${isStudent}">
                 <h2>Màn hình sinh viên</h2>
-                <p>Sinh viên có thể vào cổng sinh viên để tìm sách, sau đó mượn sách, gửi yêu cầu trả sách và đặt mua sách.</p>
+                <p>Sinh viên có thể vào cổng sinh viên để tìm sách, mượn sách, hoặc đặt mua sách với danh sách chờ cá nhân.</p>
             </c:when>
             <c:otherwise>
                 <h2>Tài khoản chưa được gán quyền</h2>
@@ -150,8 +150,12 @@
                   <span>Tìm sách và mở giao diện sinh viên mới</span>
                 </a>
                 <a class="grid-item" href="${pageContext.request.contextPath}/borrows?action=list">
-                  <h3>Mượn và mua</h3>
-                  <span>Mượn sách, trả sách và đặt mua</span>
+                  <h3>Mượn sách</h3>
+                  <span>Giao dịch mượn và trả sách</span>
+                </a>
+                <a class="grid-item" href="${pageContext.request.contextPath}/buy">
+                  <h3>Mua sách</h3>
+                  <span>Đặt mua sách và theo dõi đơn hàng</span>
                 </a>
             </c:when>
         </c:choose>
@@ -159,5 +163,3 @@
     </div>
 </body>
 </html>
-
-

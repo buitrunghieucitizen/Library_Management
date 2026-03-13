@@ -159,13 +159,14 @@ public class DAOOrders {
     public List<OrderRow> getOrderRows(Integer studentId, String keyword, String status) throws SQLException {
         StringBuilder sql = new StringBuilder(
                 "SELECT o.OrderID, s.StudentName, "
-                + "CASE WHEN o.Status = 'Pending' THEN N'Chua xu ly' ELSE st.StaffName END AS StaffName, "
+                + "CASE WHEN o.Status IN ('Pending', N'Sẵn sàng', N'Hàng chờ') "
+                + "THEN N'Chua xu ly' ELSE st.StaffName END AS StaffName, "
                 + "CONVERT(varchar(10), o.OrderDate, 23) AS OrderDate, "
                 + "o.TotalAmount, o.Status, "
                 + "ISNULL(STRING_AGG(CONCAT(b.BookName, ' (x', od.Quantity, ', ', CONVERT(varchar(20), od.UnitPrice), ')'), ', '), '') AS Items "
                 + "FROM Orders o "
                 + "JOIN Student s ON s.StudentID = o.StudentID "
-                + "JOIN Staff st ON st.StaffID = o.StaffID "
+                + "LEFT JOIN Staff st ON st.StaffID = o.StaffID "
                 + "LEFT JOIN OrderDetail od ON od.OrderID = o.OrderID "
                 + "LEFT JOIN Book b ON b.BookID = od.BookID "
                 + "WHERE 1=1 ");
@@ -231,4 +232,28 @@ public class DAOOrders {
         return rows;
     }
 
+    public List<OrderRow> getOrderRowsByStudent(int studentId) throws SQLException {
+        return getOrderRows(studentId, null, null);
+    }
+
+    public int insertOrderCustomStatus(Connection con, int studentId, int staffId, double totalAmount, String status) throws SQLException {
+        String sql = "INSERT INTO Orders(StudentID, StaffID, OrderDate, TotalAmount, Status) VALUES(?,?,GETDATE(),?,?)";
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, studentId);
+            ps.setInt(2, staffId);
+            ps.setDouble(3, totalAmount);
+            ps.setString(4, status);
+
+            int affected = ps.executeUpdate();
+            if (affected == 0) {
+                throw new SQLException("Khong the tao don hang.");
+            }
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+        }
+        throw new SQLException("Khong lay duoc OrderID moi.");
+    }
 }
