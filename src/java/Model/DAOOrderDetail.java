@@ -1,7 +1,6 @@
 package Model;
 
 import Entities.OrderDetail;
-import ViewModel.OrderItemRow;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -105,17 +104,17 @@ public class DAOOrderDetail {
         }
     }
 
-    public List<OrderItemRow> getOrderItemsWithBookName(Connection con, int orderId) throws SQLException {
+    public List<ViewModel.OrderItemRow> getOrderItemsWithBookName(Connection con, int orderId) throws SQLException {
         String sql = "SELECT od.BookID, od.Quantity, od.UnitPrice, b.BookName "
                 + "FROM OrderDetail od "
                 + "JOIN Book b ON b.BookID = od.BookID "
                 + "WHERE od.OrderID = ?";
-        List<OrderItemRow> items = new ArrayList<>();
+        List<ViewModel.OrderItemRow> items = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, orderId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    items.add(new OrderItemRow(
+                    items.add(new ViewModel.OrderItemRow(
                             rs.getInt("BookID"),
                             rs.getString("BookName"),
                             rs.getInt("Quantity"),
@@ -126,7 +125,7 @@ public class DAOOrderDetail {
         return items;
     }
 
-    public List<OrderItemRow> getOrderItemsWithBookName(int orderId) throws SQLException {
+    public List<ViewModel.OrderItemRow> getOrderItemsWithBookName(int orderId) throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
