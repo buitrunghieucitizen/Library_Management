@@ -1,1 +1,7 @@
 /dist/
+/build/
+/.vscode/
+/nbproject/private/
+*.class
+*.war
+*.log
