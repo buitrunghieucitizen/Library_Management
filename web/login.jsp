@@ -1,4 +1,5 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="Utils.GoogleOAuthService" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -36,6 +37,13 @@
             <button class="btn-submit" type="submit">Đăng nhập hệ thống</button>
         </form>
 
+        <div class="login-divider"><span>hoac</span></div>
+
+        <a class="btn-google" href="<%= GoogleOAuthService.buildAuthorizationUrl() %>">
+            <span class="google-mark">G</span>
+            Đăng nhập bằng Google
+        </a>
+
         <div class="text-center mt-4">
             <span class="text-muted">Chưa có tài khoản sinh viên?</span>
             <a href="<%=request.getContextPath()%>/register" class="fw-bold text-decoration-none ms-1">Đăng ký</a>
@@ -43,5 +51,3 @@
     </div>
 </body>
 </html>
-
-

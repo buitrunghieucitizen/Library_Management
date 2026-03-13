@@ -970,6 +970,54 @@ tr:hover td {
     margin-top: 10px;
 }
 
+.login-divider {
+    margin: 14px 0;
+    text-align: center;
+    border-bottom: 1px solid #dbe3ef;
+    line-height: 0;
+}
+
+.login-divider span {
+    background: #fff;
+    color: #6b7280;
+    font-size: 13px;
+    padding: 0 10px;
+}
+
+.btn-google {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #1f2937;
+    font-weight: 600;
+    padding: 10px 14px;
+    transition: all 0.2s ease;
+}
+
+.btn-google:hover {
+    border-color: #9ca3af;
+    background: #f8fafc;
+}
+
+.google-mark {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ea4335;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
 /* ── Book cover img on detail page ── */
 .book-cover img {
     width: 100%;

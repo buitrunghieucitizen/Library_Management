@@ -1,9 +1,12 @@
 package Model;
 
+import Entities.GoogleAccount;
 import Entities.Staff;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 public class DAOStaff {
 
@@ -23,6 +26,58 @@ public class DAOStaff {
             }
         } finally { con.close(); }
         return null;
+    }
+
+    public Staff getByUsername(String username) throws SQLException {
+        String normalizedUsername = normalizeUsername(username);
+        if (normalizedUsername.isEmpty()) {
+            return null;
+        }
+
+        String sql = "SELECT StaffID, StaffName, Username, Password FROM Staff WHERE Username = ?";
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, normalizedUsername);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Staff(rs.getInt("StaffID"), rs.getString("StaffName"),
+                            rs.getString("Username"), rs.getString("Password"));
+                }
+            }
+        } finally {
+            con.close();
+        }
+        return null;
+    }
+
+    public Staff loginByGoogle(GoogleAccount googleAccount) throws SQLException {
+        if (googleAccount == null) {
+            return null;
+        }
+
+        String username = normalizeUsername(googleAccount.getEmail());
+        if (username.isEmpty()) {
+            return null;
+        }
+
+        Staff existing = getByUsername(username);
+        if (existing != null) {
+            return existing;
+        }
+
+        String displayName = normalizeDisplayName(googleAccount.getName(), username);
+        Staff created = new Staff(displayName, username, UUID.randomUUID().toString());
+        try {
+            insert(created);
+        } catch (SQLException ex) {
+            if (!isDuplicateUsername(ex)) {
+                throw ex;
+            }
+        }
+        return getByUsername(username);
     }
 
     // ===== CRUD =====
@@ -110,5 +165,45 @@ public class DAOStaff {
             con.close();
         }
         return false;
+    }
+
+    private String normalizeUsername(String username) {
+        if (username == null) {
+            return "";
+        }
+
+        String normalized = username.trim().toLowerCase(Locale.ROOT);
+        if (normalized.length() <= 50) {
+            return normalized;
+        }
+
+        String suffix = Integer.toHexString(normalized.hashCode());
+        int prefixLength = Math.max(0, 50 - suffix.length() - 1);
+        if (prefixLength == 0) {
+            return normalized.substring(0, 50);
+        }
+        return normalized.substring(0, prefixLength) + "_" + suffix;
+    }
+
+    private String normalizeDisplayName(String displayName, String fallback) {
+        String value = displayName == null ? "" : displayName.trim();
+        if (value.isEmpty()) {
+            value = fallback;
+        }
+        return value.length() > 100 ? value.substring(0, 100) : value;
+    }
+
+    private boolean isDuplicateUsername(SQLException ex) {
+        if (ex == null) {
+            return false;
+        }
+
+        int code = ex.getErrorCode();
+        if (code == 2601 || code == 2627) {
+            return true;
+        }
+
+        String message = ex.getMessage();
+        return message != null && message.toLowerCase(Locale.ROOT).contains("uq_staff_username");
     }
 }
