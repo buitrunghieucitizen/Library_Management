@@ -3,8 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/SWD_code/Library_Management/src/java/Entities/WaitlistItem.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Entities/BookAuthor.java</file>
             <file>file:/D:/SWD_code/Library_Management/src/java/Controller/BuyController.java</file>
+            <file>file:/D:/SWD_code/Library_Management/web/WEB-INF/views/buy/student_buy.jsp</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Controller/BorrowController.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Model/DAOOrders.java</file>
+            <file>file:/D:/SWD_code/Library_Management/src/java/Model/DAOBookPrice.java</file>
         </group>
     </open-files>
 </project-private>
