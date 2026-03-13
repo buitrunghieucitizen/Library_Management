@@ -12,7 +12,7 @@ public class DBConnection {
             + "trustServerCertificate=true";
 
     private static final String USER = "sa";
-    private static final String PASS = "123";
+    private static final String PASS = "123456";
 
     public static Connection getConnection() {
         try {
