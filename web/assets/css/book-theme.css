@@ -496,6 +496,63 @@ tr:hover td {
     font-weight: 700;
 }
 
+.order-search {
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-bottom: 14px;
+}
+
+.order-search form {
+    margin: 0;
+}
+
+.order-search .search-row {
+    margin-bottom: 0;
+}
+
+.details-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 4px solid #16a34a;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.details-title {
+    margin-bottom: 10px;
+}
+
+.details-meta {
+    margin-bottom: 6px;
+}
+
+.details-list {
+    margin: 10px 0 0 20px;
+}
+
+.details-list li {
+    margin-bottom: 6px;
+}
+
+.order-total {
+    color: #dc2626;
+    font-size: 1.1rem;
+}
+
+.order-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+.order-action-stack {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .letter-strip {
     display: flex;
     flex-wrap: wrap;
@@ -664,6 +721,26 @@ tr:hover td {
     font-weight: 700;
 }
 
+.status-ready {
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+.status-waiting {
+    color: #d97706;
+    font-weight: 700;
+}
+
+.status-delivered {
+    color: #166534;
+    font-weight: 700;
+}
+
+.status-canceled {
+    color: #b91c1c;
+    font-weight: 700;
+}
+
 .detail-card {
     margin-top: 14px;
     padding: 24px;
@@ -750,6 +827,12 @@ tr:hover td {
 
 .text-subtle {
     color: #64748b;
+}
+
+.secret-mask {
+    color: #64748b;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+    letter-spacing: 0.06em;
 }
 
 .empty-row {
@@ -1112,6 +1195,11 @@ tr:hover td {
     .section-header {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .order-action-stack {
+        display: flex;
+        width: 100%;
     }
 
     .card-shell {
