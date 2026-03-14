@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -69,8 +70,11 @@ public class HomeController extends HttpServlet {
             request.setAttribute("holds", holds);
             request.setAttribute("search", search);
             request.setAttribute("letter", letter);
+            request.setAttribute("letters", buildLetters());
             request.setAttribute("categoryId", categoryIdRaw);
+            request.setAttribute("selectedCategoryId", categoryId);
             request.setAttribute("publisherId", publisherIdRaw);
+            request.setAttribute("selectedPublisherId", publisherId);
             request.setAttribute("author", author);
             request.setAttribute("currentPage", pageSlice.getPage());
             request.setAttribute("totalPages", pageSlice.getTotalPages());
@@ -144,6 +148,14 @@ public class HomeController extends HttpServlet {
 
     private String trim(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private List<String> buildLetters() {
+        List<String> letters = new ArrayList<>(26);
+        for (char c = 'A'; c <= 'Z'; c++) {
+            letters.add(String.valueOf(c));
+        }
+        return letters;
     }
 
     private int parsePage(String raw, int defaultPage) {

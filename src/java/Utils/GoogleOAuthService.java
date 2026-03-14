@@ -26,7 +26,8 @@ public final class GoogleOAuthService {
         builder.append("&redirect_uri=").append(urlEncode(GoogleOAuthConfig.REDIRECT_URI));
         builder.append("&response_type=code");
         builder.append("&client_id=").append(urlEncode(GoogleOAuthConfig.CLIENT_ID));
-        builder.append("&approval_prompt=force");
+        builder.append("&prompt=select_account");
+        builder.append("&include_granted_scopes=true");
         return builder.toString();
     }
 
@@ -53,8 +54,11 @@ public final class GoogleOAuthService {
     }
 
     public static GoogleAccount getUserInfo(String accessToken) throws IOException {
-        String link = GoogleOAuthConfig.USER_INFO_ENDPOINT + urlEncode(accessToken);
-        String response = Request.Get(link).execute().returnContent().asString();
+        String response = Request.Get(GoogleOAuthConfig.USER_INFO_ENDPOINT)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .execute()
+                .returnContent()
+                .asString();
         GoogleAccount account = GSON.fromJson(response, GoogleAccount.class);
         if (account == null || account.getEmail() == null || account.getEmail().trim().isEmpty()) {
             throw new IOException("Google user info response does not contain email.");

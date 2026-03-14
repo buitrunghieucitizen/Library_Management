@@ -50,11 +50,14 @@ public class BookDetailController extends HttpServlet {
             Category category = daoCategory.getById(book.getCategoryID());
             Publisher publisher = daoPublisher.getById(book.getPublisherID());
             List<String> authors = daoAuthor.getNamesByBookId(bookId);
+            String authorsText = (authors == null || authors.isEmpty())
+                    ? "Khong co thong tin tac gia"
+                    : String.join(", ", authors);
 
             request.setAttribute("book", book);
             request.setAttribute("category", category);
             request.setAttribute("publisher", publisher);
-            request.setAttribute("authors", authors);
+            request.setAttribute("authorsText", authorsText);
             request.getRequestDispatcher("/WEB-INF/views/client/book/detail.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/home");

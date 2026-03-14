@@ -167,6 +167,26 @@ public class DAOStaff {
         return false;
     }
 
+    public int updatePasswordByUsername(String username, String newPassword) throws SQLException {
+        String normalizedUsername = normalizeUsername(username);
+        if (normalizedUsername.isEmpty()) {
+            return 0;
+        }
+
+        String sql = "UPDATE Staff SET Password = ? WHERE Username = ?";
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, newPassword);
+            ps.setString(2, normalizedUsername);
+            return ps.executeUpdate();
+        } finally {
+            con.close();
+        }
+    }
+
     private String normalizeUsername(String username) {
         if (username == null) {
             return "";
