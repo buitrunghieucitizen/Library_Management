@@ -1,0 +1,93 @@
+# Luồng admin xác nhận trả sách
+
+## Thay đổi kiến trúc so với phiên bản cũ
+
+Code đã được **refactor** tách [BorrowController](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/BorrowController.java#22-133) (cũ: 945 dòng) thành 4 class nhỏ:
+
+| Class                      | Vai trò                                                         |
+| -------------------------- | --------------------------------------------------------------- |
+| [BorrowController](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/BorrowController.java#22-133)         | Chỉ là **dispatcher** – nhận request, gọi đúng handler          |
+| [BorrowStudentHandler](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowStudentHandler.java#32-519)     | Xử lý mọi action phía **sinh viên** (kể cả [requestReturn](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowStudentHandler.java#470-501))     |
+| [BorrowAdminHandler](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowAdminHandler.java#27-202)       | Xử lý mọi action phía **admin/staff** (kể cả xác nhận trả)      |
+| [BorrowTransactionService](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowTransactionService.java#18-124) | Thực thi các **transaction DB** (tạo phiếu mượn, tạo đơn mua)   |
+| [BorrowHelper](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowHelper.java#25-221)             | Tiện ích dùng chung (phân trang, session buy-list, redirect...) |
+
+> [!NOTE]
+> **Logic trả sách không thay đổi**. Chỉ có kiến trúc được tổ chức lại cho gọn hơn.
+
+---
+
+## Sơ đồ luồng (có đánh số)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Admin as Staff / Admin
+    participant View as list.jsp (View)
+    participant BC as BorrowController
+    participant AH as BorrowAdminHandler
+    participant DB1 as DAOBorrow
+    participant DB2 as DAOBorrowItem
+    participant DB3 as DAOBook
+    participant SQL as Database
+
+    Admin->>View: Nhấn nút "Xác nhận trả"
+    View->>BC: POST /admin/borrows (action=return, borrowID=X)
+    BC->>AH: adminHandler.returnBorrow()
+    AH->>AH: Kiểm tra isAdminSection & không phải Student
+    AH->>DB1: getStatusForUpdate(con, borrowId)
+    DB1->>SQL: SELECT WITH (UPDLOCK, ROWLOCK)
+    SQL-->>DB1: Status hiện tại
+    DB1-->>AH: Status hiện tại
+    AH->>AH: Nếu đã 'Returned' → rollback, báo ngay
+    AH->>DB2: getByBorrowId(con, borrowId)
+    DB2->>SQL: SELECT BorrowItem
+    SQL-->>DB2: List BorrowItem
+    DB2-->>AH: List BorrowItem
+    loop Mỗi sách trong phiếu
+        AH->>DB3: increaseAvailable(con, bookId, qty)
+        DB3->>SQL: UPDATE Book SET Available += qty
+    end
+    AH->>DB1: updateReturned(con, borrowId)
+    DB1->>SQL: UPDATE Borrow SET Status='Returned', ReturnDate=NOW
+    AH->>SQL: COMMIT
+    AH-->>View: Redirect + msg "Xác nhận trả sách thành công"
+    View-->>Admin: Hiển thị thông báo
+```
+
+---
+
+## Chi tiết từng bước
+
+| #   | Hành động                                             | Class thực thi                   |
+| --- | ----------------------------------------------------- | -------------------------------- |
+| 1   | Admin nhấn **"Xác nhận trả"** → POST `/admin/borrows` | [list.jsp](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/web/WEB-INF/views/borrow/list.jsp)                       |
+| 2   | Dispatch đến [returnBorrow()](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowAdminHandler.java#114-177)                         | [BorrowController](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/BorrowController.java#22-133)               |
+| 3   | Kiểm tra quyền admin, không phải Student              | [BorrowAdminHandler](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowAdminHandler.java#27-202)             |
+| 4   | Lock row với `UPDLOCK, ROWLOCK`                       | `DAOBorrow.getStatusForUpdate()` |
+| 5   | Nếu đã [Returned](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Model/DAOBorrow.java#180-188) → báo ngay, không làm gì thêm       | [BorrowAdminHandler](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowAdminHandler.java#27-202)             |
+| 6   | Lấy danh sách sách trong phiếu                        | `DAOBorrowItem.getByBorrowId()`  |
+| 7   | Tăng `Book.Available` cho từng sách                   | `DAOBook.increaseAvailable()`    |
+| 8   | Cập nhật `Status='Returned'`, `ReturnDate=NOW`        | `DAOBorrow.updateReturned()`     |
+| 9   | Commit transaction                                    | [BorrowAdminHandler](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowAdminHandler.java#27-202)             |
+
+---
+
+## Các trạng thái phiếu mượn
+
+| Trạng thái  | Sinh viên thấy            | Admin thấy             |
+| ----------- | ------------------------- | ---------------------- |
+| `Borrowing` | Nút **"Gửi yêu cầu trả"** | Nút **"Xác nhận trả"** |
+| `Overdue`   | Nút **"Gửi yêu cầu trả"** | Nút **"Xác nhận trả"** |
+| [Returned](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Model/DAOBorrow.java#180-188)  | _(không có nút)_          | _(không có nút)_       |
+
+## File liên quan
+
+| File                                                                                                                                               | Vai trò                        |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| [list.jsp](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/web/WEB-INF/views/borrow/list.jsp)                                 | Nút "Xác nhận trả"             |
+| [BorrowController.java](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/BorrowController.java)            | Dispatcher                     |
+| [BorrowAdminHandler.java](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowAdminHandler.java) | Xử lý [returnBorrow()](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowAdminHandler.java#114-177)         |
+| [DAOBorrow.java](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Model/DAOBorrow.java)                               | Lock row, cập nhật trạng thái  |
+| [DAOBorrowItem.java](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Model/DAOBorrowItem.java)                       | Lấy danh sách sách trong phiếu |
+| [DAOBook.java](file:///c:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Model/DAOBook.java)                                   | Tăng `Book.Available`          |

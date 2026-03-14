@@ -1,10 +1,10 @@
-<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+﻿<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý nhân viên</title>
+    <title>Quan ly nhan vien</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -13,26 +13,30 @@
 
     <div class="container">
         <div class="panel">
-            <h2>Quản lý nhân viên</h2>
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/staffs?action=create">Thêm nhân viên</a>
+            <div class="section-header">
+                <div>
+                    <h2>Quan ly nhan vien</h2>
+                    <div class="note">Tong ban ghi: ${totalItems}</div>
+                </div>
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/staffs?action=create">+ Them nhan vien</a>
+            </div>
 
             <c:if test="${not empty param.msg}">
-                <div class="msg">${param.msg}</div>
+                <div class="msg"><c:out value="${param.msg}" /></div>
             </c:if>
             <c:if test="${not empty param.error}">
-                <div class="error">${param.error}</div>
+                <div class="error"><c:out value="${param.error}" /></div>
             </c:if>
-            <div class="note">Tổng bản ghi: ${totalItems}</div>
 
             <table>
                 <thead>
                     <tr>
-                        <th>Mã</th>
-                        <th>Tên</th>
+                        <th>Ma</th>
+                        <th>Ten</th>
                         <th>Username</th>
                         <th>Password</th>
-                        <th>Vai trò</th>
-                        <th>Hành động</th>
+                        <th>Vai tro</th>
+                        <th>Hanh dong</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,19 +45,17 @@
                             <td>${row.staff.staffID}</td>
                             <td>${row.staff.staffName}</td>
                             <td>${row.staff.username}</td>
-                            <td>${row.staff.password}</td>
+                            <td><span class="secret-mask">********</span></td>
                             <td>${row.roleNames}</td>
-                            <td>
-                                <div class="actions">
-                                    <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/staffs?action=edit&id=${row.staff.staffID}">Sửa</a>
-                                    <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/staffs?action=delete&id=${row.staff.staffID}" onclick="return confirm('Xóa nhân viên này?')">Xóa</a>
-                                </div>
+                            <td class="actions">
+                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/staffs?action=edit&id=${row.staff.staffID}">Sua</a>
+                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/staffs?action=delete&id=${row.staff.staffID}" onclick="return confirm('Xoa nhan vien nay?')">Xoa</a>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty staffRows}">
                         <tr>
-                            <td colspan="6" class="empty-row">Chưa có tài khoản nhân viên nào.</td>
+                            <td colspan="6" class="empty-row">Chua co tai khoan nhan vien nao.</td>
                         </tr>
                     </c:if>
                 </tbody>
@@ -66,7 +68,7 @@
                             <c:param name="action" value="list"/>
                             <c:param name="page" value="${currentPage - 1}"/>
                         </c:url>
-                        <a class="page-link" href="${prevUrl}">Trang trước</a>
+                        <a class="page-link" href="${prevUrl}">Trang truoc</a>
                     </c:if>
 
                     <c:forEach begin="1" end="${totalPages}" var="p">
