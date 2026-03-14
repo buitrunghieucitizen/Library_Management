@@ -3,7 +3,16 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Model/DBConnection.java</file>
+            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/AuthorController.java</file>
+            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/BorrowController.java</file>
+            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowAdminHandler.java</file>
+            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowHelper.java</file>
+            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/borrow/BorrowTransactionService.java</file>
+            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/BookController.java</file>
+            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/BookFileController.java</file>
+            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/BuyController.java</file>
+            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/OrderStaffController.java</file>
+            <file>file:/C:/Users/Administrator/Downloads/New%20folder/LibraryManager/src/java/Controller/OrdersController.java</file>
         </group>
     </open-files>
 </project-private>
