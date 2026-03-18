@@ -47,7 +47,7 @@ public class Login extends HttpServlet {
             if (RoleUtils.isStudentOnly(request)) {
                 response.sendRedirect(request.getContextPath() + "/home");
             } else {
-                response.sendRedirect(request.getContextPath() + "/index.jsp");
+                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
             }
             return;
         }
@@ -126,7 +126,7 @@ public class Login extends HttpServlet {
         if (isStudent && !isAdmin && !isStaff) {
             response.sendRedirect(request.getContextPath() + "/home");
         } else {
-            response.sendRedirect(request.getContextPath() + "/index.jsp");
+            response.sendRedirect(request.getContextPath() + "/admin/dashboard");
         }
     }
 

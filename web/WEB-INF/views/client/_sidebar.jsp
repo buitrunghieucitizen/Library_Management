@@ -11,11 +11,11 @@
 <c:url var="logoutUrl" value="/logout" />
 
 <aside class="sidebar-left">
-    <div class="section-title">Cong</div>
+    <div class="section-title">Cổng</div>
 
     <div class="nav-item">
         <a href="${homeUrl}" class="${fn:contains(currentUri, '/home') ? 'active' : ''}">
-            Trang sinh vien
+            Trang sinh viên
         </a>
     </div>
 

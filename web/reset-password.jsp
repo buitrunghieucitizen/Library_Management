@@ -36,7 +36,7 @@
             </form>
 
             <div class="text-center auth-foot">
-                <a href="${pageContext.request.contextPath}/LoginURL" class="fw-bold text-decoration-none">Quay lai dang nhap</a>
+                <a href="${pageContext.request.contextPath}/LoginURL" class="fw-bold text-decoration-none">Quay lại đăng nhập</a>
             </div>
         </div>
     </main>

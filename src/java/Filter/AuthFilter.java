@@ -76,7 +76,7 @@ public class AuthFilter implements Filter {
             if (isStudentOnly) {
                 chain.doFilter(request, response);
             } else {
-                res.sendRedirect(contextPath + "/index.jsp");
+                res.sendRedirect(contextPath + "/admin/dashboard");
             }
             return;
         }

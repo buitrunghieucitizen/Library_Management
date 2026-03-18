@@ -57,13 +57,13 @@
 
                     <c:if test="${searchResult.status eq 'Sẵn sàng' or searchResult.status eq 'Hàng chờ' or searchResult.status eq 'Pending' or searchResult.status eq 'Approved'}">
                         <div class="order-actions">
-                            <form method="POST" class="inline-form" action="${pageContext.request.contextPath}/admin/orders" onsubmit="return confirm('ác nhận đã thu tiền và giao sách cho sinh viên?');">
+                            <form method="POST" class="inline-form" action="${pageContext.request.contextPath}/admin/orders" onsubmit="return confirm('Xác nhận đã thu tiền và giao sách cho sinh viên?');">
                                 <input type="hidden" name="action" value="complete">
                                 <input type="hidden" name="orderID" value="${searchResult.orderID}">
                                 <button type="submit" class="btn btn-approve">Đã thu tiền và hoàn thành giao sách</button>
                             </form>
 
-                            <form method="POST" class="inline-form" action="${pageContext.request.contextPath}/admin/orders" onsubmit="return confirm('Ban co chac chan muon huy don nay?');">
+                            <form method="POST" class="inline-form" action="${pageContext.request.contextPath}/admin/orders" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn này?');">
                                 <input type="hidden" name="action" value="cancel">
                                 <input type="hidden" name="orderID" value="${searchResult.orderID}">
                                 <button type="submit" class="btn btn-reject">Hủy bỏ đơn</button>
@@ -80,10 +80,10 @@
                 <thead>
                     <tr>
                         <th>Mã</th>
-                        <th>Sinh vien</th>
+                        <th>Sinh viên</th>
                         <th>Xử lý bởi</th>
                         <th>Ngày đặt</th>
-                        <th>ổng tiền</th>
+                        <th>Tổng tiền</th>
                         <th>Trạng thái</th>
                         <th>Chi tiết</th>
                         <th>Hành động</th>
@@ -121,12 +121,12 @@
                                 <c:choose>
                                     <c:when test="${order.status eq 'Pending'}">
                                         <div class="order-action-stack">
-                                            <form method="POST" class="inline-form" action="${pageContext.request.contextPath}/admin/orders" onsubmit="return confirm('Xac nhan duyet don hang nay?');">
+                                            <form method="POST" class="inline-form" action="${pageContext.request.contextPath}/admin/orders" onsubmit="return confirm('Xác nhận duyệt đơn hàng này?');">
                                                 <input type="hidden" name="action" value="approve">
                                                 <input type="hidden" name="orderID" value="${order.orderID}">
                                                 <button type="submit" class="btn btn-approve">Duyệt</button>
                                             </form>
-                                            <form method="POST" class="inline-form" action="${pageContext.request.contextPath}/admin/orders" onsubmit="return confirm('Xac nhan tu choi don hang nay?');">
+                                            <form method="POST" class="inline-form" action="${pageContext.request.contextPath}/admin/orders" onsubmit="return confirm('Xác nhận từ chối đơn hàng này?');">
                                                 <input type="hidden" name="action" value="reject">
                                                 <input type="hidden" name="orderID" value="${order.orderID}">
                                                 <button type="submit" class="btn btn-reject">Từ chối</button>
@@ -134,7 +134,7 @@
                                         </div>
                                     </c:when>
                                     <c:when test="${order.status ne 'Pending' and order.status ne 'Đã giao' and order.status ne 'Đã hủy' and order.status ne 'Approved' and order.status ne 'Rejected'}">
-                                        <a href="${pageContext.request.contextPath}/admin/orders?orderID=${order.orderID}" class="btn btn-approve text-decoration-none">Xu ly</a>
+                                        <a href="${pageContext.request.contextPath}/admin/orders?orderID=${order.orderID}" class="btn btn-approve text-decoration-none">Xử lý</a>
                                     </c:when>
                                     <c:otherwise>
                                         <span class="text-subtle">Đã xử lý</span>

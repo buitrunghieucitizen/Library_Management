@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Them sach moi</title>
+    <title>Thêm sách mới</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -48,7 +48,7 @@
                     <input id="publisherID" type="number" name="publisherID" min="1" required>
                 </div>
 
-                <h3 class="h3">Giá sách bán đầu</h3>
+                <h3 class="h3">Giá sách ban đầu</h3>
 
                 <div class="field">
                     <label for="priceAmount">Giá</label>
@@ -62,8 +62,8 @@
 
                 <div class="field">
                     <label for="priceNote">Ghi chú giá</label>
-                    <input id="priceNote" type="text" name="priceNote" placeholder="Vi du: Gia bia">
-                    <p class="note">Khi tao sach, he thong se tao luon gia hien hanh cho sach nay.</p>
+                    <input id="priceNote" type="text" name="priceNote" placeholder="Ví dụ: Giá bìa">
+                    <p class="note">Khi tạo sách, hệ thống sẽ tạo luôn giá hiện hành cho sách này.</p>
                 </div>
 
                 <div class="actions">

@@ -28,13 +28,13 @@
             <form class="auth-form" action="${pageContext.request.contextPath}/verify-otp" method="post">
                 <div class="field">
                     <label for="otp">Mã OTP</label>
-                    <input id="otp" type="text" name="otp" maxlength="6" minlength="6" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" title="OTP gom 6 chu so" required>
+                    <input id="otp" type="text" name="otp" maxlength="6" minlength="6" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" title="OTP gồm 6 chữ số" required>
                 </div>
                 <button class="btn-submit" type="submit">Xác nhận OTP</button>
             </form>
 
             <div class="text-center auth-foot">
-                <a href="${pageContext.request.contextPath}/forgot-password" class="fw-bold text-decoration-none">Gui lai OTP</a>
+                <a href="${pageContext.request.contextPath}/forgot-password" class="fw-bold text-decoration-none">Gửi lại OTP</a>
             </div>
         </div>
     </main>

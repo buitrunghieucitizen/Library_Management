@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sach tac gia</title>
+    <title>Danh sách tác giả</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -18,7 +18,7 @@
                     <h2>Danh sách tác giả</h2>
                     <div class="note">Tổng bản ghi: ${totalItems}</div>
                 </div>
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/authors?action=create">+ Them tac gia</a>
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/authors?action=create">+ Thêm tác giả</a>
             </div>
 
             <c:if test="${not empty param.msg}">

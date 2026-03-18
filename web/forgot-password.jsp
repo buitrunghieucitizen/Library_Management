@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Manager | Quen mat khau</title>
+    <title>Library Manager | Quên mật khẩu</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth.css">
 </head>

@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Sua tac gia</title>
+    <title>Sửa tác giả</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>

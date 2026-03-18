@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Sửa thể loại/title>
+    <title>Sửa thể loại</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -32,7 +32,7 @@
 
                 <div class="actions">
                     <button class="btn btn-primary" type="submit">Cập nhật</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/categories?action=list">ủy</a>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/categories?action=list">Hủy</a>
                 </div>
             </form>
         </div>
