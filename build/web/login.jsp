@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cong thu vien | Dang nhap</title>
+    <title>Cổng thư viện | Đăng nhập</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth.css">
 </head>
@@ -31,7 +31,7 @@
 
             <form class="auth-form" action="${pageContext.request.contextPath}/LoginURL" method="post">
                 <div class="field">
-                    <label for="username">Ten dang nhap hoac email</label>
+                    <label for="username">Tên đăng nhập hoặc email</label>
                     <input id="username" type="text" name="username" value="${username}" autocomplete="username" spellcheck="false" autofocus required>
                     <p class="auth-help">Ban co the dung ten dang nhap hoac email da dang ky.</p>
                 </div>
