@@ -38,71 +38,76 @@
                 </div>
             </div>
 
-            <nav class="sidebar-nav">
-                <div class="sidebar-group">
-                    <span class="sidebar-group-label">Tổng quan</span>
-                    <a class="sidebar-link ${activeTab eq 'dashboard' ? 'active' : ''}" href="${ctx}/admin/dashboard">
-                        <span class="sidebar-link-mark">DB</span>
-                        <span>Dashboard</span>
-                    </a>
-                </div>
-
-                <div class="sidebar-group">
-                    <span class="sidebar-group-label">Vận hành</span>
-                    <a class="sidebar-link ${activeTab eq 'books' ? 'active' : ''}" href="${ctx}/admin/books?action=list">
-                        <span class="sidebar-link-mark">BK</span>
-                        <span>Kho sách</span>
-                    </a>
-                    <a class="sidebar-link ${activeTab eq 'borrows' ? 'active' : ''}" href="${ctx}/admin/borrows?action=list">
-                        <span class="sidebar-link-mark">BR</span>
-                        <span>Mượn trả</span>
-                    </a>
-                    <a class="sidebar-link ${activeTab eq 'orders' ? 'active' : ''}" href="${ctx}/admin/orders?action=list">
-                        <span class="sidebar-link-mark">OR</span>
-                        <span>Đơn hàng</span>
-                    </a>
-                    <a class="sidebar-link ${activeTab eq 'students' ? 'active' : ''}" href="${ctx}/admin/students?action=list">
-                        <span class="sidebar-link-mark">ST</span>
-                        <span>Sinh viên</span>
-                    </a>
-                    <a class="sidebar-link ${activeTab eq 'bookfiles' ? 'active' : ''}" href="${ctx}/admin/bookfiles?action=list">
-                        <span class="sidebar-link-mark">FL</span>
-                        <span>Tệp sách</span>
-                    </a>
-                </div>
-
-                <c:if test="${isAdminNav}">
+            <div class="sidebar-scroll">
+                <nav class="sidebar-nav">
                     <div class="sidebar-group">
-                        <span class="sidebar-group-label">Quản trị</span>
-                        <a class="sidebar-link ${activeTab eq 'authors' ? 'active' : ''}" href="${ctx}/admin/authors?action=list">
-                            <span class="sidebar-link-mark">AU</span>
-                            <span>Tác giả</span>
-                        </a>
-                        <a class="sidebar-link ${activeTab eq 'categories' ? 'active' : ''}" href="${ctx}/admin/categories?action=list">
-                            <span class="sidebar-link-mark">CT</span>
-                            <span>Thể loại</span>
-                        </a>
-                        <a class="sidebar-link ${activeTab eq 'publishers' ? 'active' : ''}" href="${ctx}/admin/publishers?action=list">
-                            <span class="sidebar-link-mark">PB</span>
-                            <span>Nhà xuất bản</span>
-                        </a>
-                        <a class="sidebar-link ${activeTab eq 'staffs' ? 'active' : ''}" href="${ctx}/admin/staffs?action=list">
-                            <span class="sidebar-link-mark">SF</span>
-                            <span>Nhân viên</span>
+                        <span class="sidebar-group-label">Tổng quan</span>
+                        <a class="sidebar-link ${activeTab eq 'dashboard' ? 'active' : ''}" href="${ctx}/admin/dashboard" title="Dashboard">
+                            <span class="sidebar-link-mark">DB</span>
+                            <span>Dashboard</span>
                         </a>
                     </div>
-                </c:if>
-            </nav>
+
+                    <div class="sidebar-group">
+                        <span class="sidebar-group-label">Vận hành</span>
+                        <a class="sidebar-link ${activeTab eq 'books' ? 'active' : ''}" href="${ctx}/admin/books?action=list" title="Kho sách">
+                            <span class="sidebar-link-mark">BK</span>
+                            <span>Kho sách</span>
+                        </a>
+                        <a class="sidebar-link ${activeTab eq 'borrows' ? 'active' : ''}" href="${ctx}/admin/borrows?action=list" title="Mượn trả">
+                            <span class="sidebar-link-mark">BR</span>
+                            <span>Mượn trả</span>
+                        </a>
+                        <a class="sidebar-link ${activeTab eq 'orders' ? 'active' : ''}" href="${ctx}/admin/orders?action=list" title="Đơn hàng">
+                            <span class="sidebar-link-mark">OR</span>
+                            <span>Đơn hàng</span>
+                        </a>
+                        <a class="sidebar-link ${activeTab eq 'students' ? 'active' : ''}" href="${ctx}/admin/students?action=list" title="Sinh viên">
+                            <span class="sidebar-link-mark">ST</span>
+                            <span>Sinh viên</span>
+                        </a>
+                        <a class="sidebar-link ${activeTab eq 'bookfiles' ? 'active' : ''}" href="${ctx}/admin/bookfiles?action=list" title="Tệp sách">
+                            <span class="sidebar-link-mark">FL</span>
+                            <span>Tệp sách</span>
+                        </a>
+                    </div>
+
+                    <c:if test="${isAdminNav}">
+                        <div class="sidebar-group">
+                            <span class="sidebar-group-label">Quản trị</span>
+                            <a class="sidebar-link ${activeTab eq 'authors' ? 'active' : ''}" href="${ctx}/admin/authors?action=list" title="Tác giả">
+                                <span class="sidebar-link-mark">AU</span>
+                                <span>Tác giả</span>
+                            </a>
+                            <a class="sidebar-link ${activeTab eq 'categories' ? 'active' : ''}" href="${ctx}/admin/categories?action=list" title="Thể loại">
+                                <span class="sidebar-link-mark">CT</span>
+                                <span>Thể loại</span>
+                            </a>
+                            <a class="sidebar-link ${activeTab eq 'publishers' ? 'active' : ''}" href="${ctx}/admin/publishers?action=list" title="Nhà xuất bản">
+                                <span class="sidebar-link-mark">PB</span>
+                                <span>Nhà xuất bản</span>
+                            </a>
+                            <a class="sidebar-link ${activeTab eq 'staffs' ? 'active' : ''}" href="${ctx}/admin/staffs?action=list" title="Nhân viên">
+                                <span class="sidebar-link-mark">SF</span>
+                                <span>Nhân viên</span>
+                            </a>
+                        </div>
+                    </c:if>
+                </nav>
+            </div>
 
             <div class="sidebar-footer">
                 <div class="sidebar-user-chip">
                     <span class="sidebar-user-avatar"><c:out value="${operatorBadge}" /></span>
-                    <div>
+                    <div class="sidebar-user-copy">
                         <strong><c:out value="${operatorName}" /></strong>
                         <span><c:out value="${empty dashboardRoleLabel ? (isAdminNav ? 'Administrator' : 'Staff') : dashboardRoleLabel}" /></span>
                     </div>
                 </div>
-                <a class="sidebar-logout" href="${ctx}/logout">Đăng xuất</a>
+                <a class="sidebar-logout" href="${ctx}/logout" title="Đăng xuất">
+                    <span class="sidebar-logout-icon">LG</span>
+                    <span class="sidebar-logout-text">Đăng xuất</span>
+                </a>
             </div>
         </aside>
 

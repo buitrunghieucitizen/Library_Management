@@ -140,14 +140,15 @@
                                     <span class="card-kicker">Thống kê Giao dịch</span>
                                     <h3>Mượn và Mua</h3>
                                 </div>
-                                <select class="chart-filter" aria-label="Phạm vi thời gian biểu đồ">
-                                    <option selected>Năm nay</option>
-                                    <option>Tháng này</option>
-                                    <option>Tuần này</option>
+                                <select class="chart-filter" id="borrowBuyChartFilter" aria-label="Phạm vi thời gian biểu đồ">
+                                    <option value="year" selected>Năm nay</option>
+                                    <option value="month">Tháng này</option>
+                                    <option value="week">Tuần này</option>
                                 </select>
                             </div>
                             <div class="chart-panel-body">
                                 <div id="borrowBuyChart"></div>
+                                <script id="borrowBuyChartData" type="application/json"><c:out value="${borrowBuyChartJson}" escapeXml="false" /></script>
                             </div>
                         </section>
 

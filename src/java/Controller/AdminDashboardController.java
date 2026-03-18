@@ -2,9 +2,13 @@ package Controller;
 
 import Entities.Book;
 import Entities.Borrow;
+import Entities.BorrowItem;
+import Entities.OrderDetail;
 import Entities.Orders;
 import Model.DAOBook;
 import Model.DAOBorrow;
+import Model.DAOBorrowItem;
+import Model.DAOOrderDetail;
 import Model.DAOOrders;
 import Model.DAOStaff;
 import Model.DAOStudent;
@@ -18,12 +22,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.time.temporal.TemporalAdjusters;
 
 @WebServlet(name = "AdminDashboardController", urlPatterns = {"/admin/dashboard"})
 public class AdminDashboardController extends HttpServlet {
@@ -40,7 +49,9 @@ public class AdminDashboardController extends HttpServlet {
     private final DAOStudent daoStudent = new DAOStudent();
     private final DAOStaff daoStaff = new DAOStaff();
     private final DAOBorrow daoBorrow = new DAOBorrow();
+    private final DAOBorrowItem daoBorrowItem = new DAOBorrowItem();
     private final DAOOrders daoOrders = new DAOOrders();
+    private final DAOOrderDetail daoOrderDetail = new DAOOrderDetail();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -71,7 +82,9 @@ public class AdminDashboardController extends HttpServlet {
     private void populateStats(HttpServletRequest request, boolean isAdminDashboard) throws SQLException {
         List<Book> books = daoBook.getAll();
         List<Borrow> borrows = daoBorrow.getAll();
+        List<BorrowItem> borrowItems = daoBorrowItem.getAll();
         List<Orders> orders = daoOrders.getAll();
+        List<OrderDetail> orderDetails = daoOrderDetail.getAll();
         List<BorrowRow> borrowRows = daoBorrow.getBorrowRows();
         List<OrderRow> orderRows = daoOrders.getOrderRows();
 
@@ -116,6 +129,8 @@ public class AdminDashboardController extends HttpServlet {
         request.setAttribute("recentBorrowRows", slice(borrowRows, RECENT_ITEMS_LIMIT));
         request.setAttribute("recentOrderRows", slice(orderRows, RECENT_ITEMS_LIMIT));
         request.setAttribute("lowStockBooks", selectLowStockBooks(books, LOW_STOCK_THRESHOLD, RECENT_ITEMS_LIMIT));
+        request.setAttribute("borrowBuyChartJson",
+                buildBorrowBuyChartJson(borrows, borrowItems, orders, orderDetails));
 
         if (isAdminDashboard) {
             int totalStaff = daoStaff.getAll().size();
@@ -223,5 +238,221 @@ public class AdminDashboardController extends HttpServlet {
             }
         }
         return false;
+    }
+
+    private String buildBorrowBuyChartJson(List<Borrow> borrows, List<BorrowItem> borrowItems,
+            List<Orders> orders, List<OrderDetail> orderDetails) {
+        LocalDate today = LocalDate.now();
+        YearMonth currentMonth = YearMonth.from(today);
+        LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekEnd = weekStart.plusDays(6);
+
+        int[] yearlyBorrowData = new int[12];
+        int[] yearlyOrderData = new int[12];
+        int[] monthlyBorrowData = new int[currentMonth.lengthOfMonth()];
+        int[] monthlyOrderData = new int[currentMonth.lengthOfMonth()];
+        int[] weeklyBorrowData = new int[7];
+        int[] weeklyOrderData = new int[7];
+
+        Map<Integer, Integer> borrowQuantities = aggregateBorrowQuantities(borrowItems);
+        Map<Integer, Integer> orderQuantities = aggregateOrderQuantities(orderDetails);
+
+        for (Borrow borrow : borrows) {
+            LocalDate borrowDate = parseDate(borrow.getBorrowDate());
+            if (borrowDate == null) {
+                continue;
+            }
+
+            int quantity = Math.max(0, borrowQuantities.getOrDefault(borrow.getBorrowID(), 0));
+            collectRangeData(borrowDate, quantity, today, currentMonth, weekStart, weekEnd,
+                    yearlyBorrowData, monthlyBorrowData, weeklyBorrowData);
+        }
+
+        for (Orders order : orders) {
+            LocalDate orderDate = parseDate(order.getOrderDate());
+            if (orderDate == null) {
+                continue;
+            }
+
+            int quantity = Math.max(0, orderQuantities.getOrDefault(order.getOrderID(), 0));
+            collectRangeData(orderDate, quantity, today, currentMonth, weekStart, weekEnd,
+                    yearlyOrderData, monthlyOrderData, weeklyOrderData);
+        }
+
+        StringBuilder json = new StringBuilder(1024);
+        json.append('{');
+        json.append("\"defaultRange\":\"year\",");
+        json.append("\"seriesNames\":{");
+        json.append("\"borrow\":\"Mượn\",");
+        json.append("\"order\":\"Mua\"");
+        json.append("},");
+        json.append("\"unitLabel\":\"cuốn\",");
+        json.append("\"yAxisTitle\":\"Số lượng (cuốn)\",");
+        json.append("\"ranges\":{");
+        appendRangeJson(json, "year", "Năm nay", buildYearCategories(), yearlyBorrowData, yearlyOrderData);
+        json.append(',');
+        appendRangeJson(json, "month", "Tháng này", buildMonthCategories(currentMonth), monthlyBorrowData, monthlyOrderData);
+        json.append(',');
+        appendRangeJson(json, "week", "Tuần này", buildWeekCategories(), weeklyBorrowData, weeklyOrderData);
+        json.append("}}");
+        return json.toString();
+    }
+
+    private Map<Integer, Integer> aggregateBorrowQuantities(List<BorrowItem> borrowItems) {
+        Map<Integer, Integer> quantities = new HashMap<>();
+        if (borrowItems == null) {
+            return quantities;
+        }
+
+        for (BorrowItem borrowItem : borrowItems) {
+            quantities.merge(borrowItem.getBorrowID(), Math.max(0, borrowItem.getQuantity()), Integer::sum);
+        }
+        return quantities;
+    }
+
+    private Map<Integer, Integer> aggregateOrderQuantities(List<OrderDetail> orderDetails) {
+        Map<Integer, Integer> quantities = new HashMap<>();
+        if (orderDetails == null) {
+            return quantities;
+        }
+
+        for (OrderDetail orderDetail : orderDetails) {
+            quantities.merge(orderDetail.getOrderID(), Math.max(0, orderDetail.getQuantity()), Integer::sum);
+        }
+        return quantities;
+    }
+
+    private void collectRangeData(LocalDate date, int quantity, LocalDate today, YearMonth currentMonth,
+            LocalDate weekStart, LocalDate weekEnd, int[] yearlyData, int[] monthlyData, int[] weeklyData) {
+        if (date.getYear() == today.getYear()) {
+            yearlyData[date.getMonthValue() - 1] += quantity;
+        }
+
+        if (YearMonth.from(date).equals(currentMonth)) {
+            monthlyData[date.getDayOfMonth() - 1] += quantity;
+        }
+
+        if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
+            weeklyData[date.getDayOfWeek().getValue() - 1] += quantity;
+        }
+    }
+
+    private LocalDate parseDate(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmedValue = value.trim();
+        if (trimmedValue.isEmpty()) {
+            return null;
+        }
+
+        if (trimmedValue.length() >= 10) {
+            trimmedValue = trimmedValue.substring(0, 10);
+        }
+
+        try {
+            return LocalDate.parse(trimmedValue);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private String[] buildYearCategories() {
+        return new String[]{
+            "Th.1", "Th.2", "Th.3", "Th.4", "Th.5", "Th.6",
+            "Th.7", "Th.8", "Th.9", "Th.10", "Th.11", "Th.12"
+        };
+    }
+
+    private String[] buildMonthCategories(YearMonth currentMonth) {
+        String[] categories = new String[currentMonth.lengthOfMonth()];
+        for (int day = 1; day <= currentMonth.lengthOfMonth(); day++) {
+            categories[day - 1] = String.valueOf(day);
+        }
+        return categories;
+    }
+
+    private String[] buildWeekCategories() {
+        return new String[]{"T2", "T3", "T4", "T5", "T6", "T7", "CN"};
+    }
+
+    private void appendRangeJson(StringBuilder json, String key, String label, String[] categories,
+            int[] borrowData, int[] orderData) {
+        json.append('"').append(jsonEscape(key)).append("\":{");
+        json.append("\"label\":\"").append(jsonEscape(label)).append("\",");
+        json.append("\"categories\":");
+        appendJsonStringArray(json, categories);
+        json.append(',');
+        json.append("\"borrowData\":");
+        appendJsonIntArray(json, borrowData);
+        json.append(',');
+        json.append("\"orderData\":");
+        appendJsonIntArray(json, orderData);
+        json.append('}');
+    }
+
+    private void appendJsonStringArray(StringBuilder json, String[] values) {
+        json.append('[');
+        for (int i = 0; i < values.length; i++) {
+            if (i > 0) {
+                json.append(',');
+            }
+            json.append('"').append(jsonEscape(values[i])).append('"');
+        }
+        json.append(']');
+    }
+
+    private void appendJsonIntArray(StringBuilder json, int[] values) {
+        json.append('[');
+        for (int i = 0; i < values.length; i++) {
+            if (i > 0) {
+                json.append(',');
+            }
+            json.append(values[i]);
+        }
+        json.append(']');
+    }
+
+    private String jsonEscape(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        StringBuilder escaped = new StringBuilder(value.length() + 16);
+        for (int i = 0; i < value.length(); i++) {
+            char current = value.charAt(i);
+            switch (current) {
+                case '\\':
+                    escaped.append("\\\\");
+                    break;
+                case '"':
+                    escaped.append("\\\"");
+                    break;
+                case '\b':
+                    escaped.append("\\b");
+                    break;
+                case '\f':
+                    escaped.append("\\f");
+                    break;
+                case '\n':
+                    escaped.append("\\n");
+                    break;
+                case '\r':
+                    escaped.append("\\r");
+                    break;
+                case '\t':
+                    escaped.append("\\t");
+                    break;
+                default:
+                    if (current < 0x20) {
+                        escaped.append(String.format(Locale.ROOT, "\\u%04x", (int) current));
+                    } else {
+                        escaped.append(current);
+                    }
+                    break;
+            }
+        }
+        return escaped.toString();
     }
 }

@@ -3,38 +3,120 @@
         var shell = document.getElementById("dashboardShell");
         var overlay = document.getElementById("dashboardOverlay");
         var toggle = document.getElementById("sidebarToggle");
+        var storageKey = "library-manager-admin-sidebar-collapsed";
 
         if (!shell || !overlay || !toggle) {
             return;
+        }
+
+        function isDesktop() {
+            return window.innerWidth > 1024;
+        }
+
+        function readCollapsedState() {
+            try {
+                return window.localStorage.getItem(storageKey) === "true";
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function writeCollapsedState(isCollapsed) {
+            try {
+                window.localStorage.setItem(storageKey, isCollapsed ? "true" : "false");
+            } catch (error) {
+                return;
+            }
         }
 
         function closeSidebar() {
             shell.classList.remove("sidebar-open");
         }
 
-        toggle.addEventListener("click", function () {
-            shell.classList.toggle("sidebar-open");
-        });
+        function syncToggleState() {
+            var isCollapsed = shell.classList.contains("sidebar-collapsed");
+            var isOpen = shell.classList.contains("sidebar-open");
+            var label = isDesktop()
+                ? (isCollapsed ? "M\u1edf r\u1ed9ng menu \u0111i\u1ec1u h\u01b0\u1edbng" : "Thu g\u1ecdn menu \u0111i\u1ec1u h\u01b0\u1edbng")
+                : (isOpen ? "\u0110\u00f3ng menu \u0111i\u1ec1u h\u01b0\u1edbng" : "M\u1edf menu \u0111i\u1ec1u h\u01b0\u1edbng");
 
-        overlay.addEventListener("click", closeSidebar);
+            toggle.setAttribute("aria-label", label);
+            toggle.setAttribute("title", label);
+            toggle.setAttribute("aria-expanded", isDesktop() ? String(!isCollapsed) : String(isOpen));
+        }
 
-        window.addEventListener("resize", function () {
-            if (window.innerWidth > 1024) {
+        function applySidebarMode() {
+            if (isDesktop()) {
                 closeSidebar();
+                shell.classList.toggle("sidebar-collapsed", readCollapsedState());
+            } else {
+                shell.classList.remove("sidebar-collapsed");
             }
+
+            syncToggleState();
+        }
+
+        toggle.addEventListener("click", function () {
+            if (isDesktop()) {
+                var nextCollapsed = !shell.classList.contains("sidebar-collapsed");
+                shell.classList.toggle("sidebar-collapsed", nextCollapsed);
+                writeCollapsedState(nextCollapsed);
+                syncToggleState();
+                return;
+            }
+
+            shell.classList.toggle("sidebar-open");
+            syncToggleState();
         });
+
+        overlay.addEventListener("click", function () {
+            closeSidebar();
+            syncToggleState();
+        });
+
+        window.addEventListener("resize", applySidebarMode);
+
+        applySidebarMode();
     }
 
-    function createBorrowBuyChartOptions() {
+    function parseChartPayload() {
+        var payloadElement = document.getElementById("borrowBuyChartData");
+
+        if (!payloadElement) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(payloadElement.textContent);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function getChartRange(payload, rangeKey) {
+        if (!payload || !payload.ranges || !payload.ranges[rangeKey]) {
+            return null;
+        }
+
+        return payload.ranges[rangeKey];
+    }
+
+    function createBorrowBuyChartOptions(payload, rangeKey) {
+        var range = getChartRange(payload, rangeKey);
+
+        if (!range) {
+            return null;
+        }
+
         return {
             series: [
                 {
-                    name: "Mượn",
-                    data: [44, 55, 57, 56, 61, 58, 63, 60, 66, 50, 72, 80]
+                    name: payload.seriesNames.borrow,
+                    data: range.borrowData
                 },
                 {
-                    name: "Mua",
-                    data: [76, 85, 101, 98, 87, 105, 91, 114, 94, 86, 99, 110]
+                    name: payload.seriesNames.order,
+                    data: range.orderData
                 }
             ],
             colors: ["#4ade80", "#3b82f6"],
@@ -76,7 +158,12 @@
                 colors: ["transparent"]
             },
             xaxis: {
-                categories: ["Th.1", "Th.2", "Th.3", "Th.4", "Th.5", "Th.6", "Th.7", "Th.8", "Th.9", "Th.10", "Th.11", "Th.12"],
+                categories: range.categories,
+                labels: {
+                    rotate: range.categories.length > 12 ? -45 : 0,
+                    hideOverlappingLabels: true,
+                    trim: false
+                },
                 axisBorder: {
                     show: false,
                     color: "#e2e8f0",
@@ -97,11 +184,11 @@
             yaxis: {
                 labels: {
                     formatter: function (value) {
-                        return value + " cuốn";
+                        return value + " " + payload.unitLabel;
                     }
                 },
                 title: {
-                    text: "Số lượng (cuốn)",
+                    text: payload.yAxisTitle,
                     style: { fontWeight: 500 }
                 }
             },
@@ -109,7 +196,7 @@
             tooltip: {
                 y: {
                     formatter: function (value) {
-                        return value + " cuốn";
+                        return value + " " + payload.unitLabel;
                     }
                 }
             }
@@ -118,13 +205,63 @@
 
     function setupBorrowBuyChart() {
         var chartContainer = document.getElementById("borrowBuyChart");
+        var filter = document.getElementById("borrowBuyChartFilter");
+        var payload = parseChartPayload();
+        var defaultRange = payload && payload.defaultRange ? payload.defaultRange : "year";
+        var chartOptions;
+        var chart;
 
-        if (!chartContainer || typeof ApexCharts === "undefined") {
+        if (!chartContainer || typeof ApexCharts === "undefined" || !payload) {
             return;
         }
 
-        var chart = new ApexCharts(chartContainer, createBorrowBuyChartOptions());
+        function applyChartRange(rangeKey) {
+            var range = getChartRange(payload, rangeKey);
+
+            if (!range) {
+                return;
+            }
+
+            chart.updateOptions({
+                xaxis: {
+                    categories: range.categories,
+                    labels: {
+                        rotate: range.categories.length > 12 ? -45 : 0,
+                        hideOverlappingLabels: true,
+                        trim: false
+                    }
+                }
+            }, false, false, false);
+
+            chart.updateSeries([
+                {
+                    name: payload.seriesNames.borrow,
+                    data: range.borrowData
+                },
+                {
+                    name: payload.seriesNames.order,
+                    data: range.orderData
+                }
+            ], true);
+        }
+
+        if (filter) {
+            filter.value = defaultRange;
+        }
+
+        chartOptions = createBorrowBuyChartOptions(payload, defaultRange);
+        if (!chartOptions) {
+            return;
+        }
+
+        chart = new ApexCharts(chartContainer, chartOptions);
         chart.render();
+
+        if (filter) {
+            filter.addEventListener("change", function () {
+                applyChartRange(filter.value);
+            });
+        }
     }
 
     document.addEventListener("DOMContentLoaded", function () {
