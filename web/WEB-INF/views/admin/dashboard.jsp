@@ -257,6 +257,23 @@
                 <section class="dashboard-grid">
                     <div class="dashboard-column">
                         <section class="dashboard-card">
+                            <div class="dashboard-card-head" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <span class="card-kicker">Thống kê Giao dịch</span>
+                                    <h3>Mượn và Mua</h3>
+                                </div>
+                                <select class="form-select" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #e1e5ea; background-color: #f8fafc; font-size: 14px; font-weight: 500; color: #475569; cursor: pointer; outline: none; transition: all 0.2s;">
+                                    <option selected>Năm nay</option>
+                                    <option>Tháng này</option>
+                                    <option>Tuần này</option>
+                                </select>
+                            </div>
+                            <div class="card-body" style="padding: 1rem 0;">
+                                <div id="borrowBuyChart"></div>
+                            </div>
+                        </section>
+
+                        <section class="dashboard-card">
                             <div class="dashboard-card-head">
                                 <div>
                                     <span class="card-kicker">Báo cáo vận hành</span>
@@ -580,6 +597,114 @@
                 }
             });
         }());
+    </script>
+    
+    <!-- Chart JS Script -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('borrowBuyChart')) {
+                var options = {
+                    series: [
+                        {
+                            name: 'Mượn',
+                            data: [44, 55, 57, 56, 61, 58, 63, 60, 66, 50, 72, 80],
+                        },
+                        {
+                            name: 'Mua',
+                            data: [76, 85, 101, 98, 87, 105, 91, 114, 94, 86, 99, 110],
+                        },
+                    ],
+                    colors: ['#4ade80', '#3b82f6'], // Using typical colors, you can change these
+                    chart: {
+                        type: 'bar',
+                        height: 350,
+                        width: '100%',
+                        parentHeightOffset: 0,
+                        toolbar: {
+                            show: false,
+                        },
+                        fontFamily: 'inherit'
+                    },
+                    grid: {
+                        show: true,
+                        borderColor: "#e2e8f0",
+                    },
+                    legend: {
+                        show: true,
+                        fontWeight: 500,
+                        markers: {
+                            size: 5,
+                            shape: 'square',
+                            strokeWidth: 0,
+                            offsetX: -2,
+                            offsetY: 0,
+                        },
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '85%',
+                            borderRadius: 3,
+                            borderRadiusApplication: 'end',
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false,
+                    },
+                    stroke: {
+                        show: false,
+                        width: 2,
+                        colors: ['transparent'],
+                    },
+                    xaxis: {
+                        categories: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                        axisBorder: {
+                            show: false,
+                            color: "#e2e8f0",
+                            height: 1,
+                            width: '100%',
+                            offsetX: 0,
+                            offsetY: 0,
+                        },
+                        axisTicks: {
+                            show: false,
+                            borderType: 'solid',
+                            color: "#e2e8f0",
+                            height: 6,
+                            offsetX: 0,
+                            offsetY: 0,
+                        },
+                    },
+                    yaxis: {
+                        labels: {
+                            formatter: function (e) {
+                                return e + ' cuốn';
+                            },
+                        },
+                        title: {
+                            text: 'Số lượng (cuốn)' ,
+                            style: {
+                                fontWeight: 500,
+                            }
+                        },
+                    },
+                    fill: {
+                        opacity: 1,
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + " cuốn"
+                            }
+                        }
+                    },
+                };
+
+                var chart = new ApexCharts(document.querySelector("#borrowBuyChart"), options);
+                chart.render();
+            }
+        });
     </script>
 </body>
 </html>
