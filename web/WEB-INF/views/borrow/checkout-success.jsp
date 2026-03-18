@@ -10,68 +10,68 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>Quan ly thu vien</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/books">Sach</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va mua sach</a>
+        <h1>Quản lý thư viện</h1>
+        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/books">Sách</a>
+        <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
         <div class="nav-right">
-            <span>Xin chao, ${sessionScope.staff.staffName} (Sinh vien)</span>
-            <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
+            <span>Xin chào, ${sessionScope.staff.staffName} (Sinh vien)</span>
+            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2>Checkout thanh cong</h2>
+            <h2>Checkout thành công</h2>
             <div class="msg">
-                Don mua cua ban da duoc tao thanh cong va dang cho staff/admin duyet.
+                Đơn mua của bạn đã được tạo thành công và đang chờ staff/admin duyệt.
             </div>
 
             <div class="summary-list mt-4">
                 <div class="summary-row">
-                    <span>Ma don</span>
+                    <span>Mã đơn</span>
                     <strong>#${successOrder.orderID}</strong>
                 </div>
                 <div class="summary-row">
-                    <span>Ngay dat</span>
+                    <span>Ngày đặt</span>
                     <strong>${successOrder.orderDate}</strong>
                 </div>
                 <div class="summary-row">
-                    <span>Trang thai</span>
+                    <span>Trạng thái</span>
                     <strong>
                         <c:choose>
-                            <c:when test="${successOrder.status eq 'Pending'}"><span class="status pending">Dang cho duyet</span></c:when>
-                            <c:when test="${successOrder.status eq 'Approved'}"><span class="status approved">Da duyet</span></c:when>
-                            <c:when test="${successOrder.status eq 'Rejected'}"><span class="status rejected">Da tu choi</span></c:when>
+                            <c:when test="${successOrder.status eq 'Pending'}"><span class="status pending">Đang chờ duyệt</span></c:when>
+                            <c:when test="${successOrder.status eq 'Approved'}"><span class="status approved">Đã duyệt</span></c:when>
+                            <c:when test="${successOrder.status eq 'Rejected'}"><span class="status rejected">Đã từ chối</span></c:when>
                             <c:otherwise>${successOrder.status}</c:otherwise>
                         </c:choose>
                     </strong>
                 </div>
                 <div class="summary-row">
-                    <span>So dau sach</span>
+                    <span>Số đầu sách</span>
                     <strong>${successItemCount}</strong>
                 </div>
                 <div class="summary-row">
-                    <span>Tong so luong</span>
+                    <span>Tổng số lượng</span>
                     <strong>${successTotalQuantity}</strong>
                 </div>
                 <div class="summary-row total">
-                    <span>Tong gia tri don</span>
+                    <span>Tổng giá trị đơn</span>
                     <strong>${successOrder.totalAmount}</strong>
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <h3>Chi tiet sach trong don</h3>
+            <h3>Chi tiết danh sách trong đơn</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Ma sach</th>
-                        <th>Ten sach</th>
-                        <th>So luong</th>
-                        <th>Don gia</th>
-                        <th>Thanh tien</th>
+                        <th>Mã sách</th>
+                        <th>Tên sách</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,14 +85,14 @@
                         </tr>
                     </c:forEach>
                     <c:if test="${empty successItems}">
-                        <tr><td colspan="5" class="empty">Khong co chi tiet don hang.</td></tr>
+                        <tr><td colspan="5" class="empty">Không có chi tiết đơn hàng.</td></tr>
                     </c:if>
                 </tbody>
             </table>
 
             <div class="actions mt-4">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/borrows?action=list">Ve trung tam muon va mua sach</a>
-                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/borrows?action=checkout">Mo checkout moi</a>
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/borrows?action=list">Về trung tâm mượn và mua sách</a>
+                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/borrows?action=checkout">Mở checkout mới</a>
             </div>
         </div>
     </div>

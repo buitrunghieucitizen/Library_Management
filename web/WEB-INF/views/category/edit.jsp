@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Sua the loai</title>
+    <title>Sửa thể loại/title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
 
     <div class="container">
         <div class="card">
-            <h2>Sua the loai</h2>
+            <h2>Sửa thể loại</h2>
 
             <c:if test="${not empty error}">
                 <div class="error"><c:out value="${error}" /></div>
@@ -26,13 +26,13 @@
                 <input type="hidden" name="categoryID" value="${category.categoryID}">
 
                 <div class="field">
-                    <label for="categoryName">Ten the loai</label>
+                    <label for="categoryName">Tên thể loại</label>
                     <input id="categoryName" type="text" name="categoryName" value="${category.categoryName}" required>
                 </div>
 
                 <div class="actions">
-                    <button class="btn btn-primary" type="submit">Cap nhat</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/categories?action=list">Huy</a>
+                    <button class="btn btn-primary" type="submit">Cập nhật</button>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/categories?action=list">ủy</a>
                 </div>
             </form>
         </div>

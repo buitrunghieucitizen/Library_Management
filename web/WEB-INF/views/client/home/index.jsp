@@ -22,8 +22,8 @@
 
         <main class="content">
             <section class="hero">
-                <h1>Cong thu vien sinh vien</h1>
-                <p>Tim sach, loc theo tac gia/the loai/nha xuat ban, va mo nhanh trung tam muon tra.</p>
+                <h1>Cổng thư viện sinh viên</h1>
+                <p>ìm sách, lọc theo tác giả/thể loại/nhà xuất bản, và mở nhanh trung tâm mượn trả.</p>
             </section>
 
             <form class="search-form" method="get" action="${homeUrl}">
@@ -31,7 +31,7 @@
                     <input type="text" name="search" placeholder="Tim theo ten sach" value="${search}">
                     <input type="text" name="author" placeholder="Tac gia" value="${author}">
                     <select name="categoryId">
-                        <option value="">Tat ca the loai</option>
+                        <option value="">Tất cả thể loại</option>
                         <c:forEach var="category" items="${categories}">
                             <option value="${category.categoryID}" <c:if test="${selectedCategoryId eq category.categoryID}">selected</c:if>>
                                 ${category.categoryName}
@@ -39,7 +39,7 @@
                         </c:forEach>
                     </select>
                     <select name="publisherId">
-                        <option value="">Tat ca nha xuat ban</option>
+                        <option value="">Tất cả nhà xuất bản</option>
                         <c:forEach var="publisher" items="${publishers}">
                             <option value="${publisher.publisherID}" <c:if test="${selectedPublisherId eq publisher.publisherID}">selected</c:if>>
                                 ${publisher.publisherName}
@@ -47,8 +47,8 @@
                         </c:forEach>
                     </select>
                     <div class="search-actions">
-                        <button class="btn-apply" type="submit">Loc</button>
-                        <a class="btn-reset" href="${homeUrl}">Dat lai</a>
+                        <button class="btn-apply" type="submit">Lọc</button>
+                        <a class="btn-reset" href="${homeUrl}">Đặt lại</a>
                     </div>
                 </div>
 
@@ -61,7 +61,7 @@
                         <c:param name="publisherId" value="${publisherId}" />
                         <c:param name="page" value="1" />
                     </c:url>
-                    <a href="${allLetterUrl}" class="${letter eq 'ALL' ? 'active' : ''}">Tat ca</a>
+                    <a href="${allLetterUrl}" class="${letter eq 'ALL' ? 'active' : ''}">Tất cả</a>
 
                     <c:forEach var="letterItem" items="${letters}">
                         <c:url var="letterUrl" value="/home">
@@ -80,17 +80,17 @@
             <div class="section-header">
                 <h2>
                     <c:choose>
-                        <c:when test="${letter eq 'ALL'}">Bo suu tap sach</c:when>
-                        <c:otherwise>Sach bat dau bang ${letter}</c:otherwise>
+                        <c:when test="${letter eq 'ALL'}">Bộ sưu tập sách</c:when>
+                        <c:otherwise>Sách bắt đầu bằng ${letter}</c:otherwise>
                     </c:choose>
                 </h2>
-                <span class="note">Tong ket qua: ${totalBooks}</span>
-                <a href="${borrowCenterUrl}" class="section-link">Mo trung tam muon tra</a>
+                <span class="note">Tổng kết quả: ${totalBooks}</span>
+                <a href="${borrowCenterUrl}" class="section-link">Mở trung tâm mượn trả</a>
             </div>
 
             <c:choose>
                 <c:when test="${empty books}">
-                    <div class="empty-box">Khong tim thay sach phu hop voi bo loc hien tai.</div>
+                    <div class="empty-box">Không tìm thấy sách phù hợp với bộ lọc hiện tại.</div>
                 </c:when>
                 <c:otherwise>
                     <div class="book-grid">
@@ -119,8 +119,8 @@
                                     <h3 class="book-title">${book.bookName}</h3>
                                     <span class="pill ${book.available gt 0 ? 'ok' : 'out'}">
                                         <c:choose>
-                                            <c:when test="${book.available gt 0}">${book.available} co san</c:when>
-                                            <c:otherwise>Het sach</c:otherwise>
+                                            <c:when test="${book.available gt 0}">${book.available} có sẵn</c:when>
+                                            <c:otherwise>Đã hết sách</c:otherwise>
                                         </c:choose>
                                     </span>
                                 </div>
@@ -141,7 +141,7 @@
                             <c:param name="publisherId" value="${publisherId}" />
                             <c:param name="page" value="${currentPage - 1}" />
                         </c:url>
-                        <a class="page-link" href="${prevPageUrl}">Trang truoc</a>
+                        <a class="page-link" href="${prevPageUrl}">Trang trước</a>
                     </c:if>
 
                     <c:forEach var="p" begin="1" end="${totalPages}">
@@ -172,23 +172,23 @@
         </main>
 
         <aside class="sidebar-right">
-            <div class="section-title">Phieu muon hien tai</div>
+            <div class="section-title">Phiếu mượn hiện tại</div>
             <c:choose>
                 <c:when test="${empty holds}">
-                    <div class="empty-box">Khong co sach dang muon.</div>
+                    <div class="empty-box">Không có sách đang mượn.</div>
                 </c:when>
                 <c:otherwise>
                     <c:forEach var="hold" items="${holds}">
                         <div class="hold-card">
-                            <h3>Phieu muon #${hold.borrowID}</h3>
+                            <h3>Phiếu mượn #${hold.borrowID}</h3>
                             <div class="hold-meta">
-                                Ngay muon: ${hold.borrowDate}<br>
-                                Han tra: ${hold.dueDate}
+                                Ngày mượn: ${hold.borrowDate}<br>
+                                Hạn trả: ${hold.dueDate}
                             </div>
                             <span class="hold-status ${fn:toLowerCase(hold.status) eq 'overdue' ? 'overdue' : 'borrowing'}">
                                 <c:choose>
-                                    <c:when test="${fn:toLowerCase(hold.status) eq 'overdue'}">Qua han</c:when>
-                                    <c:when test="${fn:toLowerCase(hold.status) eq 'borrowing'}">Dang muon</c:when>
+                                    <c:when test="${fn:toLowerCase(hold.status) eq 'overdue'}">Qua hạn</c:when>
+                                    <c:when test="${fn:toLowerCase(hold.status) eq 'borrowing'}">Đang mượn</c:when>
                                     <c:otherwise>${hold.status}</c:otherwise>
                                 </c:choose>
                             </span>

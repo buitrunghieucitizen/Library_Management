@@ -13,7 +13,7 @@
 
     <div class="container">
         <div class="card">
-            <h2>Them sach moi</h2>
+            <h2>Thêm sách mới</h2>
 
             <c:if test="${not empty error}">
                 <div class="error"><c:out value="${error}" /></div>
@@ -24,51 +24,51 @@
 
             <form method="POST" action="${pageContext.request.contextPath}/admin/books?action=create">
                 <div class="field">
-                    <label for="bookName">Ten sach</label>
+                    <label for="bookName">Tên sách</label>
                     <input id="bookName" type="text" name="bookName" required>
                 </div>
 
                 <div class="field">
-                    <label for="quantity">So luong</label>
+                    <label for="quantity">Số lượng</label>
                     <input id="quantity" type="number" name="quantity" min="0" value="1" required>
                 </div>
 
                 <div class="field">
-                    <label for="available">Con lai</label>
+                    <label for="available">Còn lại</label>
                     <input id="available" type="number" name="available" min="0" value="1" required>
                 </div>
 
                 <div class="field">
-                    <label for="categoryID">Ma the loai</label>
+                    <label for="categoryID">Mã thể loại</label>
                     <input id="categoryID" type="number" name="categoryID" min="1" required>
                 </div>
 
                 <div class="field">
-                    <label for="publisherID">Ma nha xuat ban</label>
+                    <label for="publisherID">Mã nhà xuất bản</label>
                     <input id="publisherID" type="number" name="publisherID" min="1" required>
                 </div>
 
-                <h3 class="h3">Gia sach ban dau</h3>
+                <h3 class="h3">Giá sách bán đầu</h3>
 
                 <div class="field">
-                    <label for="priceAmount">Gia</label>
+                    <label for="priceAmount">Giá</label>
                     <input id="priceAmount" type="number" name="priceAmount" min="0" step="0.01" value="0" required>
                 </div>
 
                 <div class="field">
-                    <label for="priceCurrency">Tien te</label>
+                    <label for="priceCurrency">Tiền tệ</label>
                     <input id="priceCurrency" type="text" name="priceCurrency" value="VND" required>
                 </div>
 
                 <div class="field">
-                    <label for="priceNote">Ghi chu gia</label>
+                    <label for="priceNote">Ghi chú giá</label>
                     <input id="priceNote" type="text" name="priceNote" placeholder="Vi du: Gia bia">
                     <p class="note">Khi tao sach, he thong se tao luon gia hien hanh cho sach nay.</p>
                 </div>
 
                 <div class="actions">
-                    <button class="btn btn-primary" type="submit">Luu</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/books?action=list">Huy</a>
+                    <button class="btn btn-primary" type="submit">Lưu</button>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/books?action=list">Hủy</a>
                 </div>
             </form>
         </div>

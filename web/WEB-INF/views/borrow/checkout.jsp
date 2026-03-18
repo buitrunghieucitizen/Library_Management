@@ -10,25 +10,25 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>Quan ly thu vien</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chu</a>
-        <a href="${pageContext.request.contextPath}/books">Sach</a>
-        <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va mua sach</a>
+        <h1>Quản lý thư viện</h1>
+        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/books">ách</a>
+        <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
         <div class="nav-right">
-            <span>Xin chao, ${sessionScope.staff.staffName} (Sinh vien)</span>
-            <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
+            <span>Xin chào, ${sessionScope.staff.staffName} (Sinh vien)</span>
+            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
             <div class="section-header">
-                <h2 class="mb-0">Checkout don mua sach</h2>
-                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/borrows?action=list">Quay lai danh sach can mua</a>
+                <h2 class="mb-0">Checkout đơn mua sách</h2>
+                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/borrows?action=list">Quay lại danh sách cần mua</a>
             </div>
             <p class="note">
                 Sinh vien: <strong>#${studentId}</strong>.
-                Kiem tra thong tin don hang truoc khi gui duyet cho staff/admin.
+                Kiểm tra thông tin đơn hàng trước khi gửi duyệt cho staff/admin.
             </p>
             <c:if test="${not empty param.msg}">
                 <div class="msg">${param.msg}</div>
@@ -40,16 +40,16 @@
 
         <div class="checkout-layout">
             <div class="card">
-                <h3>Chi tiet don hang</h3>
+                <h3>Chi tiết đơn hàng</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>Ma sach</th>
-                            <th>Ten sach</th>
-                            <th>So luong</th>
-                            <th>Don gia</th>
-                            <th>Thanh tien</th>
-                            <th>Trang thai</th>
+                            <th>Mã sách</th>
+                            <th>Tên sách</th>
+                            <th>Số lượng</th>
+                            <th>Đơn giá</th>
+                            <th>Thành tiền</th>
+                            <th>Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,47 +63,47 @@
                                 <td>
                                     <c:choose>
                                         <c:when test="${item.canOrder}">
-                                            <span class="status-ok">Hop le</span>
+                                            <span class="status-ok">Hợp lệ</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="status-bad">Khong hop le</span>
-                                            <div class="note">Het hang hoac chua co gia ban.</div>
+                                            <span class="status-bad">Không hợp lệ</span>
+                                            <div class="note">Hết hàng hoặc chưa có giá bán.</div>
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
                             </tr>
                         </c:forEach>
                         <c:if test="${empty checkoutItems}">
-                            <tr><td colspan="6" class="empty">Danh sach can mua dang trong.</td></tr>
+                            <tr><td colspan="6" class="empty">Danh sách cần mua đang trống.</td></tr>
                         </c:if>
                     </tbody>
                 </table>
             </div>
 
             <div class="card checkout-summary">
-                <h3>Tong quan checkout</h3>
+                <h3>Tổng quan checkout</h3>
                 <div class="summary-list">
                     <div class="summary-row">
-                        <span>So dau sach</span>
+                        <span>Số đầu sách</span>
                         <strong>${checkoutItemCount}</strong>
                     </div>
                     <div class="summary-row">
-                        <span>Tong so luong</span>
+                        <span>Tổng số lượng</span>
                         <strong>${checkoutQuantity}</strong>
                     </div>
                     <div class="summary-row">
-                        <span>Item khong hop le</span>
+                        <span>Item không hợp lệ</span>
                         <strong>${checkoutInvalidCount}</strong>
                     </div>
                     <div class="summary-row total">
-                        <span>Tong tam tinh</span>
+                        <span>Tổng tạm tính</span>
                         <strong>${checkoutTotal}</strong>
                     </div>
                 </div>
 
                 <c:if test="${checkoutInvalidCount > 0}">
                     <div class="error mt-4">
-                        Co ${checkoutInvalidCount} item chua hop le. Vui long quay lai danh sach can mua de cap nhat.
+                        Có ${checkoutInvalidCount} item chưa hợp lệ. Vui lòng quay lại danh sách cần mua để cập nhật.
                     </div>
                 </c:if>
 

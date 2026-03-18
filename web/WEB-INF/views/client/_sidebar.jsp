@@ -21,28 +21,28 @@
 
     <div class="nav-item">
         <a href="${booksUrl}" class="${fn:contains(currentUri, '/books') ? 'active' : ''}">
-            Danh muc sach
+            Danh mục sách
         </a>
     </div>
 
     <div class="nav-item">
         <a href="${borrowsUrl}" class="${fn:contains(currentUri, '/borrows') ? 'active' : ''}">
-            Trung tam muon tra
+            Trung tâm mượn trả
         </a>
     </div>
 
     <div class="divider"></div>
-    <div class="section-title">Tai khoan</div>
+    <div class="section-title">Tài khoản</div>
 
     <div class="nav-item">
         <a href="${dashboardUrl}" class="${fn:contains(currentUri, '/index.jsp') ? 'active' : ''}">
-            Bang dieu khien
+            Bảng điều khiển
         </a>
     </div>
 
     <div class="nav-item">
         <a href="${logoutUrl}">
-            Dang xuat
+            Đăng xuất
         </a>
     </div>
 </aside>

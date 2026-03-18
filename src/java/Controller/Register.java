@@ -4,6 +4,7 @@ import Entities.Staff;
 import Entities.StaffRole;
 import Model.DAOStaff;
 import Model.DAOStaffRole;
+import Utils.PasswordResetUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -39,38 +40,50 @@ public class Register extends HttpServlet {
 
         String name = trim(request.getParameter("name"));
         String username = trim(request.getParameter("username"));
+        String email = trim(request.getParameter("email"));
         String password = request.getParameter("password");
         String confirm = request.getParameter("confirm");
 
-        if (name.isEmpty() || username.isEmpty() || password == null || password.isEmpty()) {
-            forwardError(request, response, name, username, "Vui long nhap day du thong tin.");
+        if (name.isEmpty() || username.isEmpty() || email.isEmpty() || password == null || password.isEmpty()) {
+            forwardError(request, response, name, username, email, "Vui long nhap day du thong tin.");
             return;
         }
 
         if (!password.equals(confirm)) {
-            forwardError(request, response, name, username, "Mat khau xac nhan khong khop.");
+            forwardError(request, response, name, username, email, "Mat khau xac nhan khong khop.");
+            return;
+        }
+
+        if (!PasswordResetUtils.isEmail(email)) {
+            forwardError(request, response, name, username, email, "Email khong hop le.");
             return;
         }
 
         try {
             if (daoStaff.existsByUsername(username)) {
-                forwardError(request, response, name, username, "Ten dang nhap da ton tai.");
+                forwardError(request, response, name, username, email, "Ten dang nhap da ton tai.");
                 return;
             }
 
-            Staff staff = new Staff(0, name, username, password);
+            if (daoStaff.existsByEmail(email) || daoStaff.getByUsername(email) != null) {
+                forwardError(request, response, name, username, email, "Email da duoc su dung.");
+                return;
+            }
+
+            Staff staff = new Staff(0, name, username, email, password);
             daoStaff.insert(staff);
             daoStaffRole.insert(new StaffRole(staff.getStaffID(), STUDENT_ROLE_ID));
             response.sendRedirect(request.getContextPath() + "/LoginURL?registered=1");
         } catch (SQLException e) {
-            forwardError(request, response, name, username, "Loi he thong: " + e.getMessage());
+            forwardError(request, response, name, username, email, "Loi he thong: " + e.getMessage());
         }
     }
 
     private void forwardError(HttpServletRequest request, HttpServletResponse response,
-            String name, String username, String error) throws ServletException, IOException {
+            String name, String username, String email, String error) throws ServletException, IOException {
         request.setAttribute("name", name);
         request.setAttribute("username", username);
+        request.setAttribute("email", email);
         request.setAttribute("error", error);
         request.getRequestDispatcher("/register.jsp").forward(request, response);
     }

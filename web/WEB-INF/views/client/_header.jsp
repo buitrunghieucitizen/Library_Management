@@ -7,7 +7,7 @@
 <nav class="top-nav">
     <a href="${homeUrl}" class="brand">
         <span class="brand-mark">LM</span>
-        Cong thu vien
+        Cổng thư viện
     </a>
 
     <div class="nav-right">
@@ -21,7 +21,7 @@
                 </span>
                 <span class="user-name">${sessionScope.staff.staffName}</span>
             </div>
-            <a href="${logoutUrl}" class="nav-button">Dang xuat</a>
+            <a href="${logoutUrl}" class="nav-button">Đăng xuất</a>
         </c:if>
     </div>
 </nav>

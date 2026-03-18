@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sach sach</title>
+    <title>Danh sách sách</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -26,12 +26,12 @@
         </c:when>
         <c:otherwise>
             <div class="top-nav">
-                <a class="brand" href="${pageContext.request.contextPath}/index.jsp">Quan ly thu vien</a>
-                <a class="active" href="${pageContext.request.contextPath}/books?action=list">Sach</a>
-                <a href="${pageContext.request.contextPath}/borrows?action=list">Muon va mua sach</a>
+                <a class="brand" href="${pageContext.request.contextPath}/index.jsp">Quản lý thư viện</a>
+                <a class="active" href="${pageContext.request.contextPath}/books?action=list">ách</a>
+                <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
                 <div class="nav-right">
                     <span><c:out value="${sessionScope.staff.staffName}" default=""/></span>
-                    <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
+                    <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
                 </div>
             </div>
             <c:set var="listPath" value="/books" />
@@ -42,8 +42,8 @@
         <div class="panel">
             <div class="section-header">
                 <div>
-                    <h2>Danh sach sach</h2>
-                    <div class="note">Tong ban ghi: ${totalItems}</div>
+                    <h2>Danh sách sách</h2>
+                    <div class="note">Tổng bản ghi: ${totalItems}</div>
                 </div>
                 <c:if test="${isAdminSection && isAdmin}">
                     <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/books?action=create">+ Them sach moi</a>
@@ -60,13 +60,13 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Ten sach</th>
-                        <th>So luong</th>
-                        <th>Con lai</th>
-                        <th>Ma the loai</th>
-                        <th>Ma nha xuat ban</th>
-                        <th>Hanh dong</th>
+                        <th>Mã</th>
+                        <th>Tên sách</th>
+                        <th>Số lượng</th>
+                        <th>òn lại</th>
+                        <th>Mã thể loại</th>
+                        <th>Mã nhà xuất bản</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,7 +85,7 @@
                                         <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/books?action=delete&id=${b.bookID}" onclick="return confirm('Ban co chac muon xoa sach nay?')">Xoa</a>
                                     </c:when>
                                     <c:otherwise>
-                                        <span class="text-subtle">Chi xem</span>
+                                        <span class="text-subtle">Chỉ xem</span>
                                     </c:otherwise>
                                 </c:choose>
                             </td>
@@ -93,7 +93,7 @@
                     </c:forEach>
                     <c:if test="${empty books}">
                         <tr>
-                            <td colspan="7" class="empty-row-lg">Chua co sach nao.</td>
+                            <td colspan="7" class="empty-row-lg">Chưa có sách nào.</td>
                         </tr>
                     </c:if>
                 </tbody>
@@ -106,7 +106,7 @@
                             <c:param name="action" value="list"/>
                             <c:param name="page" value="${currentPage - 1}"/>
                         </c:url>
-                        <a class="page-link" href="${prevUrl}">Trang truoc</a>
+                        <a class="page-link" href="${prevUrl}">Trang trước</a>
                     </c:if>
 
                     <c:forEach begin="1" end="${totalPages}" var="p">

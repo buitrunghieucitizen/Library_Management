@@ -13,7 +13,7 @@
 
     <div class="container">
         <div class="card">
-            <h2>Sua sach</h2>
+            <h2>Sửa sách</h2>
 
             <c:if test="${not empty error}">
                 <div class="error"><c:out value="${error}" /></div>
@@ -26,60 +26,60 @@
                 <input type="hidden" name="bookID" value="${book.bookID}">
 
                 <div class="field">
-                    <label for="bookName">Ten sach</label>
+                    <label for="bookName">Tên sách</label>
                     <input id="bookName" type="text" name="bookName" value="${book.bookName}" required>
                 </div>
 
                 <div class="field">
-                    <label for="quantity">So luong</label>
+                    <label for="quantity">Số lượng</label>
                     <input id="quantity" type="number" name="quantity" min="0" value="${book.quantity}" required>
                 </div>
 
                 <div class="field">
-                    <label for="available">Con lai</label>
+                    <label for="available">Còn lại</label>
                     <input id="available" type="number" name="available" min="0" value="${book.available}" required>
                 </div>
 
                 <div class="field">
-                    <label for="categoryID">Ma the loai</label>
+                    <label for="categoryID">Mã thể loại</label>
                     <input id="categoryID" type="number" name="categoryID" min="1" value="${book.categoryID}" required>
                 </div>
 
                 <div class="field">
-                    <label for="publisherID">Ma nha xuat ban</label>
+                    <label for="publisherID">Mã nhà xuất bản</label>
                     <input id="publisherID" type="number" name="publisherID" min="1" value="${book.publisherID}" required>
                 </div>
 
-                <h3 class="h3">Gia hien hanh</h3>
+                <h3 class="h3">Giá hiện hành</h3>
 
                 <div class="field">
-                    <label for="priceAmount">Gia</label>
+                    <label for="priceAmount">Giá</label>
                     <input id="priceAmount" type="number" name="priceAmount" min="0" step="0.01" value="${empty currentPrice ? 0 : currentPrice.amount}" required>
                 </div>
 
                 <div class="field">
-                    <label for="priceCurrency">Tien te</label>
+                    <label for="priceCurrency">Tiền tệ</label>
                     <input id="priceCurrency" type="text" name="priceCurrency" value="${empty currentPrice ? 'VND' : currentPrice.currency}" required>
                 </div>
 
                 <div class="field">
-                    <label for="priceNote">Ghi chu gia</label>
+                    <label for="priceNote">Ghi chú giá</label>
                     <input id="priceNote" type="text" name="priceNote" value="${empty currentPrice ? '' : currentPrice.note}">
                     <p class="note">
                         <c:choose>
                             <c:when test="${not empty currentPrice}">
-                                Gia hien hanh bat dau tu: ${currentPrice.startDate}
+                                Gia hiện hành bắt đầu từ: ${currentPrice.startDate}
                             </c:when>
                             <c:otherwise>
-                                Sach nay chua co gia, cap nhat lan nay se tao gia moi.
+                                Sách chưa có giá hiện hành. Khi cập nhật sách, hệ thống sẽ tạo luôn giá hiện hành cho sách này với thông tin bạn vừa nhập.
                             </c:otherwise>
                         </c:choose>
                     </p>
                 </div>
 
                 <div class="actions">
-                    <button class="btn btn-primary" type="submit">Cap nhat</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/books?action=list">Huy</a>
+                    <button class="btn btn-primary" type="submit">Cập nhật</button>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/books?action=list">ủy</a>
                 </div>
             </form>
         </div>
