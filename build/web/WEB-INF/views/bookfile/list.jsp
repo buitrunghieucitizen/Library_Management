@@ -1,15 +1,8 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Quản lý tệp sách</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-</head>
-<body>
+<c:set var="pageTitle" value="Quản lý tệp sách" />
     <c:set var="activeTab" value="bookfiles" />
-    <%@ include file="../admin/_header.jsp" %>
+    <%@ include file="../admin/layout/_admin_header.jsp" %>
 
     <div class="container">
         <div class="panel">
@@ -96,5 +89,5 @@
             </c:if>
         </div>
     </div>
-</body>
-</html>
+<%@ include file="../admin/layout/_admin_footer.jsp" %>
+

@@ -1,15 +1,8 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8"><title>Thêm nhà xuất bản</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-    
-</head>
-<body>
+<c:set var="pageTitle" value="Thêm nhà xuất bản" />
     <c:set var="activeTab" value="publishers" />
-    <%@ include file="../admin/_header.jsp" %>
+    <%@ include file="../admin/layout/_admin_header.jsp" %>
 
 
     <div class="container"><div class="card">
@@ -20,8 +13,8 @@
             <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/publishers">Hủy</a>
         </form>
     </div></div>
-</body>
-</html>
+<%@ include file="../admin/layout/_admin_footer.jsp" %>
+
 
 
 

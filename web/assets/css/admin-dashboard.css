@@ -593,6 +593,10 @@
     color: #0f172a;
 }
 
+.dashboard-card-head-spread {
+    align-items: center;
+}
+
 .card-kicker {
     color: #64748b;
 }
@@ -864,6 +868,137 @@
     box-shadow: 0 16px 30px rgba(37, 99, 235, 0.1);
 }
 
+.chart-filter {
+    min-height: 40px;
+    min-width: 132px;
+    width: auto;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid #dbe5f2;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.chart-filter:focus {
+    outline: none;
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.chart-panel-body {
+    padding: 1rem 0 0;
+}
+
+.dashboard-content > .container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+.dashboard-content > .container > h2,
+.dashboard-content > .container > .note,
+.dashboard-content > .container > .msg,
+.dashboard-content > .container > .error,
+.dashboard-content > .container > .search-form,
+.dashboard-content > .container > .details-box,
+.dashboard-content > .container > .divider,
+.dashboard-content > .container > h3,
+.dashboard-content > .container > table,
+.dashboard-content > .container > .pagination,
+.dashboard-content > .container > form,
+.dashboard-content > .container > .panel,
+.dashboard-content > .container > .card {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.dashboard-content > .container > h2 {
+    margin-bottom: 18px;
+    font-size: 1.75rem;
+    color: #0f172a;
+}
+
+.dashboard-content > .container > .panel,
+.dashboard-content > .container > .card,
+.dashboard-content > .container > form,
+.dashboard-content > .container > .search-form,
+.dashboard-content > .container > .details-box {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 28px;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-content > .container > .panel,
+.dashboard-content > .container > .card,
+.dashboard-content > .container > form {
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.dashboard-content > .container > .search-form,
+.dashboard-content > .container > .details-box {
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.dashboard-content .section-header {
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
+.dashboard-content .btn-inline,
+.dashboard-content .btn-inline-sm {
+    margin-bottom: 18px;
+}
+
+.dashboard-content .note,
+.dashboard-content .text-subtle {
+    color: #64748b;
+}
+
+.dashboard-content table {
+    margin-top: 0;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: none;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.dashboard-content th {
+    background: linear-gradient(135deg, #0f2748, #1d4ed8);
+}
+
+.dashboard-content td {
+    background: rgba(255, 255, 255, 0.86);
+}
+
+.dashboard-content tr:hover td {
+    background: #f8fbff;
+}
+
+.dashboard-content .search-form,
+.dashboard-content .order-search {
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.dashboard-content .details-box {
+    background: linear-gradient(180deg, #f8fafc 0%, #f0fdf4 100%);
+}
+
+.dashboard-content .pagination {
+    margin-top: 20px;
+}
+
+.dashboard-content .page-link {
+    min-height: 38px;
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 1280px) {
@@ -942,6 +1077,14 @@
     .signal-grid,
     .shortcut-grid {
         grid-template-columns: 1fr;
+    }
+
+    .dashboard-content > .container > .panel,
+    .dashboard-content > .container > .card,
+    .dashboard-content > .container > form,
+    .dashboard-content > .container > .search-form,
+    .dashboard-content > .container > .details-box {
+        border-radius: 24px;
     }
 
     .stock-item,

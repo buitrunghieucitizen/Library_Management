@@ -1,131 +1,9 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><c:out value="${dashboardTitle}" /></title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-dashboard.css">
-</head>
-<body class="dashboard-body">
-    <c:set var="ctx" value="${pageContext.request.contextPath}" />
-    <c:set var="operatorName" value="Đội ngũ thư viện" />
-    <c:if test="${not empty sessionScope.staff.staffName}">
-        <c:set var="operatorName" value="${sessionScope.staff.staffName}" />
-    </c:if>
-    <c:set var="operatorBadge" value="${isAdminDashboard ? 'AD' : 'ST'}" />
-
-    <div class="dashboard-shell" id="dashboardShell">
-        <div class="dashboard-overlay" id="dashboardOverlay"></div>
-
-        <aside class="dashboard-sidebar" id="dashboardSidebar">
-            <div class="sidebar-brand">
-                <span class="brand-badge">LM</span>
-                <div class="brand-copy">
-                    <span class="brand-label">Library Manager</span>
-                    <strong>Control Center</strong>
-                </div>
-            </div>
-
-            <nav class="sidebar-nav">
-                <div class="sidebar-group">
-                    <span class="sidebar-group-label">Tổng quan</span>
-                    <a class="sidebar-link active" href="${ctx}/admin/dashboard">
-                        <span class="sidebar-link-mark">DB</span>
-                        <span>Dashboard</span>
-                    </a>
-                </div>
-
-                <div class="sidebar-group">
-                    <span class="sidebar-group-label">Vận hành</span>
-                    <a class="sidebar-link" href="${ctx}/admin/books?action=list">
-                        <span class="sidebar-link-mark">BK</span>
-                        <span>Kho sách</span>
-                    </a>
-                    <a class="sidebar-link" href="${ctx}/admin/borrows?action=list">
-                        <span class="sidebar-link-mark">BR</span>
-                        <span>Mượn trả</span>
-                    </a>
-                    <a class="sidebar-link" href="${ctx}/admin/orders?action=list">
-                        <span class="sidebar-link-mark">OR</span>
-                        <span>Đơn hàng</span>
-                    </a>
-                    <a class="sidebar-link" href="${ctx}/admin/students?action=list">
-                        <span class="sidebar-link-mark">ST</span>
-                        <span>Sinh viên</span>
-                    </a>
-                    <a class="sidebar-link" href="${ctx}/admin/bookfiles?action=list">
-                        <span class="sidebar-link-mark">FL</span>
-                        <span>Tệp sách</span>
-                    </a>
-                </div>
-
-                <c:if test="${isAdminDashboard}">
-                    <div class="sidebar-group">
-                        <span class="sidebar-group-label">Quản trị</span>
-                        <a class="sidebar-link" href="${ctx}/admin/authors?action=list">
-                            <span class="sidebar-link-mark">AU</span>
-                            <span>Tác giả</span>
-                        </a>
-                        <a class="sidebar-link" href="${ctx}/admin/categories?action=list">
-                            <span class="sidebar-link-mark">CT</span>
-                            <span>Thể loại</span>
-                        </a>
-                        <a class="sidebar-link" href="${ctx}/admin/publishers?action=list">
-                            <span class="sidebar-link-mark">PB</span>
-                            <span>Nhà xuất bản</span>
-                        </a>
-                        <a class="sidebar-link" href="${ctx}/admin/staffs?action=list">
-                            <span class="sidebar-link-mark">SF</span>
-                            <span>Nhân viên</span>
-                        </a>
-                    </div>
-                </c:if>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="sidebar-user-chip">
-                    <span class="sidebar-user-avatar"><c:out value="${operatorBadge}" /></span>
-                    <div>
-                        <strong><c:out value="${operatorName}" /></strong>
-                        <span><c:out value="${dashboardRoleLabel}" /></span>
-                    </div>
-                </div>
-                <a class="sidebar-logout" href="${ctx}/logout">Đăng xuất</a>
-            </div>
-        </aside>
-
-        <div class="dashboard-main">
-            <header class="dashboard-topbar">
-                <div class="topbar-intro">
-                    <button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="Mở menu điều hướng">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                    <div class="topbar-copy">
-                        <span class="topbar-kicker"><c:out value="${dashboardLabel}" /></span>
-                        <h1><c:out value="${dashboardTitle}" /></h1>
-                    </div>
-                </div>
-
-                <div class="topbar-actions">
-                    <a class="topbar-button secondary" href="${ctx}/admin/books?action=list">Kho sách</a>
-                    <a class="topbar-button secondary" href="${ctx}/admin/borrows?action=list">Mượn trả</a>
-                    <a class="topbar-button primary" href="${ctx}/admin/orders?action=list">Đơn cần xử lý</a>
-                    <div class="topbar-user">
-                        <span class="topbar-user-avatar"><c:out value="${operatorBadge}" /></span>
-                        <div>
-                            <strong><c:out value="${operatorName}" /></strong>
-                            <span><c:out value="${todayLabel}" /></span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main class="dashboard-content">
+<c:set var="activeTab" value="dashboard" />
+<c:set var="pageSubtitle" value="${dashboardLabel}" />
+<c:set var="enableCharts" value="true" />
+<%@ include file="layout/_admin_header.jsp" %>
                 <c:if test="${not empty dashboardLoadError}">
                     <div class="error dashboard-error"><c:out value="${dashboardLoadError}" /></div>
                 </c:if>
@@ -257,18 +135,18 @@
                 <section class="dashboard-grid">
                     <div class="dashboard-column">
                         <section class="dashboard-card">
-                            <div class="dashboard-card-head" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="dashboard-card-head dashboard-card-head-spread">
                                 <div>
                                     <span class="card-kicker">Thống kê Giao dịch</span>
                                     <h3>Mượn và Mua</h3>
                                 </div>
-                                <select class="form-select" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #e1e5ea; background-color: #f8fafc; font-size: 14px; font-weight: 500; color: #475569; cursor: pointer; outline: none; transition: all 0.2s;">
+                                <select class="chart-filter" aria-label="Phạm vi thời gian biểu đồ">
                                     <option selected>Năm nay</option>
                                     <option>Tháng này</option>
                                     <option>Tuần này</option>
                                 </select>
                             </div>
-                            <div class="card-body" style="padding: 1rem 0;">
+                            <div class="chart-panel-body">
                                 <div id="borrowBuyChart"></div>
                             </div>
                         </section>
@@ -570,141 +448,4 @@
                     </div>
                 </section>
             </main>
-        </div>
-    </div>
-
-    <script>
-        (function () {
-            var shell = document.getElementById("dashboardShell");
-            var overlay = document.getElementById("dashboardOverlay");
-            var toggle = document.getElementById("sidebarToggle");
-
-            if (!shell || !overlay || !toggle) {
-                return;
-            }
-
-            toggle.addEventListener("click", function () {
-                shell.classList.toggle("sidebar-open");
-            });
-
-            overlay.addEventListener("click", function () {
-                shell.classList.remove("sidebar-open");
-            });
-
-            window.addEventListener("resize", function () {
-                if (window.innerWidth > 1024) {
-                    shell.classList.remove("sidebar-open");
-                }
-            });
-        }());
-    </script>
-    
-    <!-- Chart JS Script -->
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (document.getElementById('borrowBuyChart')) {
-                var options = {
-                    series: [
-                        {
-                            name: 'Mượn',
-                            data: [44, 55, 57, 56, 61, 58, 63, 60, 66, 50, 72, 80],
-                        },
-                        {
-                            name: 'Mua',
-                            data: [76, 85, 101, 98, 87, 105, 91, 114, 94, 86, 99, 110],
-                        },
-                    ],
-                    colors: ['#4ade80', '#3b82f6'], // Using typical colors, you can change these
-                    chart: {
-                        type: 'bar',
-                        height: 350,
-                        width: '100%',
-                        parentHeightOffset: 0,
-                        toolbar: {
-                            show: false,
-                        },
-                        fontFamily: 'inherit'
-                    },
-                    grid: {
-                        show: true,
-                        borderColor: "#e2e8f0",
-                    },
-                    legend: {
-                        show: true,
-                        fontWeight: 500,
-                        markers: {
-                            size: 5,
-                            shape: 'square',
-                            strokeWidth: 0,
-                            offsetX: -2,
-                            offsetY: 0,
-                        },
-                    },
-                    plotOptions: {
-                        bar: {
-                            horizontal: false,
-                            columnWidth: '85%',
-                            borderRadius: 3,
-                            borderRadiusApplication: 'end',
-                        },
-                    },
-                    dataLabels: {
-                        enabled: false,
-                    },
-                    stroke: {
-                        show: false,
-                        width: 2,
-                        colors: ['transparent'],
-                    },
-                    xaxis: {
-                        categories: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
-                        axisBorder: {
-                            show: false,
-                            color: "#e2e8f0",
-                            height: 1,
-                            width: '100%',
-                            offsetX: 0,
-                            offsetY: 0,
-                        },
-                        axisTicks: {
-                            show: false,
-                            borderType: 'solid',
-                            color: "#e2e8f0",
-                            height: 6,
-                            offsetX: 0,
-                            offsetY: 0,
-                        },
-                    },
-                    yaxis: {
-                        labels: {
-                            formatter: function (e) {
-                                return e + ' cuốn';
-                            },
-                        },
-                        title: {
-                            text: 'Số lượng (cuốn)' ,
-                            style: {
-                                fontWeight: 500,
-                            }
-                        },
-                    },
-                    fill: {
-                        opacity: 1,
-                    },
-                    tooltip: {
-                        y: {
-                            formatter: function (val) {
-                                return val + " cuốn"
-                            }
-                        }
-                    },
-                };
-
-                var chart = new ApexCharts(document.querySelector("#borrowBuyChart"), options);
-                chart.render();
-            }
-        });
-    </script>
-</body>
-</html>
+<%@ include file="layout/_admin_footer.jsp" %>

@@ -1,24 +1,8 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Danh sách sinh viên</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-</head>
-<body>
-    <c:set var="isAdmin" value="false" />
-    <c:if test="${not empty sessionScope.roles}">
-        <c:forEach var="roleId" items="${sessionScope.roles}">
-            <c:if test="${roleId == 1}">
-                <c:set var="isAdmin" value="true" />
-            </c:if>
-        </c:forEach>
-    </c:if>
-
+<c:set var="pageTitle" value="Danh sách sinh viên" />
     <c:set var="activeTab" value="students" />
-    <%@ include file="../admin/_header.jsp" %>
+    <%@ include file="../admin/layout/_admin_header.jsp" %>
 
     <div class="container">
         <h2>Danh sách sinh viên</h2>
@@ -89,5 +73,5 @@
             </div>
         </c:if>
     </div>
-</body>
-</html>
+<%@ include file="../admin/layout/_admin_footer.jsp" %>
+

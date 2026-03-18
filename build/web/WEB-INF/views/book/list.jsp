@@ -1,14 +1,6 @@
 ﻿<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Danh sách sách</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-</head>
-<body>
-    <c:set var="isAdmin" value="false" />
+<c:set var="isAdmin" value="false" />
     <c:set var="isAdminSection" value="${requestScope.adminSection}" />
     <c:if test="${not empty sessionScope.roles}">
         <c:forEach var="roleId" items="${sessionScope.roles}">
@@ -20,11 +12,20 @@
 
     <c:choose>
         <c:when test="${isAdminSection}">
+            <c:set var="pageTitle" value="Danh sách sách" />
             <c:set var="activeTab" value="books" />
-            <%@ include file="../admin/_header.jsp" %>
+            <%@ include file="../admin/layout/_admin_header.jsp" %>
             <c:set var="listPath" value="/admin/books" />
         </c:when>
         <c:otherwise>
+            <!DOCTYPE html>
+            <html lang="vi">
+            <head>
+                <meta charset="UTF-8">
+                <title>Danh sách sách</title>
+                <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
+            </head>
+            <body>
             <div class="top-nav">
                 <a class="brand" href="${pageContext.request.contextPath}/index.jsp">Quản lý thư viện</a>
                 <a class="active" href="${pageContext.request.contextPath}/books?action=list">Sách</a>
@@ -128,5 +129,12 @@
             </c:if>
         </div>
     </div>
-</body>
-</html>
+    <c:choose>
+        <c:when test="${isAdminSection}">
+            <%@ include file="../admin/layout/_admin_footer.jsp" %>
+        </c:when>
+        <c:otherwise>
+            </body>
+            </html>
+        </c:otherwise>
+    </c:choose>
