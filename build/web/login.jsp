@@ -31,8 +31,9 @@
 
             <form class="auth-form" action="${pageContext.request.contextPath}/LoginURL" method="post">
                 <div class="field">
-                    <label for="username">Tên đăng nhập</label>
+                    <label for="username">Ten dang nhap hoac email</label>
                     <input id="username" type="text" name="username" value="${username}" autocomplete="username" spellcheck="false" autofocus required>
+                    <p class="auth-help">Ban co the dung ten dang nhap hoac email da dang ky.</p>
                 </div>
                 <div class="field">
                     <label for="password">Mật khẩu</label>
