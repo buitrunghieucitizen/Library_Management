@@ -16,7 +16,7 @@
             <div class="text-center mb-4">
                 <div class="brand">LM</div>
                 <h1 id="auth-title" class="h3 fw-bold mb-2">Đăng nhập</h1>
-                <p class="text-muted mb-0">Đăng nhập vào hệ thống thư viện và công sinh viên.</p>
+                <p class="text-muted mb-0">Đăng nhập vào hệ thống thư viện và cổng sinh viên.</p>
             </div>
 
             <c:if test="${param.registered eq '1'}">
@@ -33,7 +33,7 @@
                 <div class="field">
                     <label for="username">Tên đăng nhập hoặc email</label>
                     <input id="username" type="text" name="username" value="${username}" autocomplete="username" spellcheck="false" autofocus required>
-                    <p class="auth-help">Ban co the dung ten dang nhap hoac email da dang ky.</p>
+                    <p class="auth-help">Bạn có thể dùng tên đăng nhập hoặc email đã đăng ký.</p>
                 </div>
                 <div class="field">
                     <label for="password">Mật khẩu</label>

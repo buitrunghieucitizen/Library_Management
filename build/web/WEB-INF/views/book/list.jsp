@@ -27,7 +27,7 @@
         <c:otherwise>
             <div class="top-nav">
                 <a class="brand" href="${pageContext.request.contextPath}/index.jsp">Quản lý thư viện</a>
-                <a class="active" href="${pageContext.request.contextPath}/books?action=list">ách</a>
+                <a class="active" href="${pageContext.request.contextPath}/books?action=list">Sách</a>
                 <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
                 <div class="nav-right">
                     <span><c:out value="${sessionScope.staff.staffName}" default=""/></span>
@@ -46,7 +46,7 @@
                     <div class="note">Tổng bản ghi: ${totalItems}</div>
                 </div>
                 <c:if test="${isAdminSection && isAdmin}">
-                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/books?action=create">+ Them sach moi</a>
+                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/books?action=create">+ Thêm sách mới</a>
                 </c:if>
             </div>
 
@@ -63,7 +63,7 @@
                         <th>Mã</th>
                         <th>Tên sách</th>
                         <th>Số lượng</th>
-                        <th>òn lại</th>
+                        <th>Còn lại</th>
                         <th>Mã thể loại</th>
                         <th>Mã nhà xuất bản</th>
                         <th>Hành động</th>
@@ -81,8 +81,8 @@
                             <td class="actions">
                                 <c:choose>
                                     <c:when test="${isAdminSection && isAdmin}">
-                                        <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/books?action=edit&id=${b.bookID}">Sua</a>
-                                        <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/books?action=delete&id=${b.bookID}" onclick="return confirm('Ban co chac muon xoa sach nay?')">Xoa</a>
+                                        <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/books?action=edit&id=${b.bookID}">Sửa</a>
+                                        <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/books?action=delete&id=${b.bookID}" onclick="return confirm('Bạn có chắc muốn xóa sách này?')">Xóa</a>
                                     </c:when>
                                     <c:otherwise>
                                         <span class="text-subtle">Chỉ xem</span>

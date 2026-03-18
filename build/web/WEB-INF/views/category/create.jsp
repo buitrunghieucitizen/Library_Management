@@ -30,7 +30,7 @@
 
                 <div class="actions">
                     <button class="btn btn-primary" type="submit">Lưu</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/categories?action=list">Huy</a>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/categories?action=list">Hủy</a>
                 </div>
             </form>
         </div>

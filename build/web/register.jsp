@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cong thu vien | Dang ky</title>
+    <title>Cổng thư viện | Đăng ký</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth.css">
 </head>
@@ -15,7 +15,7 @@
             <div class="text-center mb-4">
                 <div class="brand">+</div>
                 <h1 id="auth-title" class="h3 fw-bold mb-2">Đăng ký tài khoản</h1>
-                <p class="text-muted mb-0">ạo tài khoản sinh viên để truy cập công sinh viên.</p>
+                <p class="text-muted mb-0">Tạo tài khoản sinh viên để truy cập cổng sinh viên.</p>
             </div>
 
             <c:if test="${not empty error}">

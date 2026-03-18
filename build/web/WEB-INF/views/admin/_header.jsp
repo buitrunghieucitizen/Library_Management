@@ -10,23 +10,23 @@
 </c:if>
 
 <div class="navbar admin-fixed">
-    <h1>Quan ly thu vien</h1>
+    <h1>Quản lý thư viện</h1>
     <a class="${activeTab eq 'dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/dashboard">Dashboard</a>
-    <a class="${activeTab eq 'books' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/books?action=list">Sach</a>
-    <a class="${activeTab eq 'students' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/students?action=list">Sinh vien</a>
-    <a class="${activeTab eq 'borrows' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/borrows?action=list">Muon tra</a>
-    <a class="${activeTab eq 'orders' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/orders?action=list">Don hang</a>
-    <a class="${activeTab eq 'bookfiles' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/bookfiles?action=list">Tep sach</a>
+    <a class="${activeTab eq 'books' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/books?action=list">Sách</a>
+    <a class="${activeTab eq 'students' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/students?action=list">Sinh viên</a>
+    <a class="${activeTab eq 'borrows' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/borrows?action=list">Mượn trả</a>
+    <a class="${activeTab eq 'orders' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/orders?action=list">Đơn hàng</a>
+    <a class="${activeTab eq 'bookfiles' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/bookfiles?action=list">Tệp sách</a>
 
     <c:if test="${isAdminNav}">
-        <a class="${activeTab eq 'authors' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/authors?action=list">Tac gia</a>
-        <a class="${activeTab eq 'categories' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/categories?action=list">The loai</a>
-        <a class="${activeTab eq 'publishers' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/publishers?action=list">Nha xuat ban</a>
-        <a class="${activeTab eq 'staffs' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/staffs?action=list">Nhan vien</a>
+        <a class="${activeTab eq 'authors' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/authors?action=list">Tác giả</a>
+        <a class="${activeTab eq 'categories' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/categories?action=list">Thể loại</a>
+        <a class="${activeTab eq 'publishers' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/publishers?action=list">Nhà xuất bản</a>
+        <a class="${activeTab eq 'staffs' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/staffs?action=list">Nhân viên</a>
     </c:if>
 
     <div class="nav-right">
         <span><c:out value="${sessionScope.staff.staffName}" default="" /></span>
-        <a href="${pageContext.request.contextPath}/logout">Dang xuat</a>
+        <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
     </div>
 </div>

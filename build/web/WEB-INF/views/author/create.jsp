@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Them tac gia</title>
+    <title>Thêm tác giả</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -30,7 +30,7 @@
 
                 <div class="actions">
                     <button class="btn btn-primary" type="submit">Lưu</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/authors?action=list">Huy</a>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/authors?action=list">Hủy</a>
                 </div>
             </form>
         </div>

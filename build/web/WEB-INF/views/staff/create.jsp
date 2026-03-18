@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Them nhan vien</title>
+    <title>Thêm nhân viên</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
 
     <div class="container">
         <div class="card">
-            <h2>Them nhan vien</h2>
+            <h2>Thêm nhân viên</h2>
 
             <c:if test="${not empty error}">
                 <div class="error"><c:out value="${error}" /></div>
@@ -21,12 +21,12 @@
 
             <form method="post" action="${pageContext.request.contextPath}/admin/staffs?action=create">
                 <div class="field">
-                    <label for="staffName">Ten nhan vien</label>
+                    <label for="staffName">Tên nhân viên</label>
                     <input id="staffName" type="text" name="staffName" value="${staff.staffName}" required>
                 </div>
 
                 <div class="field">
-                    <label for="username">Ten dang nhap</label>
+                    <label for="username">Tên đăng nhập</label>
                     <input id="username" type="text" name="username" value="${staff.username}" required>
                 </div>
 
@@ -36,12 +36,12 @@
                 </div>
 
                 <div class="field">
-                    <label for="password">Mat khau</label>
+                    <label for="password">Mật khẩu</label>
                     <input id="password" type="password" name="password" value="${staff.password}" autocomplete="new-password" required>
                 </div>
 
                 <div class="field">
-                    <label>Vai tro</label>
+                    <label>Vai trò</label>
                     <div class="roles">
                         <c:forEach var="role" items="${roles}">
                             <label class="role-item">
@@ -53,8 +53,8 @@
                 </div>
 
                 <div class="actions">
-                    <button class="btn btn-primary" type="submit">Luu</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/staffs?action=list">Huy</a>
+                    <button class="btn btn-primary" type="submit">Lưu</button>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/staffs?action=list">Hủy</a>
                 </div>
             </form>
         </div>

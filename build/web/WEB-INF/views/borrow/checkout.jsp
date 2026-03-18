@@ -12,10 +12,10 @@
     <div class="navbar">
         <h1>Quản lý thư viện</h1>
         <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-        <a href="${pageContext.request.contextPath}/books">ách</a>
+        <a href="${pageContext.request.contextPath}/books">Sách</a>
         <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
         <div class="nav-right">
-            <span>Xin chào, ${sessionScope.staff.staffName} (Sinh vien)</span>
+            <span>Xin chào, ${sessionScope.staff.staffName} (Sinh viên)</span>
             <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
         </div>
     </div>
@@ -27,7 +27,7 @@
                 <a class="btn btn-secondary" href="${pageContext.request.contextPath}/borrows?action=list">Quay lại danh sách cần mua</a>
             </div>
             <p class="note">
-                Sinh vien: <strong>#${studentId}</strong>.
+                Sinh viên: <strong>#${studentId}</strong>.
                 Kiểm tra thông tin đơn hàng trước khi gửi duyệt cho staff/admin.
             </p>
             <c:if test="${not empty param.msg}">
@@ -110,7 +110,7 @@
                 <form method="post" action="${pageContext.request.contextPath}/borrows" class="mt-4">
                     <input type="hidden" name="action" value="orderBuyAll">
                     <button class="btn btn-approve btn-block" type="submit" <c:if test="${checkoutInvalidCount > 0}">disabled</c:if>>
-                        Xac nhan checkout
+                        Xác nhận checkout
                     </button>
                 </form>
             </div>

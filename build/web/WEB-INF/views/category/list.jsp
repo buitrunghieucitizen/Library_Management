@@ -18,7 +18,7 @@
                     <h2>Danh sách thể loại</h2>
                     <div class="note">Tổng bản ghi: ${totalItems}</div>
                 </div>
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/categories?action=create">+ Them the loai</a>
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/categories?action=create">+ Thêm thể loại</a>
             </div>
 
             <c:if test="${not empty param.msg}">

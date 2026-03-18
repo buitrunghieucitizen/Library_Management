@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cong sinh vien</title>
+    <title>Cổng sinh viên</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -23,13 +23,13 @@
         <main class="content">
             <section class="hero">
                 <h1>Cổng thư viện sinh viên</h1>
-                <p>ìm sách, lọc theo tác giả/thể loại/nhà xuất bản, và mở nhanh trung tâm mượn trả.</p>
+                <p>Tìm sách, lọc theo tác giả/thể loại/nhà xuất bản, và mở nhanh trung tâm mượn trả.</p>
             </section>
 
             <form class="search-form" method="get" action="${homeUrl}">
                 <div class="search-row">
-                    <input type="text" name="search" placeholder="Tim theo ten sach" value="${search}">
-                    <input type="text" name="author" placeholder="Tac gia" value="${author}">
+                    <input type="text" name="search" placeholder="Tìm theo tên sách" value="${search}">
+                    <input type="text" name="author" placeholder="Tác giả" value="${author}">
                     <select name="categoryId">
                         <option value="">Tất cả thể loại</option>
                         <c:forEach var="category" items="${categories}">
@@ -187,7 +187,7 @@
                             </div>
                             <span class="hold-status ${fn:toLowerCase(hold.status) eq 'overdue' ? 'overdue' : 'borrowing'}">
                                 <c:choose>
-                                    <c:when test="${fn:toLowerCase(hold.status) eq 'overdue'}">Qua hạn</c:when>
+                                    <c:when test="${fn:toLowerCase(hold.status) eq 'overdue'}">Quá hạn</c:when>
                                     <c:when test="${fn:toLowerCase(hold.status) eq 'borrowing'}">Đang mượn</c:when>
                                     <c:otherwise>${hold.status}</c:otherwise>
                                 </c:choose>

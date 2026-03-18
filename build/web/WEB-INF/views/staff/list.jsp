@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quan ly nhan vien</title>
+    <title>Quản lý nhân viên</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -15,10 +15,10 @@
         <div class="panel">
             <div class="section-header">
                 <div>
-                    <h2>Quan ly nhan vien</h2>
-                    <div class="note">Tong ban ghi: ${totalItems}</div>
+                    <h2>Quản lý nhân viên</h2>
+                    <div class="note">Tổng bản ghi: ${totalItems}</div>
                 </div>
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/staffs?action=create">+ Them nhan vien</a>
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/staffs?action=create">+ Thêm nhân viên</a>
             </div>
 
             <c:if test="${not empty param.msg}">
@@ -31,13 +31,13 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Ten</th>
+                        <th>Mã</th>
+                        <th>Tên</th>
                         <th>Username</th>
                         <th>Email</th>
                         <th>Password</th>
-                        <th>Vai tro</th>
-                        <th>Hanh dong</th>
+                        <th>Vai trò</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,14 +50,14 @@
                             <td><span class="secret-mask">********</span></td>
                             <td>${row.roleNames}</td>
                             <td class="actions">
-                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/staffs?action=edit&id=${row.staff.staffID}">Sua</a>
-                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/staffs?action=delete&id=${row.staff.staffID}" onclick="return confirm('Xoa nhan vien nay?')">Xoa</a>
+                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/staffs?action=edit&id=${row.staff.staffID}">Sửa</a>
+                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/staffs?action=delete&id=${row.staff.staffID}" onclick="return confirm('Xóa nhân viên này?')">Xóa</a>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty staffRows}">
                         <tr>
-                            <td colspan="7" class="empty-row">Chua co tai khoan nhan vien nao.</td>
+                            <td colspan="7" class="empty-row">Chưa có tài khoản nhân viên nào.</td>
                         </tr>
                     </c:if>
                 </tbody>
@@ -70,7 +70,7 @@
                             <c:param name="action" value="list"/>
                             <c:param name="page" value="${currentPage - 1}"/>
                         </c:url>
-                        <a class="page-link" href="${prevUrl}">Trang truoc</a>
+                        <a class="page-link" href="${prevUrl}">Trang trước</a>
                     </c:if>
 
                     <c:forEach begin="1" end="${totalPages}" var="p">

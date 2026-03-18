@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout Thanh Cong - Library Manager</title>
+    <title>Checkout Thành Công - Library Manager</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
         <a href="${pageContext.request.contextPath}/books">Sách</a>
         <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
         <div class="nav-right">
-            <span>Xin chào, ${sessionScope.staff.staffName} (Sinh vien)</span>
+            <span>Xin chào, ${sessionScope.staff.staffName} (Sinh viên)</span>
             <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
         </div>
     </div>

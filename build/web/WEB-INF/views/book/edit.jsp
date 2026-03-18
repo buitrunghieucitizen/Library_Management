@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Sua sach</title>
+    <title>Sửa sách</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
 <body>
@@ -68,7 +68,7 @@
                     <p class="note">
                         <c:choose>
                             <c:when test="${not empty currentPrice}">
-                                Gia hiện hành bắt đầu từ: ${currentPrice.startDate}
+                                Giá hiện hành bắt đầu từ: ${currentPrice.startDate}
                             </c:when>
                             <c:otherwise>
                                 Sách chưa có giá hiện hành. Khi cập nhật sách, hệ thống sẽ tạo luôn giá hiện hành cho sách này với thông tin bạn vừa nhập.
@@ -79,7 +79,7 @@
 
                 <div class="actions">
                     <button class="btn btn-primary" type="submit">Cập nhật</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/books?action=list">ủy</a>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/books?action=list">Hủy</a>
                 </div>
             </form>
         </div>
