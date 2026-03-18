@@ -13,7 +13,7 @@
 
     <div class="container">
         <div class="card">
-            <h2>Sua tac gia</h2>
+            <h2>Sửa tác giả</h2>
 
             <c:if test="${not empty error}">
                 <div class="error"><c:out value="${error}" /></div>
@@ -26,13 +26,13 @@
                 <input type="hidden" name="authorID" value="${author.authorID}">
 
                 <div class="field">
-                    <label for="authorName">Ten tac gia</label>
+                    <label for="authorName">Tên tác giả</label>
                     <input id="authorName" type="text" name="authorName" value="${author.authorName}" required>
                 </div>
 
                 <div class="actions">
-                    <button class="btn btn-primary" type="submit">Cap nhat</button>
-                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/authors?action=list">Huy</a>
+                    <button class="btn btn-primary" type="submit">Cập nhật</button>
+                    <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/authors?action=list">Hủy</a>
                 </div>
             </form>
         </div>

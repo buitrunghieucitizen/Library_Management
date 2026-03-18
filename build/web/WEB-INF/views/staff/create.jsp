@@ -31,6 +31,11 @@
                 </div>
 
                 <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" name="email" value="${staff.email}" autocomplete="email" inputmode="email" spellcheck="false" required>
+                </div>
+
+                <div class="field">
                     <label for="password">Mat khau</label>
                     <input id="password" type="password" name="password" value="${staff.password}" autocomplete="new-password" required>
                 </div>

@@ -13,7 +13,7 @@
 
     <div class="container">
         <div class="card">
-            <h2>Them tac gia</h2>
+            <h2>Thêm tác giả</h2>
 
             <c:if test="${not empty error}">
                 <div class="error"><c:out value="${error}" /></div>
@@ -24,12 +24,12 @@
 
             <form method="POST" action="${pageContext.request.contextPath}/admin/authors?action=create">
                 <div class="field">
-                    <label for="authorName">Ten tac gia</label>
+                    <label for="authorName">Tên tác giả</label>
                     <input id="authorName" type="text" name="authorName" value="${authorName}" required>
                 </div>
 
                 <div class="actions">
-                    <button class="btn btn-primary" type="submit">Luu</button>
+                    <button class="btn btn-primary" type="submit">Lưu</button>
                     <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/authors?action=list">Huy</a>
                 </div>
             </form>

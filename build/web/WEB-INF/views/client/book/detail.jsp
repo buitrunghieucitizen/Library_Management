@@ -21,7 +21,7 @@
         <%@ include file="../_sidebar.jsp" %>
 
         <main class="content">
-            <a class="back-link" href="${homeUrl}">Quay ve trang sinh vien</a>
+            <a class="back-link" href="${homeUrl}">Quay về trang sinh viên</a>
 
             <section class="detail-card">
                 <div class="book-cover">
@@ -46,27 +46,27 @@
 
                     <div class="meta-grid">
                         <div class="meta-card">
-                            <span>The loai</span>
+                            <span>Thể loại</span>
                             <strong>${empty category ? '-' : category.categoryName}</strong>
                         </div>
                         <div class="meta-card">
-                            <span>Nha xuat ban</span>
+                            <span>Nhà xuất bản</span>
                             <strong>${empty publisher ? '-' : publisher.publisherName}</strong>
                         </div>
                         <div class="meta-card">
-                            <span>So luong</span>
-                            <strong>${book.quantity} cuon</strong>
+                            <span>Số lượng</span>
+                            <strong>${book.quantity} cuốn</strong>
                         </div>
                         <div class="meta-card">
-                            <span>Co san</span>
-                            <strong>${book.available} cuon</strong>
+                            <span>Có sẵn</span>
+                            <strong>${book.available} cuốn</strong>
                         </div>
                     </div>
 
                     <span class="status-pill ${book.available gt 0 ? 'ok' : 'out'}">
                         <c:choose>
-                            <c:when test="${book.available gt 0}">Co the muon</c:when>
-                            <c:otherwise>Tam het sach</c:otherwise>
+                            <c:when test="${book.available gt 0}">Có thể mượn</c:when>
+                            <c:otherwise>Đã hết sách</c:otherwise>
                         </c:choose>
                     </span>
 
@@ -75,14 +75,14 @@
                             <form method="post" action="${pageContext.request.contextPath}/borrows">
                                 <input type="hidden" name="action" value="borrow">
                                 <input type="hidden" name="bookID" value="${book.bookID}">
-                                <button class="btn-primary" type="submit">Muon sach</button>
+                                <button class="btn-primary" type="submit">Mượn sách</button>
                             </form>
                         </c:if>
 
                         <form method="post" action="${pageContext.request.contextPath}/borrows">
                             <input type="hidden" name="action" value="addBuyList">
                             <input type="hidden" name="bookID" value="${book.bookID}">
-                            <button class="btn-secondary" type="submit">Them vao danh sach can mua</button>
+                            <button class="btn-secondary" type="submit">Thêm vào danh sách cần mua</button>
                         </form>
 
                         <form method="post" action="${pageContext.request.contextPath}/borrows">
@@ -91,12 +91,12 @@
                             <button class="btn-buy" type="submit">Mua nhanh</button>
                         </form>
 
-                        <a class="btn-ghost" href="${borrowCenterUrl}">Mo trung tam muon tra</a>
+                        <a class="btn-ghost" href="${borrowCenterUrl}">Mở trung tâm mượn trả</a>
                     </div>
 
                     <div class="detail-note">
-                        Ban co the them sach vao danh sach can mua de gui duyet tung quyen hoac gui duyet tat ca
-                        tai man hinh Trung tam muon va mua sach.
+                        Bạn có thể thêm sách vào danh sách cần mua để gửi duyệt từng quyển hoặc gửi duyệt tất cả
+                        tại màn hình Trung tâm mượn và mua sách.
                     </div>
                 </div>
             </section>

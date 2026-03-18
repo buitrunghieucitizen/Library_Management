@@ -34,6 +34,7 @@
                         <th>Ma</th>
                         <th>Ten</th>
                         <th>Username</th>
+                        <th>Email</th>
                         <th>Password</th>
                         <th>Vai tro</th>
                         <th>Hanh dong</th>
@@ -45,6 +46,7 @@
                             <td>${row.staff.staffID}</td>
                             <td>${row.staff.staffName}</td>
                             <td>${row.staff.username}</td>
+                            <td>${row.staff.email}</td>
                             <td><span class="secret-mask">********</span></td>
                             <td>${row.roleNames}</td>
                             <td class="actions">
@@ -55,7 +57,7 @@
                     </c:forEach>
                     <c:if test="${empty staffRows}">
                         <tr>
-                            <td colspan="6" class="empty-row">Chua co tai khoan nhan vien nao.</td>
+                            <td colspan="7" class="empty-row">Chua co tai khoan nhan vien nao.</td>
                         </tr>
                     </c:if>
                 </tbody>
