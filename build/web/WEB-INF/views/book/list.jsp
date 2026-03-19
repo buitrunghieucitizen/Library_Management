@@ -1,5 +1,6 @@
 ﻿<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <c:set var="isAdmin" value="false" />
     <c:set var="isAdminSection" value="${requestScope.adminSection}" />
     <c:if test="${not empty sessionScope.roles}">
@@ -22,19 +23,52 @@
             <html lang="vi">
             <head>
                 <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Danh sách sách</title>
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
             </head>
-            <body>
-            <div class="top-nav">
-                <a class="brand" href="${pageContext.request.contextPath}/index.jsp">Quản lý thư viện</a>
-                <a class="active" href="${pageContext.request.contextPath}/books?action=list">Sách</a>
-                <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn và mua sách</a>
-                <div class="nav-right">
-                    <span><c:out value="${sessionScope.staff.staffName}" default=""/></span>
-                    <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
-                </div>
-            </div>
+            <body class="student-body">
+            <%@ include file="../client/_header.jsp" %>
+            <c:url var="borrowCenterUrl" value="/borrows">
+                <c:param name="action" value="list" />
+            </c:url>
+            <div class="layout student-layout layout-two-column">
+                <%@ include file="../client/_sidebar.jsp" %>
+                <main class="content student-content content-wide">
+                    <section class="page-hero">
+                        <div>
+                            <span class="page-hero-kicker">Library Catalog</span>
+                            <h1>Danh mục sách</h1>
+                            <p>Duyệt toàn bộ kho sách hiện có và chuyển nhanh sang trung tâm mượn trả để thao tác với từng đầu sách.</p>
+                        </div>
+                        <div class="page-hero-actions">
+                            <a class="hero-action primary" href="${borrowCenterUrl}">Mở trung tâm mượn trả</a>
+                            <a class="hero-action secondary" href="${pageContext.request.contextPath}/home">Về trang sinh viên</a>
+                        </div>
+                    </section>
+
+                    <section class="student-kpi-grid">
+                        <article class="student-kpi-card">
+                            <span>Tổng bản ghi</span>
+                            <strong>${totalItems}</strong>
+                            <p>Số lượng sách đang có trong danh mục hiện tại.</p>
+                        </article>
+                        <article class="student-kpi-card">
+                            <span>Trang hiện tại</span>
+                            <strong>${currentPage}/${totalPages}</strong>
+                            <p>Điều hướng danh mục theo phân trang.</p>
+                        </article>
+                        <article class="student-kpi-card">
+                            <span>Trạng thái truy cập</span>
+                            <strong>Student</strong>
+                            <p>Bạn đang xem ở chế độ chỉ đọc dành cho sinh viên.</p>
+                        </article>
+                        <article class="student-kpi-card">
+                            <span>Tác vụ nhanh</span>
+                            <strong>Mượn / Mua</strong>
+                            <p>Chuyển sang trung tâm giao dịch để thao tác với sách.</p>
+                        </article>
+                    </section>
             <c:set var="listPath" value="/books" />
         </c:otherwise>
     </c:choose>
@@ -134,6 +168,9 @@
             <%@ include file="../admin/layout/_admin_footer.jsp" %>
         </c:when>
         <c:otherwise>
+            </main>
+            </div>
+            <%@ include file="../client/_footer.jsp" %>
             </body>
             </html>
         </c:otherwise>

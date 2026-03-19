@@ -9,7 +9,7 @@
     <title>${book.bookName}</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
-<body>
+<body class="student-body">
     <%@ include file="../_header.jsp" %>
 
     <c:url var="homeUrl" value="/home" />
@@ -17,10 +17,10 @@
         <c:param name="action" value="list" />
     </c:url>
 
-    <div class="layout">
+    <div class="layout student-layout layout-two-column">
         <%@ include file="../_sidebar.jsp" %>
 
-        <main class="content">
+        <main class="content student-content content-wide">
             <a class="back-link" href="${homeUrl}">Quay về trang sinh viên</a>
 
             <section class="detail-card">

@@ -9,7 +9,7 @@
     <title>Cổng sinh viên</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
 </head>
-<body>
+<body class="student-body">
     <%@ include file="../_header.jsp" %>
 
     <c:url var="homeUrl" value="/home" />
@@ -17,13 +17,43 @@
         <c:param name="action" value="list" />
     </c:url>
 
-    <div class="layout">
+    <div class="layout student-layout student-layout-home">
         <%@ include file="../_sidebar.jsp" %>
 
-        <main class="content">
-            <section class="hero">
-                <h1>Cổng thư viện sinh viên</h1>
-                <p>Tìm sách, lọc theo tác giả/thể loại/nhà xuất bản, và mở nhanh trung tâm mượn trả.</p>
+        <main class="content student-content">
+            <section class="hero page-hero">
+                <div>
+                    <span class="page-hero-kicker">Student Library Hub</span>
+                    <h1>Cổng thư viện sinh viên</h1>
+                    <p>Tìm sách, lọc theo tác giả, thể loại, nhà xuất bản và mở nhanh trung tâm mượn trả trong cùng một không gian làm việc.</p>
+                </div>
+                <div class="page-hero-actions">
+                    <a href="${borrowCenterUrl}" class="hero-action primary">Mở trung tâm mượn trả</a>
+                    <a href="${homeUrl}" class="hero-action secondary">Làm mới bộ lọc</a>
+                </div>
+            </section>
+
+            <section class="student-kpi-grid">
+                <article class="student-kpi-card">
+                    <span>Tổng đầu sách</span>
+                    <strong>${totalBooks}</strong>
+                    <p>Kết quả đang khớp với bộ lọc hiện tại.</p>
+                </article>
+                <article class="student-kpi-card">
+                    <span>Phiếu đang giữ</span>
+                    <strong>${fn:length(holds)}</strong>
+                    <p>Danh sách đang hiển thị ở cột theo dõi bên phải.</p>
+                </article>
+                <article class="student-kpi-card">
+                    <span>Bộ lọc chữ cái</span>
+                    <strong><c:out value="${letter eq 'ALL' ? 'ALL' : letter}" /></strong>
+                    <p>Giúp thu hẹp nhanh theo ký tự đầu tên sách.</p>
+                </article>
+                <article class="student-kpi-card">
+                    <span>Trang dữ liệu</span>
+                    <strong>${currentPage}/${totalPages}</strong>
+                    <p>Điều hướng bộ sưu tập đang được phân trang.</p>
+                </article>
             </section>
 
             <form class="search-form" method="get" action="${homeUrl}">
