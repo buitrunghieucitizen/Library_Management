@@ -1,3 +1,4 @@
+<%@ page pageEncoding="UTF-8" %>
 <c:url var="homeUrl" value="/home" />
 <c:url var="logoutUrl" value="/logout" />
 <c:set var="viewerName" value="${empty sessionScope.staff.staffName ? 'Sinh viên thư viện' : sessionScope.staff.staffName}" />

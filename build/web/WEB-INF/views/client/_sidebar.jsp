@@ -1,3 +1,4 @@
+<%@ page pageEncoding="UTF-8" %>
 <c:set var="currentUri" value="${pageContext.request.requestURI}" />
 <c:url var="homeUrl" value="/home" />
 <c:url var="booksUrl" value="/books" />
