@@ -10,6 +10,8 @@ import Model.DAOOrderDetail;
 import Model.DAOOrders;
 import Utils.RoleUtils;
 import ViewModel.BookPriceRow;
+import ViewModel.BorrowRenewalDecision;
+import ViewModel.BorrowRow;
 import ViewModel.BuyListSnapshot;
 import ViewModel.OrderItemRow;
 import ViewModel.OrderRow;
@@ -25,8 +27,10 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import Model.DBConnection;
 
 public class BorrowStudentHandler {
@@ -65,6 +69,10 @@ public class BorrowStudentHandler {
             req.setAttribute("availableBooks", Collections.emptyList());
             req.setAttribute("bookPrices", Collections.emptyList());
             req.setAttribute("borrows", Collections.emptyList());
+            req.setAttribute("renewalDecisionByBorrowId", Collections.emptyMap());
+            req.setAttribute("renewableBorrowCount", 0);
+            req.setAttribute("studentRenewalDays", BorrowHelper.STUDENT_RENEWAL_DAYS);
+            req.setAttribute("studentRenewalWindowDays", BorrowHelper.STUDENT_RENEWAL_WINDOW_DAYS);
             req.setAttribute("buyListItems", Collections.emptyList());
             req.setAttribute("purchasedOrders", Collections.emptyList());
             req.setAttribute("bookCurrentPage", 1);
@@ -110,7 +118,23 @@ public class BorrowStudentHandler {
         req.setAttribute("purchaseTotalItems", purchasePageSlice.getTotalItems());
         req.setAttribute("purchaseSearch", purchaseSearch);
 
-        req.setAttribute("borrows", daoBorrow.getBorrowRowsByStudent(studentId));
+        List<BorrowRow> borrows = daoBorrow.getBorrowRowsByStudent(studentId);
+        Map<Integer, BorrowRenewalDecision> renewalDecisionByBorrowId = new HashMap<>();
+        int renewableBorrowCount = 0;
+        LocalDate today = LocalDate.now();
+        for (BorrowRow borrow : borrows) {
+            BorrowRenewalDecision renewalDecision = helper.evaluateRenewal(borrow, today);
+            renewalDecisionByBorrowId.put(borrow.getBorrowID(), renewalDecision);
+            if (renewalDecision.isEligible()) {
+                renewableBorrowCount++;
+            }
+        }
+
+        req.setAttribute("renewalDecisionByBorrowId", renewalDecisionByBorrowId);
+        req.setAttribute("renewableBorrowCount", renewableBorrowCount);
+        req.setAttribute("studentRenewalDays", BorrowHelper.STUDENT_RENEWAL_DAYS);
+        req.setAttribute("studentRenewalWindowDays", BorrowHelper.STUDENT_RENEWAL_WINDOW_DAYS);
+        req.setAttribute("borrows", borrows);
         req.getRequestDispatcher("/WEB-INF/views/borrow/student.jsp").forward(req, resp);
     }
 
@@ -487,16 +511,50 @@ public class BorrowStudentHandler {
         try {
             borrowId = helper.parsePositiveInt(req.getParameter("borrowID"), "BorrowID");
         } catch (Exception e) {
-            helper.redirectWithMessage(req, resp, "error", "BorrowID khong hop le.");
+            helper.redirectWithMessageAndAnchor(req, resp, "error", "BorrowID khong hop le.", "borrow-panel");
             return;
         }
 
         if (!daoBorrow.existsOwnedByStudentAndNotReturned(borrowId, studentId)) {
-            helper.redirectWithMessage(req, resp, "error", "Khong tim thay phieu muon hop le de yeu cau tra.");
+            helper.redirectWithMessageAndAnchor(req, resp, "error", "Khong tim thay phieu muon hop le de yeu cau tra.", "borrow-panel");
             return;
         }
 
-        helper.redirectWithMessage(req, resp, "msg", "Da gui yeu cau tra sach. Vui long cho staff/admin xac nhan.");
+        helper.redirectWithMessageAndAnchor(req, resp, "msg", "Da gui yeu cau tra sach. Vui long cho staff/admin xac nhan.", "borrow-panel");
+    }
+
+    public void renewBorrowAsStudent(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+        if (!ensureStudentOnly(req, resp, "Chi tai khoan hoc sinh moi duoc gia han online.")) {
+            return;
+        }
+
+        Staff staff = requireLoggedStaff(req, resp);
+        if (staff == null) {
+            return;
+        }
+
+        Integer studentId = helper.resolveStudentIdForStaff(staff);
+        if (studentId == null) {
+            helper.redirectWithMessageAndAnchor(req, resp, "error",
+                    "Khong xac dinh duoc ma sinh vien cho tai khoan hien tai.", "borrow-panel");
+            return;
+        }
+
+        int borrowId;
+        try {
+            borrowId = helper.parsePositiveInt(req.getParameter("borrowID"), "BorrowID");
+        } catch (Exception e) {
+            helper.redirectWithMessageAndAnchor(req, resp, "error", "BorrowID khong hop le.", "borrow-panel");
+            return;
+        }
+
+        try {
+            BorrowRenewalDecision decision = transactionService.renewBorrowTransaction(borrowId, studentId);
+            helper.redirectWithMessageAndAnchor(req, resp, "msg",
+                    "Da gia han phieu #" + borrowId + " den " + decision.getNextDueDateLabel() + ".", "borrow-panel");
+        } catch (SQLException e) {
+            helper.redirectWithMessageAndAnchor(req, resp, "error", e.getMessage(), "borrow-panel");
+        }
     }
 
     private boolean ensureStudentOnly(HttpServletRequest req, HttpServletResponse resp, String message) throws IOException {

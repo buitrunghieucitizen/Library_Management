@@ -23,6 +23,13 @@
         <main class="content student-content content-wide">
             <a class="back-link" href="${homeUrl}">Quay về trang sinh viên</a>
 
+            <c:if test="${not empty param.msg}">
+                <div class="msg"><c:out value="${param.msg}" /></div>
+            </c:if>
+            <c:if test="${not empty param.error}">
+                <div class="error"><c:out value="${param.error}" /></div>
+            </c:if>
+
             <section class="detail-card">
                 <div class="book-cover">
                     <c:choose>
@@ -71,6 +78,10 @@
                     </span>
 
                     <div class="action-row">
+                        <c:if test="${bookFileCount gt 0}">
+                            <a class="btn-ghost" href="#book-files">Xem file sách</a>
+                        </c:if>
+
                         <c:if test="${book.available gt 0}">
                             <form method="post" action="${pageContext.request.contextPath}/borrows">
                                 <input type="hidden" name="action" value="borrow">
@@ -99,6 +110,58 @@
                         tại màn hình Trung tâm mượn và mua sách.
                     </div>
                 </div>
+            </section>
+
+            <section class="card-soft book-files-panel" id="book-files">
+                <div class="section-header-inline student-section-head">
+                    <div>
+                        <h2>Tài liệu số của sách</h2>
+                        <div class="note">Học sinh chỉ nhìn thấy file đang active. Bấm mở để lấy file sách từ liên kết đã được thư viện cấu hình.</div>
+                    </div>
+                    <div class="student-head-badges">
+                        <span class="student-chip neutral">${bookFileCount} file khả dụng</span>
+                    </div>
+                </div>
+
+                <c:choose>
+                    <c:when test="${empty bookFiles}">
+                        <div class="book-file-empty">
+                            Sách này chưa có tài liệu số để tải. Bạn vẫn có thể mượn bản in hoặc quay lại sau khi thư viện cập nhật file.
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="book-file-grid">
+                            <c:forEach var="file" items="${bookFiles}">
+                                <c:url var="bookFileOpenUrl" value="/home/book/file">
+                                    <c:param name="id" value="${file.bookFileID}" />
+                                </c:url>
+
+                                <article class="book-file-card">
+                                    <div class="book-file-head">
+                                        <div>
+                                            <h3><c:out value="${file.fileName}" /></h3>
+                                            <p>
+                                                <c:out value="${empty file.fileType ? 'Tài liệu số' : file.fileType}" />
+                                                <c:if test="${not empty bookFileSizeLabels[file.bookFileID]}">
+                                                    • ${bookFileSizeLabels[file.bookFileID]}
+                                                </c:if>
+                                            </p>
+                                        </div>
+                                        <span class="student-chip soft">Active</span>
+                                    </div>
+
+                                    <div class="book-file-meta">
+                                        <span>Cập nhật: <c:out value="${empty file.uploadAt ? 'N/A' : file.uploadAt}" /></span>
+                                    </div>
+
+                                    <div class="book-file-actions">
+                                        <a class="btn btn-primary" href="${bookFileOpenUrl}" target="_blank" rel="noopener">Mở file</a>
+                                    </div>
+                                </article>
+                            </c:forEach>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
             </section>
         </main>
     </div>

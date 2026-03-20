@@ -1,5 +1,6 @@
 package Controller.borrow;
 
+import Entities.Borrow;
 import Entities.BorrowItem;
 import Entities.OrderDetail;
 import Model.DAOBook;
@@ -9,6 +10,7 @@ import Model.DAOBorrowItem;
 import Model.DAOOrderDetail;
 import Model.DAOOrders;
 import Model.DBConnection;
+import ViewModel.BorrowRenewalDecision;
 import ViewModel.PurchaseRequestItem;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -23,15 +25,17 @@ public class BorrowTransactionService {
     private final DAOOrders daoOrders;
     private final DAOOrderDetail daoOrderDetail;
     private final DAOBookPrice daoBookPrice;
+    private final BorrowHelper helper;
 
     public BorrowTransactionService(DAOBook daoBook, DAOBorrow daoBorrow, DAOBorrowItem daoBorrowItem,
-            DAOOrders daoOrders, DAOOrderDetail daoOrderDetail, DAOBookPrice daoBookPrice) {
+            DAOOrders daoOrders, DAOOrderDetail daoOrderDetail, DAOBookPrice daoBookPrice, BorrowHelper helper) {
         this.daoBook = daoBook;
         this.daoBorrow = daoBorrow;
         this.daoBorrowItem = daoBorrowItem;
         this.daoOrders = daoOrders;
         this.daoOrderDetail = daoOrderDetail;
         this.daoBookPrice = daoBookPrice;
+        this.helper = helper;
     }
 
     public void createBorrowTransaction(int studentId, int staffId, int bookId, int quantity,
@@ -112,6 +116,40 @@ public class BorrowTransactionService {
 
             con.commit();
             return orderId;
+        } catch (SQLException e) {
+            con.rollback();
+            throw e;
+        } finally {
+            con.setAutoCommit(true);
+            con.close();
+        }
+    }
+
+    public BorrowRenewalDecision renewBorrowTransaction(int borrowId, int studentId) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+
+        try {
+            con.setAutoCommit(false);
+
+            Borrow borrow = daoBorrow.getOwnedByStudentForUpdate(con, borrowId, studentId);
+            if (borrow == null) {
+                throw new SQLException("Khong tim thay phieu muon hop le de gia han.");
+            }
+
+            BorrowRenewalDecision decision = helper.evaluateRenewal(borrow);
+            if (!decision.isEligible()) {
+                throw new SQLException(decision.getMessage());
+            }
+
+            if (daoBorrow.updateDueDate(con, borrowId, decision.getNextDueDate()) == 0) {
+                throw new SQLException("Khong the cap nhat han tra moi.");
+            }
+
+            con.commit();
+            return decision;
         } catch (SQLException e) {
             con.rollback();
             throw e;

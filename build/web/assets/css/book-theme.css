@@ -372,6 +372,15 @@ textarea:focus {
     background: #15803d;
 }
 
+.btn-renew {
+    background: #2563eb;
+    color: #fff;
+}
+
+.btn-renew:hover {
+    background: #1d4ed8;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -1027,6 +1036,62 @@ tr:hover td {
     padding: 18px;
     line-height: 1.7;
     color: #475569;
+}
+
+.book-files-panel {
+    margin-top: 18px;
+}
+
+.book-file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+}
+
+.book-file-card {
+    background: #fff;
+    border: 1px solid #dbe4f0;
+    border-radius: 20px;
+    padding: 18px;
+    display: grid;
+    gap: 12px;
+}
+
+.book-file-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.book-file-head h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #0f172a;
+}
+
+.book-file-head p,
+.book-file-meta {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.book-file-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.book-file-empty {
+    padding: 18px;
+    border-radius: 20px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    color: #475569;
+    line-height: 1.7;
 }
 
 .mb-0 { margin-bottom: 0; }
@@ -1712,6 +1777,35 @@ body.student-body {
     background: #fff7ed;
     border-color: #fdba74;
     color: #c2410c;
+}
+
+.student-inline-alert.success {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+}
+
+.borrow-action-stack {
+    display: grid;
+    gap: 8px;
+    min-width: 170px;
+}
+
+.borrow-action-stack .btn {
+    width: 100%;
+}
+
+.borrow-action-note {
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.borrow-action-note.success {
+    color: #166534;
+}
+
+.borrow-action-note.muted {
+    color: #64748b;
 }
 
 #price-panel,

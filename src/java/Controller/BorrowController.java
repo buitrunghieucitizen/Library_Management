@@ -32,7 +32,7 @@ public class BorrowController extends HttpServlet {
 
     private final BorrowHelper helper = new BorrowHelper(daoStudent);
     private final BorrowTransactionService transactionService = new BorrowTransactionService(
-            daoBook, daoBorrow, daoBorrowItem, daoOrders, daoOrderDetail, daoBookPrice);
+            daoBook, daoBorrow, daoBorrowItem, daoOrders, daoOrderDetail, daoBookPrice, helper);
     private final BorrowStudentHandler studentHandler = new BorrowStudentHandler(
             daoBook, daoBorrow, daoOrders, daoOrderDetail, daoBookPrice, helper, transactionService);
     private final BorrowAdminHandler adminHandler = new BorrowAdminHandler(
@@ -113,6 +113,9 @@ public class BorrowController extends HttpServlet {
                     break;
                 case "requestReturn":
                     studentHandler.requestReturnAsStudent(req, resp);
+                    break;
+                case "renew":
+                    studentHandler.renewBorrowAsStudent(req, resp);
                     break;
                 default:
                     resp.sendRedirect(req.getContextPath() + helper.getListPath(req) + "?action=list");

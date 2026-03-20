@@ -556,18 +556,20 @@
                             <div class="student-head-badges">
                                 <span class="student-chip soft">${borrowingCount} đang mượn</span>
                                 <span class="student-chip warning">${overdueCount} quá hạn</span>
+                                <span class="student-chip neutral">${renewableBorrowCount} có thể gia hạn</span>
                                 <span class="student-chip success">${returnedCount} đã trả</span>
                             </div>
                         </div>
 
-                        <c:choose>
-                            <c:when test="${overdueCount gt 0}">
-                                <div class="student-inline-alert warn">Bạn có phiếu quá hạn. Nên gửi yêu cầu trả sớm để thư viện đối soát.</div>
-                            </c:when>
-                            <c:when test="${activeBorrowCount gt 0}">
-                                <div class="student-inline-alert">Các phiếu hiện tại vẫn đang trong hạn. Bạn có thể gửi yêu cầu trả ngay khi không còn nhu cầu sử dụng.</div>
-                            </c:when>
-                        </c:choose>
+                        <c:if test="${overdueCount gt 0}">
+                            <div class="student-inline-alert warn">Bạn có phiếu quá hạn. Nên gửi yêu cầu trả sớm để thư viện đối soát.</div>
+                        </c:if>
+                        <c:if test="${renewableBorrowCount gt 0}">
+                            <div class="student-inline-alert success">Có ${renewableBorrowCount} phiếu đang đủ điều kiện gia hạn online. Chỉ gia hạn trong ${studentRenewalWindowDays} ngày cuối và mỗi phiếu thêm tối đa ${studentRenewalDays} ngày.</div>
+                        </c:if>
+                        <c:if test="${activeBorrowCount gt 0 and overdueCount eq 0 and renewableBorrowCount eq 0}">
+                            <div class="student-inline-alert">Các phiếu hiện tại vẫn đang trong hạn. Bạn có thể gửi yêu cầu trả ngay khi không còn nhu cầu sử dụng hoặc chờ tới ${studentRenewalWindowDays} ngày cuối để gia hạn online.</div>
+                        </c:if>
 
                         <div class="table-scroll">
                             <table class="compact-table">
@@ -584,6 +586,7 @@
                                 </thead>
                                 <tbody>
                                     <c:forEach var="b" items="${borrows}">
+                                        <c:set var="renewalDecision" value="${renewalDecisionByBorrowId[b.borrowID]}" />
                                         <tr>
                                             <td>${b.borrowID}</td>
                                             <td>${b.borrowDate}</td>
@@ -599,13 +602,27 @@
                                             </td>
                                             <td>${b.items}</td>
                                             <td>
-                                                <c:if test="${b.status ne 'Returned'}">
-                                                    <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form">
-                                                        <input type="hidden" name="action" value="requestReturn">
-                                                        <input type="hidden" name="borrowID" value="${b.borrowID}">
-                                                        <button class="btn btn-return" type="submit">Gửi yêu cầu trả</button>
-                                                    </form>
-                                                </c:if>
+                                                <div class="borrow-action-stack">
+                                                    <c:if test="${renewalDecision.eligible}">
+                                                        <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form">
+                                                            <input type="hidden" name="action" value="renew">
+                                                            <input type="hidden" name="borrowID" value="${b.borrowID}">
+                                                            <button class="btn btn-renew" type="submit">Gia hạn</button>
+                                                        </form>
+                                                    </c:if>
+                                                    <c:if test="${b.status ne 'Returned'}">
+                                                        <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form">
+                                                            <input type="hidden" name="action" value="requestReturn">
+                                                            <input type="hidden" name="borrowID" value="${b.borrowID}">
+                                                            <button class="btn btn-return" type="submit">Gửi yêu cầu trả</button>
+                                                        </form>
+                                                    </c:if>
+                                                    <c:if test="${b.status ne 'Returned' and not empty renewalDecision.message}">
+                                                        <div class="borrow-action-note ${renewalDecision.eligible ? 'success' : 'muted'}">
+                                                            <c:out value="${renewalDecision.message}" />
+                                                        </div>
+                                                    </c:if>
+                                                </div>
                                             </td>
                                         </tr>
                                     </c:forEach>
