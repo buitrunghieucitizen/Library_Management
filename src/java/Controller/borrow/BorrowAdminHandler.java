@@ -47,7 +47,8 @@ public class BorrowAdminHandler {
             throws SQLException, ServletException, IOException {
         if (!helper.canAccessAdminSection(req)) {
             String errorMessage = URLEncoder.encode("Truy cap bi tu choi", StandardCharsets.UTF_8);
-            resp.sendRedirect(req.getContextPath() + BorrowHelper.PUBLIC_BORROWS_PATH + "?action=list&error=" + errorMessage);
+            resp.sendRedirect(
+                    req.getContextPath() + BorrowHelper.PUBLIC_BORROWS_PATH + "?action=list&error=" + errorMessage);
             return;
         }
 
@@ -58,7 +59,7 @@ public class BorrowAdminHandler {
         req.setAttribute("currentPage", pageSlice.getPage());
         req.setAttribute("totalPages", pageSlice.getTotalPages());
         req.setAttribute("totalItems", pageSlice.getTotalItems());
-        req.getRequestDispatcher("/WEB-INF/views/borrow/list.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/borrow/list.jsp").forward(req, resp);
     }
 
     public void showCreate(HttpServletRequest req, HttpServletResponse resp)
@@ -68,7 +69,7 @@ public class BorrowAdminHandler {
             return;
         }
         loadCreateData(req);
-        req.getRequestDispatcher("/WEB-INF/views/borrow/create.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/borrow/create.jsp").forward(req, resp);
     }
 
     public void createBorrow(HttpServletRequest req, HttpServletResponse resp)
@@ -104,7 +105,8 @@ public class BorrowAdminHandler {
         }
 
         try {
-            transactionService.createBorrowTransaction(studentId, staff.getStaffID(), bookId, quantity, borrowDate, dueDate);
+            transactionService.createBorrowTransaction(studentId, staff.getStaffID(), bookId, quantity, borrowDate,
+                    dueDate);
             helper.redirectWithMessage(req, resp, "msg", "Tao phieu muon thanh cong.");
         } catch (SQLException e) {
             forwardCreateError(req, resp, e.getMessage());
@@ -196,6 +198,6 @@ public class BorrowAdminHandler {
         req.setAttribute("quantity", req.getParameter("quantity"));
         req.setAttribute("dueDate", req.getParameter("dueDate"));
         loadCreateData(req);
-        req.getRequestDispatcher("/WEB-INF/views/borrow/create.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/borrow/create.jsp").forward(req, resp);
     }
 }

@@ -82,7 +82,7 @@ public class BorrowStudentHandler {
             req.setAttribute("bookSearch", "");
             req.setAttribute("purchaseSearch", "");
             req.setAttribute("buyListTotal", 0.0d);
-            req.getRequestDispatcher("/WEB-INF/views/borrow/student.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/client/borrow/student.jsp").forward(req, resp);
             return;
         }
 
@@ -99,7 +99,8 @@ public class BorrowStudentHandler {
         BuyListSnapshot buyListSnapshot = helper.buildBuyListSnapshot(req, allBooks, bookPrices);
 
         List<OrderRow> purchasedOrders = daoOrders.getOrderRows(studentId, purchaseSearch, "Approved");
-        PageSlice<OrderRow> purchasePageSlice = helper.paginate(purchasedOrders, purchasePage, BorrowHelper.STUDENT_PURCHASE_PAGE_SIZE);
+        PageSlice<OrderRow> purchasePageSlice = helper.paginate(purchasedOrders, purchasePage,
+                BorrowHelper.STUDENT_PURCHASE_PAGE_SIZE);
 
         req.setAttribute("studentId", studentId);
         req.setAttribute("availableBooks", availablePage.getItems());
@@ -135,7 +136,7 @@ public class BorrowStudentHandler {
         req.setAttribute("studentRenewalDays", BorrowHelper.STUDENT_RENEWAL_DAYS);
         req.setAttribute("studentRenewalWindowDays", BorrowHelper.STUDENT_RENEWAL_WINDOW_DAYS);
         req.setAttribute("borrows", borrows);
-        req.getRequestDispatcher("/WEB-INF/views/borrow/student.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/client/borrow/student.jsp").forward(req, resp);
     }
 
     public void showCheckout(HttpServletRequest req, HttpServletResponse resp)
@@ -180,7 +181,7 @@ public class BorrowStudentHandler {
         req.setAttribute("checkoutQuantity", totalQuantity);
         req.setAttribute("checkoutTotal", buyListSnapshot.getTotalAmount());
         req.setAttribute("checkoutInvalidCount", invalidCount);
-        req.getRequestDispatcher("/WEB-INF/views/borrow/checkout.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/client/borrow/checkout.jsp").forward(req, resp);
     }
 
     public void showCheckoutSuccess(HttpServletRequest req, HttpServletResponse resp)
@@ -230,7 +231,7 @@ public class BorrowStudentHandler {
         req.setAttribute("successItems", orderItems);
         req.setAttribute("successItemCount", orderItems.size());
         req.setAttribute("successTotalQuantity", totalQuantity);
-        req.getRequestDispatcher("/WEB-INF/views/borrow/checkout-success.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/client/borrow/checkout-success.jsp").forward(req, resp);
     }
 
     public void borrowAsStudent(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
@@ -369,7 +370,8 @@ public class BorrowStudentHandler {
         }
     }
 
-    public void updateBuyListQuantity(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+    public void updateBuyListQuantity(HttpServletRequest req, HttpServletResponse resp)
+            throws SQLException, IOException {
         if (!ensureStudentOnly(req, resp, "Chi tai khoan hoc sinh moi duoc sua danh sach mua.")) {
             return;
         }
@@ -491,7 +493,8 @@ public class BorrowStudentHandler {
         }
     }
 
-    public void requestReturnAsStudent(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+    public void requestReturnAsStudent(HttpServletRequest req, HttpServletResponse resp)
+            throws SQLException, IOException {
         if (!ensureStudentOnly(req, resp, "Chi tai khoan hoc sinh moi duoc gui yeu cau tra.")) {
             return;
         }
@@ -516,14 +519,17 @@ public class BorrowStudentHandler {
         }
 
         if (!daoBorrow.existsOwnedByStudentAndNotReturned(borrowId, studentId)) {
-            helper.redirectWithMessageAndAnchor(req, resp, "error", "Khong tim thay phieu muon hop le de yeu cau tra.", "borrow-panel");
+            helper.redirectWithMessageAndAnchor(req, resp, "error", "Khong tim thay phieu muon hop le de yeu cau tra.",
+                    "borrow-panel");
             return;
         }
 
-        helper.redirectWithMessageAndAnchor(req, resp, "msg", "Da gui yeu cau tra sach. Vui long cho staff/admin xac nhan.", "borrow-panel");
+        helper.redirectWithMessageAndAnchor(req, resp, "msg",
+                "Da gui yeu cau tra sach. Vui long cho staff/admin xac nhan.", "borrow-panel");
     }
 
-    public void renewBorrowAsStudent(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+    public void renewBorrowAsStudent(HttpServletRequest req, HttpServletResponse resp)
+            throws SQLException, IOException {
         if (!ensureStudentOnly(req, resp, "Chi tai khoan hoc sinh moi duoc gia han online.")) {
             return;
         }
@@ -557,7 +563,8 @@ public class BorrowStudentHandler {
         }
     }
 
-    private boolean ensureStudentOnly(HttpServletRequest req, HttpServletResponse resp, String message) throws IOException {
+    private boolean ensureStudentOnly(HttpServletRequest req, HttpServletResponse resp, String message)
+            throws IOException {
         if (RoleUtils.isStudentOnly(req)) {
             return true;
         }

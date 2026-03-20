@@ -12,7 +12,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
-@WebServlet(name = "BuyController", urlPatterns = {"/buy"})
+@WebServlet(name = "BuyController", urlPatterns = { "/buy" })
 public class BuyController extends HttpServlet {
 
     private final DAOBook daoBook = new DAOBook();
@@ -53,7 +53,7 @@ public class BuyController extends HttpServlet {
             }
             req.setAttribute("waitlistItems", waitlist.values()); // Gửi sang JSP với tên waitlistItems
 
-            req.getRequestDispatcher("/WEB-INF/views/buy/student_buy.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/client/buy/student_buy.jsp").forward(req, resp);
         } catch (SQLException e) {
             throw new ServletException(e);
         }
@@ -85,14 +85,16 @@ public class BuyController extends HttpServlet {
                     waitlist.put(bookId, new WaitlistItem(bookId, bookName, quantity, price));
                 }
                 session.setAttribute("waitlist", waitlist);
-                resp.sendRedirect(req.getContextPath() + "/buy?msg=" + java.net.URLEncoder.encode("Đã thêm sách vào danh sách chờ", "UTF-8"));
+                resp.sendRedirect(req.getContextPath() + "/buy?msg="
+                        + java.net.URLEncoder.encode("Đã thêm sách vào danh sách chờ", "UTF-8"));
                 return; // THÊM RETURN ĐỂ CHẶN LỖI 2 LẦN
 
             } else if ("removeFromWaitlist".equals(action)) {
                 int bookId = Integer.parseInt(req.getParameter("bookID"));
                 waitlist.remove(bookId);
                 session.setAttribute("waitlist", waitlist);
-                resp.sendRedirect(req.getContextPath() + "/buy?msg=" + java.net.URLEncoder.encode("Đã xóa sách khỏi danh sách chờ", "UTF-8"));
+                resp.sendRedirect(req.getContextPath() + "/buy?msg="
+                        + java.net.URLEncoder.encode("Đã xóa sách khỏi danh sách chờ", "UTF-8"));
                 return; // THÊM RETURN ĐỂ CHẶN LỖI 2 LẦN
 
             } else if ("checkout".equals(action)) {
@@ -100,7 +102,8 @@ public class BuyController extends HttpServlet {
                 String[] selectedBooks = req.getParameterValues("selectedBooks");
 
                 if (selectedBooks == null || selectedBooks.length == 0) {
-                    resp.sendRedirect(req.getContextPath() + "/buy?error=" + java.net.URLEncoder.encode("Vui lòng tích chọn ít nhất 1 sách để đặt", "UTF-8"));
+                    resp.sendRedirect(req.getContextPath() + "/buy?error="
+                            + java.net.URLEncoder.encode("Vui lòng tích chọn ít nhất 1 sách để đặt", "UTF-8"));
                     return; // Đã có sẵn return, rất chuẩn
                 }
 
@@ -109,7 +112,8 @@ public class BuyController extends HttpServlet {
 
                 // KIỂM TRA BẢO MẬT: Tránh lỗi NullPointerException khi studentId bị rỗng
                 if (studentId == null) {
-                    resp.sendRedirect(req.getContextPath() + "/buy?error=" + java.net.URLEncoder.encode("Lỗi: Không xác định được tài khoản sinh viên hợp lệ.", "UTF-8"));
+                    resp.sendRedirect(req.getContextPath() + "/buy?error=" + java.net.URLEncoder
+                            .encode("Lỗi: Không xác định được tài khoản sinh viên hợp lệ.", "UTF-8"));
                     return;
                 }
 
@@ -125,24 +129,28 @@ public class BuyController extends HttpServlet {
                 // 3. Tiến hành đặt hàng với những sách đã chọn
                 processCheckout(itemsToOrder, studentId, staff.getStaffID());
 
-                // 4. Chỉ xóa những sách đã đặt thành công khỏi danh sách chờ (giữ lại sách chưa đặt)
+                // 4. Chỉ xóa những sách đã đặt thành công khỏi danh sách chờ (giữ lại sách chưa
+                // đặt)
                 for (Integer bId : itemsToOrder.keySet()) {
                     waitlist.remove(bId);
                 }
                 session.setAttribute("waitlist", waitlist);
 
-                resp.sendRedirect(req.getContextPath() + "/buy?msg=" + java.net.URLEncoder.encode("Đặt sách thành công. Vui lòng theo dõi mã đơn.", "UTF-8"));
+                resp.sendRedirect(req.getContextPath() + "/buy?msg="
+                        + java.net.URLEncoder.encode("Đặt sách thành công. Vui lòng theo dõi mã đơn.", "UTF-8"));
                 return; // THÊM RETURN ĐỂ CHẶN LỖI 2 LẦN
             } else {
                 // Hành động không nhận diện được
-                resp.sendRedirect(req.getContextPath() + "/buy?error=" + java.net.URLEncoder.encode("Lỗi: Hành động " + action + " không hợp lệ.", "UTF-8"));
+                resp.sendRedirect(req.getContextPath() + "/buy?error="
+                        + java.net.URLEncoder.encode("Lỗi: Hành động " + action + " không hợp lệ.", "UTF-8"));
                 return; // THÊM RETURN ĐỂ CHẶN LỖI 2 LẦN
             }
 
         } catch (Exception e) {
             // Check nếu server CHƯA gửi redirect nào thì mới được phép gửi
             if (!resp.isCommitted()) {
-                resp.sendRedirect(req.getContextPath() + "/buy?error=" + java.net.URLEncoder.encode("Lỗi xử lý: " + e.getMessage(), "UTF-8"));
+                resp.sendRedirect(req.getContextPath() + "/buy?error="
+                        + java.net.URLEncoder.encode("Lỗi xử lý: " + e.getMessage(), "UTF-8"));
             } else {
                 // Nếu đã gửi redirect rồi mà vẫn dính lỗi thì in ra Console để debug
                 e.printStackTrace();
@@ -150,7 +158,8 @@ public class BuyController extends HttpServlet {
         }
     }
 
-    private void processCheckout(Map<Integer, WaitlistItem> itemsToOrder, int studentId, int staffId) throws SQLException {
+    private void processCheckout(Map<Integer, WaitlistItem> itemsToOrder, int studentId, int staffId)
+            throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
@@ -179,7 +188,8 @@ public class BuyController extends HttpServlet {
 
             // Đổi cart.values() thành itemsToOrder.values()
             for (WaitlistItem item : itemsToOrder.values()) {
-                daoOrderDetail.insert(con, new OrderDetail(orderId, item.getBookId(), item.getQuantity(), item.getUnitPrice()));
+                daoOrderDetail.insert(con,
+                        new OrderDetail(orderId, item.getBookId(), item.getQuantity(), item.getUnitPrice()));
             }
 
             con.commit();

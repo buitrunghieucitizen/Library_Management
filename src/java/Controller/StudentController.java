@@ -27,7 +27,8 @@ public class StudentController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (!canView(req)) {
-            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
+            resp.sendRedirect(req.getContextPath()
+                    + "/index.jsp?error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
             return;
         }
 
@@ -41,16 +42,17 @@ public class StudentController extends HttpServlet {
                 case "edit":
                 case "delete":
                     if (!isAdmin(req)) {
-                        resp.sendRedirect(req.getContextPath() + STUDENTS_PATH + "?action=list&error=Permission Denied");
+                        resp.sendRedirect(
+                                req.getContextPath() + STUDENTS_PATH + "?action=list&error=Permission Denied");
                         return;
                     }
                     if ("create".equals(action)) {
-                        req.getRequestDispatcher("/WEB-INF/views/student/create.jsp").forward(req, resp);
+                        req.getRequestDispatcher("/WEB-INF/views/admin/studentmgmt/create.jsp").forward(req, resp);
                     } else if ("edit".equals(action)) {
                         int id = Integer.parseInt(req.getParameter("id"));
                         Student s = dao.getById(id);
                         req.setAttribute("student", s);
-                        req.getRequestDispatcher("/WEB-INF/views/student/edit.jsp").forward(req, resp);
+                        req.getRequestDispatcher("/WEB-INF/views/admin/studentmgmt/edit.jsp").forward(req, resp);
                     } else if ("delete".equals(action)) {
                         int id = Integer.parseInt(req.getParameter("id"));
                         dao.delete(id);
@@ -66,7 +68,7 @@ public class StudentController extends HttpServlet {
                     req.setAttribute("currentPage", pageSlice.getPage());
                     req.setAttribute("totalPages", pageSlice.getTotalPages());
                     req.setAttribute("totalItems", pageSlice.getTotalItems());
-                    req.getRequestDispatcher("/WEB-INF/views/student/list.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/studentmgmt/list.jsp").forward(req, resp);
                     break;
                 }
             }
@@ -117,4 +119,3 @@ public class StudentController extends HttpServlet {
         }
     }
 }
-

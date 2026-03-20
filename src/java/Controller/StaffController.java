@@ -51,7 +51,7 @@ public class StaffController extends HttpServlet {
             switch (action) {
                 case "create":
                     prepareForm(req, null);
-                    req.getRequestDispatcher("/WEB-INF/views/staff/create.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/staff/create.jsp").forward(req, resp);
                     break;
                 case "edit":
                     showEdit(req, resp);
@@ -115,7 +115,7 @@ public class StaffController extends HttpServlet {
         req.setAttribute("currentPage", pageSlice.getPage());
         req.setAttribute("totalPages", pageSlice.getTotalPages());
         req.setAttribute("totalItems", pageSlice.getTotalItems());
-        req.getRequestDispatcher("/WEB-INF/views/staff/list.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/staff/list.jsp").forward(req, resp);
     }
 
     private void showEdit(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
@@ -127,18 +127,18 @@ public class StaffController extends HttpServlet {
         }
 
         prepareForm(req, staff);
-        req.getRequestDispatcher("/WEB-INF/views/staff/edit.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/staff/edit.jsp").forward(req, resp);
     }
 
     private void createStaff(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
         Staff staff = readStaff(req, false);
-        if (!validateStaff(req, resp, staff, "/WEB-INF/views/staff/create.jsp")) {
+        if (!validateStaff(req, resp, staff, "/WEB-INF/views/admin/staff/create.jsp")) {
             return;
         }
 
         int[] roleIds = parseRoleIds(req);
         if (roleIds.length == 0) {
-            forwardFormError(req, resp, null, "/WEB-INF/views/staff/create.jsp", "Phai chon it nhat 1 role.");
+            forwardFormError(req, resp, null, "/WEB-INF/views/admin/staff/create.jsp", "Phai chon it nhat 1 role.");
             return;
         }
 
@@ -149,13 +149,13 @@ public class StaffController extends HttpServlet {
 
     private void updateStaff(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
         Staff staff = readStaff(req, true);
-        if (!validateStaff(req, resp, staff, "/WEB-INF/views/staff/edit.jsp")) {
+        if (!validateStaff(req, resp, staff, "/WEB-INF/views/admin/staff/edit.jsp")) {
             return;
         }
 
         int[] roleIds = parseRoleIds(req);
         if (roleIds.length == 0) {
-            forwardFormError(req, resp, staff, "/WEB-INF/views/staff/edit.jsp", "Phai chon it nhat 1 role.");
+            forwardFormError(req, resp, staff, "/WEB-INF/views/admin/staff/edit.jsp", "Phai chon it nhat 1 role.");
             return;
         }
 

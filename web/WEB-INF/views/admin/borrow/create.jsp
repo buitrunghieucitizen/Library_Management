@@ -1,0 +1,50 @@
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<c:set var="pageTitle" value="Tạo phiếu mượn sách" />
+    <c:set var="activeTab" value="borrows" />
+    <%@ include file="../layout/_admin_header.jsp" %>
+
+    <div class="container">
+        <h2>Tạo phiếu mượn sách</h2>
+
+        <c:if test="${not empty error}">
+            <div class="error">${error}</div>
+        </c:if>
+
+        <form method="POST" action="${pageContext.request.contextPath}/admin/borrows">
+            <input type="hidden" name="action" value="create">
+
+            <label>Sinh viên</label>
+            <select name="studentID" required>
+                <option value="">-- Chọn sinh viên --</option>
+                <c:forEach var="s" items="${students}">
+                    <option value="${s.studentID}" ${selectedStudentId == s.studentID ? 'selected' : ''}>
+                        ${s.studentID} - ${s.studentName}
+                    </option>
+                </c:forEach>
+            </select>
+
+            <label>Sách</label>
+            <select name="bookID" required>
+                <option value="">-- Chọn sách --</option>
+                <c:forEach var="b" items="${books}">
+                    <option value="${b.bookID}" ${selectedBookId == b.bookID ? 'selected' : ''}>
+                        ${b.bookID} - ${b.bookName} (còn ${b.available})
+                    </option>
+                </c:forEach>
+            </select>
+            <p class="note">Chỉ hiển thị sách còn trong kho (Còn lại &gt; 0).</p>
+
+            <label>Số lượng mượn</label>
+            <input type="number" name="quantity" min="1" value="${empty quantity ? 1 : quantity}" required>
+
+            <label>Hạn trả</label>
+            <input type="date" name="dueDate" value="${dueDate}" required>
+
+            <div class="actions">
+                <button class="btn btn-primary" type="submit">Tạo phiếu</button>
+                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/borrows?action=list">Hủy</a>
+            </div>
+        </form>
+    </div>
+<%@ include file="../layout/_admin_footer.jsp" %>
