@@ -116,6 +116,20 @@ a:hover {
     gap: 8px;
 }
 
+.user-chip-link {
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 999px;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.user-chip-link:hover,
+.user-chip-link:focus-visible {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
 .user-avatar,
 .brand-mark {
     width: 34px;

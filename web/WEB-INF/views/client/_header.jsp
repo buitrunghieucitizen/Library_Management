@@ -27,11 +27,10 @@
 
         <div class="nav-right">
             <c:if test="${not empty sessionScope.staff}">
-                <div class="user-chip">
+                <a href="${profileUrl}" class="user-chip user-chip-link">
                     <span class="user-avatar"><c:out value="${viewerInitial}" /></span>
                     <span class="user-name"><c:out value="${viewerName}" /></span>
-                </div>
-                <a href="${profileUrl}" class="nav-button">Hồ sơ</a>
+                </a>
                 <a href="${logoutUrl}" class="nav-button">Đăng xuất</a>
             </c:if>
         </div>
