@@ -4,13 +4,13 @@ import Entities.Book;
 import Entities.Borrow;
 import Entities.Category;
 import Entities.Publisher;
-import Entities.Staff;
+import Entities.Student;
 import Model.DAOBook;
 import Model.DAOBorrow;
 import Model.DAOCategory;
 import Model.DAOPublisher;
-import Model.DAOStudent;
 import Utils.RoleUtils;
+import Utils.StudentContextUtils;
 import ViewModel.PageSlice;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -32,8 +32,6 @@ public class HomeController extends HttpServlet {
     private final DAOCategory daoCategory = new DAOCategory();
     private final DAOPublisher daoPublisher = new DAOPublisher();
     private final DAOBorrow daoBorrow = new DAOBorrow();
-    private final DAOStudent daoStudent = new DAOStudent();
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -87,52 +85,11 @@ public class HomeController extends HttpServlet {
     }
 
     private List<Borrow> resolveActiveBorrows(HttpServletRequest request) throws SQLException {
-        Staff staff = RoleUtils.getLoggedStaff(request);
-        if (staff == null) {
+        Student currentStudent = StudentContextUtils.resolveCurrentStudent(request);
+        if (currentStudent == null) {
             return Collections.emptyList();
         }
-
-        Integer studentId = resolveStudentId(staff);
-        if (studentId == null) {
-            return Collections.emptyList();
-        }
-        return daoBorrow.getActiveByStudentId(studentId);
-    }
-
-    private Integer resolveStudentId(Staff staff) throws SQLException {
-        if (staff == null) {
-            return null;
-        }
-
-        Integer candidateFromUsername = extractTrailingNumber(staff.getUsername());
-        if (candidateFromUsername != null && daoStudent.getById(candidateFromUsername) != null) {
-            return candidateFromUsername;
-        }
-
-        int sameId = staff.getStaffID();
-        if (sameId > 0 && daoStudent.getById(sameId) != null) {
-            return sameId;
-        }
-
-        return null;
-    }
-
-    private Integer extractTrailingNumber(String value) {
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        int index = value.length() - 1;
-        while (index >= 0 && Character.isDigit(value.charAt(index))) {
-            index--;
-        }
-        if (index == value.length() - 1) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(value.substring(index + 1));
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return daoBorrow.getActiveByStudentId(currentStudent.getStudentID());
     }
 
     private Integer parseNullableInt(String value) {

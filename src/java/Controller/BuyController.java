@@ -3,6 +3,7 @@ package Controller;
 import Entities.*;
 import Model.*;
 import Utils.RoleUtils;
+import Utils.StudentContextUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -18,7 +19,6 @@ public class BuyController extends HttpServlet {
     private final DAOBookPrice daoBookPrice = new DAOBookPrice();
     private final DAOOrders daoOrders = new DAOOrders();
     private final DAOOrderDetail daoOrderDetail = new DAOOrderDetail();
-    private final DAOStudent daoStudent = new DAOStudent();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -29,9 +29,13 @@ public class BuyController extends HttpServlet {
         }
 
         try {
-            Integer studentId = resolveStudentIdForStaff(staff);
+            Student currentStudent = StudentContextUtils.resolveCurrentStudent(req);
+            Integer studentId = currentStudent == null
+                    ? StudentContextUtils.resolveStudentId(staff)
+                    : currentStudent.getStudentID();
+            String studentName = StudentContextUtils.buildDisplayName(staff, currentStudent);
             req.setAttribute("studentId", studentId != null ? studentId : "Không xác định");
-            req.setAttribute("studentName", staff.getStaffName());
+            req.setAttribute("studentName", studentName);
 
             // 1. Load Sách và Giá
             req.setAttribute("bookPrices", daoBookPrice.getBookPriceRows());
@@ -101,7 +105,7 @@ public class BuyController extends HttpServlet {
                 }
 
                 Staff staff = RoleUtils.getLoggedStaff(req);
-                Integer studentId = resolveStudentIdForStaff(staff);
+                Integer studentId = StudentContextUtils.resolveStudentId(staff);
 
                 // KIỂM TRA BẢO MẬT: Tránh lỗi NullPointerException khi studentId bị rỗng
                 if (studentId == null) {
@@ -189,36 +193,4 @@ public class BuyController extends HttpServlet {
     }
 
     // Copy hàm này từ BorrowController sang để đồng bộ cơ chế ánh xạ Sinh viên
-    private Integer resolveStudentIdForStaff(Staff staff) throws SQLException {
-        if (staff == null) {
-            return null;
-        }
-        Integer candidateFromUsername = extractTrailingNumber(staff.getUsername());
-        if (candidateFromUsername != null && daoStudent.getById(candidateFromUsername) != null) {
-            return candidateFromUsername;
-        }
-        int sameId = staff.getStaffID();
-        if (sameId > 0 && daoStudent.getById(sameId) != null) {
-            return sameId;
-        }
-        return null;
-    }
-
-    private Integer extractTrailingNumber(String value) {
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        int index = value.length() - 1;
-        while (index >= 0 && Character.isDigit(value.charAt(index))) {
-            index--;
-        }
-        if (index == value.length() - 1) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(value.substring(index + 1));
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
 }

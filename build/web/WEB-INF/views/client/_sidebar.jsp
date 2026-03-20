@@ -1,13 +1,16 @@
 <%@ page pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="currentUri" value="${pageContext.request.requestURI}" />
 <c:url var="homeUrl" value="/home" />
 <c:url var="booksUrl" value="/books" />
+<c:url var="profileUrl" value="/profile" />
 <c:url var="borrowsUrl" value="/borrows">
     <c:param name="action" value="list" />
 </c:url>
 <c:url var="dashboardUrl" value="/index.jsp" />
 <c:url var="logoutUrl" value="/logout" />
-<c:set var="viewerName" value="${empty sessionScope.staff.staffName ? 'Sinh viên thư viện' : sessionScope.staff.staffName}" />
+<c:set var="viewerName" value="${empty requestScope.studentDisplayName ? (empty sessionScope.staff.staffName ? 'Sinh viên thư viện' : sessionScope.staff.staffName) : requestScope.studentDisplayName}" />
 
 <aside class="sidebar-left student-sidebar" id="studentSidebar">
     <div class="student-sidebar-head">
@@ -43,6 +46,13 @@
         </a>
     </div>
 
+    <div class="nav-item">
+        <a href="${profileUrl}" class="${fn:contains(currentUri, '/profile') ? 'active' : ''}">
+            <span class="nav-icon">PF</span>
+            <span>Hồ sơ sinh viên</span>
+        </a>
+    </div>
+
     <div class="divider"></div>
     <div class="section-title">Tài khoản</div>
 
@@ -63,6 +73,15 @@
     <div class="student-sidebar-card">
         <span class="student-sidebar-kicker">Tài khoản hiện tại</span>
         <strong><c:out value="${viewerName}" /></strong>
-        <span>Đăng nhập với vai trò sinh viên</span>
+        <span>
+            <c:choose>
+                <c:when test="${not empty currentStudent}">
+                    Mã sinh viên #${currentStudent.studentID}
+                </c:when>
+                <c:otherwise>
+                    Đăng nhập với vai trò sinh viên
+                </c:otherwise>
+            </c:choose>
+        </span>
     </div>
 </aside>

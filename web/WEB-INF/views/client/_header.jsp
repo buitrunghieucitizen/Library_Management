@@ -1,7 +1,11 @@
 <%@ page pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:url var="homeUrl" value="/home" />
+<c:url var="profileUrl" value="/profile" />
 <c:url var="logoutUrl" value="/logout" />
-<c:set var="viewerName" value="${empty sessionScope.staff.staffName ? 'Sinh viên thư viện' : sessionScope.staff.staffName}" />
+<c:set var="viewerName" value="${empty requestScope.studentDisplayName ? (empty sessionScope.staff.staffName ? 'Sinh viên thư viện' : sessionScope.staff.staffName) : requestScope.studentDisplayName}" />
+<c:set var="viewerInitial" value="${empty requestScope.studentDisplayInitial ? (empty viewerName ? 'S' : fn:toUpperCase(fn:substring(viewerName, 0, 1))) : requestScope.studentDisplayInitial}" />
 
 <nav class="top-nav student-top-nav">
     <div class="top-nav-shell">
@@ -24,14 +28,10 @@
         <div class="nav-right">
             <c:if test="${not empty sessionScope.staff}">
                 <div class="user-chip">
-                    <span class="user-avatar">
-                        <c:choose>
-                            <c:when test="${not empty sessionScope.staff.staffName}">${fn:toUpperCase(fn:substring(sessionScope.staff.staffName, 0, 1))}</c:when>
-                            <c:otherwise>U</c:otherwise>
-                        </c:choose>
-                    </span>
+                    <span class="user-avatar"><c:out value="${viewerInitial}" /></span>
                     <span class="user-name"><c:out value="${viewerName}" /></span>
                 </div>
+                <a href="${profileUrl}" class="nav-button">Hồ sơ</a>
                 <a href="${logoutUrl}" class="nav-button">Đăng xuất</a>
             </c:if>
         </div>

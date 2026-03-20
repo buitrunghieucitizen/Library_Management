@@ -4,6 +4,7 @@ import Entities.Book;
 import Entities.Staff;
 import Model.DAOStudent;
 import Utils.RoleUtils;
+import Utils.StudentContextUtils;
 import ViewModel.BookPriceRow;
 import ViewModel.BuyListSnapshot;
 import ViewModel.PageSlice;
@@ -105,21 +106,7 @@ public class BorrowHelper {
     }
 
     public Integer resolveStudentIdForStaff(Staff staff) throws SQLException {
-        if (staff == null) {
-            return null;
-        }
-
-        Integer candidateFromUsername = extractTrailingNumber(staff.getUsername());
-        if (candidateFromUsername != null && daoStudent.getById(candidateFromUsername) != null) {
-            return candidateFromUsername;
-        }
-
-        int sameId = staff.getStaffID();
-        if (sameId > 0 && daoStudent.getById(sameId) != null) {
-            return sameId;
-        }
-
-        return null;
+        return StudentContextUtils.resolveStudentId(staff, daoStudent);
     }
 
     public List<Book> filterBorrowableBooks(List<Book> allBooks) {
@@ -199,22 +186,4 @@ public class BorrowHelper {
         return new BuyListSnapshot(rows, totalAmount);
     }
 
-    private Integer extractTrailingNumber(String value) {
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        int index = value.length() - 1;
-        while (index >= 0 && Character.isDigit(value.charAt(index))) {
-            index--;
-        }
-        if (index == value.length() - 1) {
-            return null;
-        }
-        String digits = value.substring(index + 1);
-        try {
-            return Integer.parseInt(digits);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
 }
