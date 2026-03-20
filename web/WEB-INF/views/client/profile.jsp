@@ -8,6 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hồ sơ sinh viên</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="student-body">
     <%@ include file="_header.jsp" %>
@@ -29,7 +32,16 @@
             <section class="page-hero">
                 <div>
                     <span class="page-hero-kicker">Student Profile</span>
-                    <h1>Hồ sơ sinh viên</h1>
+                    <div class="profile-avatar-wrap">
+                        <div class="profile-avatar-circle">
+                            <c:choose>
+                                <c:when test="${not empty studentDisplayName}">${fn:toUpperCase(fn:substring(studentDisplayName, 0, 1))}</c:when>
+                                <c:when test="${not empty profileStudent.studentName}">${fn:toUpperCase(fn:substring(profileStudent.studentName, 0, 1))}</c:when>
+                                <c:otherwise>S</c:otherwise>
+                            </c:choose>
+                        </div>
+                        <h1>Hồ sơ sinh viên</h1>
+                    </div>
                     <p>Cập nhật thông tin liên hệ, theo dõi mã sinh viên đang liên kết và kiểm tra nhanh tài khoản sử dụng trên cổng thư viện.</p>
                 </div>
                 <div class="page-hero-actions">

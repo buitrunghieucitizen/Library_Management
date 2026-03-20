@@ -7,6 +7,10 @@
 <c:set var="viewerName" value="${empty requestScope.studentDisplayName ? (empty sessionScope.staff.staffName ? 'Sinh viên thư viện' : sessionScope.staff.staffName) : requestScope.studentDisplayName}" />
 <c:set var="viewerInitial" value="${empty requestScope.studentDisplayInitial ? (empty viewerName ? 'S' : fn:toUpperCase(fn:substring(viewerName, 0, 1))) : requestScope.studentDisplayInitial}" />
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
 <nav class="top-nav student-top-nav">
     <div class="top-nav-shell">
         <div class="top-nav-left">

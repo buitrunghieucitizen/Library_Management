@@ -8,6 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${book.bookName}</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="student-body">
     <%@ include file="../_header.jsp" %>
@@ -21,7 +24,10 @@
         <%@ include file="../_sidebar.jsp" %>
 
         <main class="content student-content content-wide">
-            <a class="back-link" href="${homeUrl}">Quay về trang sinh viên</a>
+            <a class="back-link" href="${homeUrl}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Quay về trang sinh viên
+            </a>
 
             <c:if test="${not empty param.msg}">
                 <div class="msg"><c:out value="${param.msg}" /></div>
