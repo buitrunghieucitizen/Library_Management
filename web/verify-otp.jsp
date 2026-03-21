@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Manager | Xac thuc OTP</title>
+    <title>Library Manager | Xác thực OTP</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth.css">
 </head>
@@ -14,8 +14,8 @@
         <div class="card-shell auth-card">
             <div class="text-center mb-4">
                 <div class="brand">LM</div>
-                <h1 id="auth-title" class="h3 fw-bold mb-2">Xac thuc OTP</h1>
-                <p class="text-muted mb-0">Nhap ma OTP da gui den email tai khoan.</p>
+                <h1 id="auth-title" class="h3 fw-bold mb-2">Xác thực OTP</h1>
+                <p class="text-muted mb-0">Nhập mã OTP đã gửi đến email tài khoản của bạn.</p>
             </div>
 
             <c:if test="${not empty message}">
@@ -27,14 +27,14 @@
 
             <form class="auth-form" action="${pageContext.request.contextPath}/verify-otp" method="post">
                 <div class="field">
-                    <label for="otp">Ma OTP</label>
-                    <input id="otp" type="text" name="otp" maxlength="6" minlength="6" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" title="OTP gom 6 chu so" required>
+                    <label for="otp">Mã OTP</label>
+                    <input id="otp" type="text" name="otp" maxlength="6" minlength="6" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" title="OTP gồm 6 chữ số" required>
                 </div>
-                <button class="btn-submit" type="submit">Xac nhan OTP</button>
+                <button class="btn-submit" type="submit">Xác nhận OTP</button>
             </form>
 
             <div class="text-center auth-foot">
-                <a href="${pageContext.request.contextPath}/forgot-password" class="fw-bold text-decoration-none">Gui lai OTP</a>
+                <a href="${pageContext.request.contextPath}/forgot-password" class="fw-bold text-decoration-none">Gửi lại OTP</a>
             </div>
         </div>
     </main>

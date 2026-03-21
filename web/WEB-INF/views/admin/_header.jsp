@@ -1,91 +1,35 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
-
 <c:set var="isAdminNav" value="false" />
 <c:if test="${not empty sessionScope.roles}">
     <c:forEach var="roleId" items="${sessionScope.roles}">
-        <c:if test="${roleId == 1}"><c:set var="isAdminNav" value="true" /></c:if>
+        <c:if test="${roleId == 1}">
+            <c:set var="isAdminNav" value="true" />
+        </c:if>
     </c:forEach>
 </c:if>
 
-<nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background:linear-gradient(135deg,#1a2744 0%,#2a5298 100%);">
-    <div class="container-fluid px-3">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="${pageContext.request.contextPath}/index.jsp">
-            <span class="d-flex align-items-center justify-content-center rounded-2 fw-bold"
-                  style="width:32px;height:32px;background:rgba(255,255,255,.15);font-size:13px;color:#fff;">LM</span>
-            <span class="fw-semibold" style="font-size:15px;">Quản lý thư viện</span>
-        </a>
+<div class="navbar admin-fixed">
+    <h1>Quản lý thư viện</h1>
+    <a class="${activeTab eq 'dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/dashboard">Dashboard</a>
+    <a class="${activeTab eq 'books' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/books?action=list">Sách</a>
+    <a class="${activeTab eq 'students' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/students?action=list">Sinh viên</a>
+    <a class="${activeTab eq 'borrows' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/borrows?action=list">Mượn trả</a>
+    <a class="${activeTab eq 'orders' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/orders?action=list">Đơn hàng</a>
+    <a class="${activeTab eq 'bookfiles' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/bookfiles?action=list">Tệp sách</a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+    <c:if test="${isAdminNav}">
+        <a class="${activeTab eq 'authors' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/authors?action=list">Tác giả</a>
+        <a class="${activeTab eq 'categories' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/categories?action=list">Thể loại</a>
+        <a class="${activeTab eq 'publishers' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/publishers?action=list">Nhà xuất bản</a>
+        <a class="${activeTab eq 'staffs' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/staffs?action=list">Nhân viên</a>
+    </c:if>
 
-        <div class="collapse navbar-collapse" id="adminNav">
-            <ul class="navbar-nav me-auto gap-1">
-                <li class="nav-item">
-                    <a class="nav-link ${activeTab eq 'home' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ${activeTab eq 'books' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/books?action=list">Sách</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ${activeTab eq 'students' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/students?action=list">Sinh viên</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link position-relative ${activeTab eq 'borrows' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/borrows?action=list">
-                        Mượn trả
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                              style="font-size:10px;display:none;" id="pendingBadge"></span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ${activeTab eq 'orders' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/orders?action=list">Đơn hàng</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ${activeTab eq 'bookfiles' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/bookfiles?action=list">Tệp sách</a>
-                </li>
-                <c:if test="${isAdminNav}">
-                    <li class="nav-item">
-                        <a class="nav-link ${activeTab eq 'authors' ? 'active' : ''}"
-                           href="${pageContext.request.contextPath}/admin/authors?action=list">Tác giả</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ${activeTab eq 'categories' ? 'active' : ''}"
-                           href="${pageContext.request.contextPath}/admin/categories?action=list">Thể loại</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ${activeTab eq 'publishers' ? 'active' : ''}"
-                           href="${pageContext.request.contextPath}/admin/publishers?action=list">Nhà xuất bản</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ${activeTab eq 'staffs' ? 'active' : ''}"
-                           href="${pageContext.request.contextPath}/admin/staffs?action=list">Nhân viên</a>
-                    </li>
-                </c:if>
-            </ul>
-
-            <div class="d-flex align-items-center gap-2">
-                <c:if test="${not empty sessionScope.staff}">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="d-flex align-items-center justify-content-center rounded-circle text-white fw-semibold"
-                             style="width:30px;height:30px;background:rgba(255,255,255,.2);font-size:12px;">
-                            ${fn:toUpperCase(fn:substring(sessionScope.staff.staffName, 0, 1))}
-                        </div>
-                        <span class="text-white-50 d-none d-lg-inline" style="font-size:13px;">${sessionScope.staff.staffName}</span>
-                    </div>
-                    <a href="${pageContext.request.contextPath}/logout" class="btn btn-sm btn-outline-light" style="font-size:12px;">Đăng xuất</a>
-                </c:if>
-            </div>
-        </div>
+    <div class="nav-right">
+        <span><c:out value="${sessionScope.staff.staffName}" default="" /></span>
+        <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
     </div>
-</nav>
+</div>
 
 <%-- WebSocket + fallback polling --%>
 <script>

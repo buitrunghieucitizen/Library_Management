@@ -1,5 +1,6 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="vi">
     <head>
@@ -12,6 +13,11 @@
     <body class="bg-body-tertiary">
         <c:set var="activeTab" value="borrows" />
         <%@ include file="../admin/_header.jsp" %>
+=======
+<c:set var="pageTitle" value="Tạo phiếu mượn sách" />
+    <c:set var="activeTab" value="borrows" />
+    <%@ include file="../admin/layout/_admin_header.jsp" %>
+>>>>>>> origin/master
 
         <div class="container py-4" style="max-width:680px;">
             <a href="${pageContext.request.contextPath}/admin/borrows?action=list"
@@ -75,8 +81,17 @@
                     </div>
                 </form>
             </div>
+<<<<<<< HEAD
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
+=======
+        </form>
+    </div>
+<%@ include file="../admin/layout/_admin_footer.jsp" %>
+
+
+
+>>>>>>> origin/master

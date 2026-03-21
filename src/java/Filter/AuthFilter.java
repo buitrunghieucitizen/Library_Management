@@ -1,6 +1,7 @@
 package Filter;
 
 import Utils.RoleUtils;
+import Utils.StudentContextUtils;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -80,9 +82,10 @@ public class AuthFilter implements Filter {
 
         if (isStudentPortalPath(path)) {
             if (isStudentOnly) {
+                attachStudentContext(req);
                 chain.doFilter(request, response);
             } else {
-                res.sendRedirect(contextPath + "/index.jsp");
+                res.sendRedirect(contextPath + "/admin/dashboard");
             }
             return;
         }
@@ -105,8 +108,10 @@ public class AuthFilter implements Filter {
         }
 
         if (isStudentOnly) {
-            if (path.equals("/books") || path.equals("/borrows") || path.equals("/buy") || path.equals("/index.jsp")
-                    || path.equals("/") || path.equals("/logout")) {
+            if (isStudentAccessiblePath(path)) {
+                if (shouldAttachStudentContext(path)) {
+                    attachStudentContext(req);
+                }
                 chain.doFilter(request, response);
             } else {
                 res.sendRedirect(contextPath + "/home");
@@ -145,6 +150,34 @@ public class AuthFilter implements Filter {
     }
 
     private boolean isStudentPortalPath(String path) {
-        return path.equals("/home") || path.startsWith("/home/");
+        return path.equals("/home")
+                || path.startsWith("/home/")
+                || path.equals("/profile")
+                || path.startsWith("/profile/");
+    }
+
+    private boolean isStudentAccessiblePath(String path) {
+        return isStudentPortalPath(path)
+                || path.equals("/books")
+                || path.equals("/borrows")
+                || path.equals("/buy")
+                || path.equals("/index.jsp")
+                || path.equals("/")
+                || path.equals("/logout");
+    }
+
+    private boolean shouldAttachStudentContext(String path) {
+        return isStudentPortalPath(path)
+                || path.equals("/books")
+                || path.equals("/borrows")
+                || path.equals("/buy");
+    }
+
+    private void attachStudentContext(HttpServletRequest req) throws ServletException {
+        try {
+            StudentContextUtils.attachCurrentStudent(req);
+        } catch (SQLException e) {
+            throw new ServletException("Cannot load current student context.", e);
+        }
     }
 }

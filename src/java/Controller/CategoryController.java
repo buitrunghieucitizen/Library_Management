@@ -38,7 +38,7 @@ public class CategoryController extends HttpServlet {
         try {
             switch (action) {
                 case "create":
-                    req.getRequestDispatcher("/WEB-INF/views/category/create.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/category/create.jsp").forward(req, resp);
                     break;
                 case "edit": {
                     Integer id = parseInt(req.getParameter("id"));
@@ -52,7 +52,7 @@ public class CategoryController extends HttpServlet {
                         return;
                     }
                     req.setAttribute("category", c);
-                    req.getRequestDispatcher("/WEB-INF/views/category/edit.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/category/edit.jsp").forward(req, resp);
                     break;
                 }
                 case "delete": {
@@ -74,7 +74,7 @@ public class CategoryController extends HttpServlet {
                     req.setAttribute("currentPage", pageSlice.getPage());
                     req.setAttribute("totalPages", pageSlice.getTotalPages());
                     req.setAttribute("totalItems", pageSlice.getTotalItems());
-                    req.getRequestDispatcher("/WEB-INF/views/category/list.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/category/list.jsp").forward(req, resp);
                     break;
                 }
             }
@@ -111,7 +111,7 @@ public class CategoryController extends HttpServlet {
         if (categoryName == null) {
             req.setAttribute("error", "Tên thể loại không được để trống.");
             req.setAttribute("categoryName", "");
-            req.getRequestDispatcher("/WEB-INF/views/category/create.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/admin/category/create.jsp").forward(req, resp);
             return;
         }
 
@@ -123,7 +123,7 @@ public class CategoryController extends HttpServlet {
             if (isDuplicateKeyError(e)) {
                 req.setAttribute("error", "Tên thể loại đã tồn tại.");
                 req.setAttribute("categoryName", categoryName);
-                req.getRequestDispatcher("/WEB-INF/views/category/create.jsp").forward(req, resp);
+                req.getRequestDispatcher("/WEB-INF/views/admin/category/create.jsp").forward(req, resp);
                 return;
             }
             throw new ServletException(e);
@@ -144,7 +144,7 @@ public class CategoryController extends HttpServlet {
         if (categoryName == null) {
             req.setAttribute("error", "Tên thể loại không được để trống.");
             req.setAttribute("category", c);
-            req.getRequestDispatcher("/WEB-INF/views/category/edit.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/admin/category/edit.jsp").forward(req, resp);
             return;
         }
 
@@ -159,7 +159,7 @@ public class CategoryController extends HttpServlet {
             if (isDuplicateKeyError(e)) {
                 req.setAttribute("error", "Tên thể loại đã tồn tại.");
                 req.setAttribute("category", c);
-                req.getRequestDispatcher("/WEB-INF/views/category/edit.jsp").forward(req, resp);
+                req.getRequestDispatcher("/WEB-INF/views/admin/category/edit.jsp").forward(req, resp);
                 return;
             }
             throw new ServletException(e);

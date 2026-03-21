@@ -7,6 +7,7 @@ import Model.DAORole;
 import Model.DAOStaff;
 import Model.DAOStaffRole;
 import Utils.PaginationUtils;
+import Utils.PasswordResetUtils;
 import Utils.RoleUtils;
 import ViewModel.PageSlice;
 import ViewModel.StaffListRow;
@@ -50,7 +51,7 @@ public class StaffController extends HttpServlet {
             switch (action) {
                 case "create":
                     prepareForm(req, null);
-                    req.getRequestDispatcher("/WEB-INF/views/staff/create.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/staff/create.jsp").forward(req, resp);
                     break;
                 case "edit":
                     showEdit(req, resp);
@@ -114,7 +115,7 @@ public class StaffController extends HttpServlet {
         req.setAttribute("currentPage", pageSlice.getPage());
         req.setAttribute("totalPages", pageSlice.getTotalPages());
         req.setAttribute("totalItems", pageSlice.getTotalItems());
-        req.getRequestDispatcher("/WEB-INF/views/staff/list.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/staff/list.jsp").forward(req, resp);
     }
 
     private void showEdit(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
@@ -126,14 +127,18 @@ public class StaffController extends HttpServlet {
         }
 
         prepareForm(req, staff);
-        req.getRequestDispatcher("/WEB-INF/views/staff/edit.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/staff/edit.jsp").forward(req, resp);
     }
 
     private void createStaff(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
         Staff staff = readStaff(req, false);
+        if (!validateStaff(req, resp, staff, "/WEB-INF/views/admin/staff/create.jsp")) {
+            return;
+        }
+
         int[] roleIds = parseRoleIds(req);
         if (roleIds.length == 0) {
-            forwardFormError(req, resp, null, "/WEB-INF/views/staff/create.jsp", "Phai chon it nhat 1 role.");
+            forwardFormError(req, resp, null, "/WEB-INF/views/admin/staff/create.jsp", "Phai chon it nhat 1 role.");
             return;
         }
 
@@ -144,9 +149,13 @@ public class StaffController extends HttpServlet {
 
     private void updateStaff(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
         Staff staff = readStaff(req, true);
+        if (!validateStaff(req, resp, staff, "/WEB-INF/views/admin/staff/edit.jsp")) {
+            return;
+        }
+
         int[] roleIds = parseRoleIds(req);
         if (roleIds.length == 0) {
-            forwardFormError(req, resp, staff, "/WEB-INF/views/staff/edit.jsp", "Phai chon it nhat 1 role.");
+            forwardFormError(req, resp, staff, "/WEB-INF/views/admin/staff/edit.jsp", "Phai chon it nhat 1 role.");
             return;
         }
 
@@ -168,6 +177,7 @@ public class StaffController extends HttpServlet {
         Staff staff = new Staff(
                 req.getParameter("staffName"),
                 req.getParameter("username"),
+                req.getParameter("email"),
                 req.getParameter("password"));
         if (hasId) {
             staff.setStaffID(Integer.parseInt(req.getParameter("staffID")));
@@ -254,6 +264,48 @@ public class StaffController extends HttpServlet {
             return "No role";
         }
         return String.join(", ", names);
+    }
+
+    private boolean validateStaff(HttpServletRequest req, HttpServletResponse resp, Staff staff, String view)
+            throws SQLException, ServletException, IOException {
+        String staffName = trim(staff.getStaffName());
+        String username = trim(staff.getUsername());
+        String email = trim(staff.getEmail());
+        String password = staff.getPassword();
+
+        if (staffName.isEmpty() || username.isEmpty() || email.isEmpty() || password == null || password.isBlank()) {
+            forwardFormError(req, resp, staff, view, "Vui long nhap day du thong tin.");
+            return false;
+        }
+
+        if (!PasswordResetUtils.isEmail(email)) {
+            forwardFormError(req, resp, staff, view, "Email khong hop le.");
+            return false;
+        }
+
+        Staff sameUsername = daoStaff.getByUsername(username);
+        if (sameUsername != null && sameUsername.getStaffID() != staff.getStaffID()) {
+            forwardFormError(req, resp, staff, view, "Ten dang nhap da ton tai.");
+            return false;
+        }
+
+        Staff sameEmail = daoStaff.getByEmail(email);
+        if (sameEmail != null && sameEmail.getStaffID() != staff.getStaffID()) {
+            forwardFormError(req, resp, staff, view, "Email da duoc su dung.");
+            return false;
+        }
+
+        Staff legacyEmailOwner = daoStaff.getByUsername(email);
+        if (legacyEmailOwner != null && legacyEmailOwner.getStaffID() != staff.getStaffID()) {
+            forwardFormError(req, resp, staff, view, "Email da duoc su dung.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private String trim(String value) {
+        return value == null ? "" : value.trim();
     }
 }
 

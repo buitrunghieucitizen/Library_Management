@@ -38,13 +38,13 @@ public class PublisherController extends HttpServlet {
         try {
             switch (action) {
                 case "create":
-                    req.getRequestDispatcher("/WEB-INF/views/publisher/create.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/publisher/create.jsp").forward(req, resp);
                     break;
                 case "edit": {
                     int id = Integer.parseInt(req.getParameter("id"));
                     Publisher p = dao.getById(id);
                     req.setAttribute("publisher", p);
-                    req.getRequestDispatcher("/WEB-INF/views/publisher/edit.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/publisher/edit.jsp").forward(req, resp);
                     break;
                 }
                 case "delete": {
@@ -62,7 +62,7 @@ public class PublisherController extends HttpServlet {
                     req.setAttribute("currentPage", pageSlice.getPage());
                     req.setAttribute("totalPages", pageSlice.getTotalPages());
                     req.setAttribute("totalItems", pageSlice.getTotalItems());
-                    req.getRequestDispatcher("/WEB-INF/views/publisher/list.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/publisher/list.jsp").forward(req, resp);
                     break;
                 }
             }

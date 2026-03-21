@@ -43,7 +43,7 @@ public class BookFileController extends HttpServlet {
             switch (action) {
                 case "create":
                     prepareForm(req, null);
-                    req.getRequestDispatcher("/WEB-INF/views/bookfile/create.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/bookfile/create.jsp").forward(req, resp);
                     break;
                 case "edit":
                     showEdit(req, resp);
@@ -102,7 +102,7 @@ public class BookFileController extends HttpServlet {
         req.setAttribute("totalPages", pageSlice.getTotalPages());
         req.setAttribute("totalItems", pageSlice.getTotalItems());
         req.setAttribute("isAdmin", RoleUtils.isAdmin(req));
-        req.getRequestDispatcher("/WEB-INF/views/bookfile/list.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/bookfile/list.jsp").forward(req, resp);
     }
 
     private void showEdit(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
@@ -114,7 +114,7 @@ public class BookFileController extends HttpServlet {
         }
 
         prepareForm(req, bookFile);
-        req.getRequestDispatcher("/WEB-INF/views/bookfile/edit.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/bookfile/edit.jsp").forward(req, resp);
     }
 
     private void createBookFile(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {

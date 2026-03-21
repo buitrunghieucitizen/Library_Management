@@ -87,7 +87,7 @@ public class BorrowAdminHandler {
             return;
         }
         loadCreateData(req);
-        req.getRequestDispatcher("/WEB-INF/views/borrow/create.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/borrow/create.jsp").forward(req, resp);
     }
 
     public void createBorrow(HttpServletRequest req, HttpServletResponse resp)
@@ -305,6 +305,6 @@ public class BorrowAdminHandler {
         req.setAttribute("quantity", req.getParameter("quantity"));
         req.setAttribute("dueDate", req.getParameter("dueDate"));
         loadCreateData(req);
-        req.getRequestDispatcher("/WEB-INF/views/borrow/create.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/borrow/create.jsp").forward(req, resp);
     }
 }

@@ -41,32 +41,44 @@ public class ForgotPasswordController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         if (!EmailConfig.isConfigured()) {
-            forwardWithError(request, response, "He thong chua cau hinh email (MAIL_USERNAME/MAIL_PASSWORD).");
+            forwardWithError(request, response, "", "He thong chua cau hinh email (MAIL_USERNAME/MAIL_PASSWORD).");
             return;
         }
 
-        String username = trim(request.getParameter("username"));
-        if (username.isEmpty()) {
-            forwardWithError(request, response, "Vui long nhap ten dang nhap.");
+        String emailInput = trim(request.getParameter("email"));
+        if (emailInput.isEmpty()) {
+            forwardWithError(request, response, "", "Vui long nhap email.");
+            return;
+        }
+
+        if (!PasswordResetUtils.isEmail(emailInput)) {
+            forwardWithError(request, response, emailInput, "Email khong hop le.");
             return;
         }
 
         Staff staff;
         try {
-            staff = daoStaff.getByUsername(username);
+            staff = daoStaff.getByEmail(emailInput);
+            if (staff == null) {
+                staff = daoStaff.getByUsername(emailInput);
+            }
         } catch (SQLException ex) {
-            forwardWithError(request, response, "Loi he thong: " + ex.getMessage());
+            forwardWithError(request, response, emailInput, "Loi he thong: " + ex.getMessage());
             return;
         }
 
         if (staff == null) {
-            forwardWithError(request, response, "Khong tim thay tai khoan.");
+            forwardWithError(request, response, emailInput, "Khong tim thay tai khoan voi email nay.");
             return;
         }
 
-        String email = staff.getUsername();
-        if (!PasswordResetUtils.isEmail(email)) {
-            forwardWithError(request, response, "Tai khoan nay khong lien ket email de nhan OTP.");
+        String recoveryEmail = staff.getEmail();
+        if (!PasswordResetUtils.isEmail(recoveryEmail)) {
+            recoveryEmail = staff.getUsername();
+        }
+
+        if (!PasswordResetUtils.isEmail(recoveryEmail)) {
+            forwardWithError(request, response, emailInput, "Tai khoan nay chua co email de nhan OTP.");
             return;
         }
 
@@ -81,10 +93,10 @@ public class ForgotPasswordController extends HttpServlet {
         session.setAttribute(RESET_OTP_VERIFIED, Boolean.FALSE);
 
         try {
-            emailService.sendOtpEmail(email, otp);
+            emailService.sendOtpEmail(recoveryEmail, otp);
         } catch (MessagingException ex) {
             clearResetState(session);
-            forwardWithError(request, response, "Gui email OTP that bai. Vui long thu lai sau.");
+            forwardWithError(request, response, emailInput, "Gui email OTP that bai. Vui long thu lai sau.");
             return;
         }
 
@@ -104,8 +116,9 @@ public class ForgotPasswordController extends HttpServlet {
         session.removeAttribute(RESET_OTP_VERIFIED);
     }
 
-    private void forwardWithError(HttpServletRequest request, HttpServletResponse response, String error)
+    private void forwardWithError(HttpServletRequest request, HttpServletResponse response, String email, String error)
             throws ServletException, IOException {
+        request.setAttribute("email", email);
         request.setAttribute("error", error);
         request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
     }

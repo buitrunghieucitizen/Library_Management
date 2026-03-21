@@ -20,7 +20,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet(name = "OrderStaffController", urlPatterns = {"/admin/orders"})
+@WebServlet(name = "OrderStaffController", urlPatterns = { "/admin/orders" })
 public class OrderStaffController extends HttpServlet {
 
     private final DAOOrders daoOrders = new DAOOrders();
@@ -52,11 +52,11 @@ public class OrderStaffController extends HttpServlet {
 
             req.setAttribute("allOrders", daoOrders.getOrderRows());
             req.setAttribute("isAdmin", RoleUtils.isAdmin(req));
-            req.getRequestDispatcher("/WEB-INF/views/orders/list.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/admin/orders/list.jsp").forward(req, resp);
         } catch (Exception e) {
             req.setAttribute("error", "Loi: " + e.getMessage());
             req.setAttribute("isAdmin", RoleUtils.isAdmin(req));
-            req.getRequestDispatcher("/WEB-INF/views/orders/list.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/admin/orders/list.jsp").forward(req, resp);
         }
     }
 
@@ -225,7 +225,8 @@ public class OrderStaffController extends HttpServlet {
         }
     }
 
-    private void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp, String key, String message) throws IOException {
+    private void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp, String key, String message)
+            throws IOException {
         String encoded = URLEncoder.encode(message, StandardCharsets.UTF_8);
         resp.sendRedirect(req.getContextPath() + "/admin/orders?" + key + "=" + encoded);
     }

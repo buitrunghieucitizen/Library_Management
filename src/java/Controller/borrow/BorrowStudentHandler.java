@@ -12,6 +12,8 @@ import Model.DAOOrderDetail;
 import Model.DAOOrders;
 import Utils.RoleUtils;
 import ViewModel.BookPriceRow;
+import ViewModel.BorrowRenewalDecision;
+import ViewModel.BorrowRow;
 import ViewModel.BuyListSnapshot;
 import ViewModel.HoldRow;
 import ViewModel.OrderItemRow;
@@ -74,9 +76,24 @@ public class BorrowStudentHandler {
 
         Integer studentId = helper.resolveStudentIdForStaff(staff);
         if (studentId == null) {
-            req.setAttribute("mappingError", "Không xác định được tài khoản sinh viên cho user hiện tại.");
-            setEmptyAttributes(req);
-            req.getRequestDispatcher("/WEB-INF/views/borrow/student.jsp").forward(req, resp);
+            req.setAttribute("mappingError", "Khong xac dinh duoc tai khoan sinh vien cho user hien tai.");
+            req.setAttribute("availableBooks", Collections.emptyList());
+            req.setAttribute("bookPrices", Collections.emptyList());
+            req.setAttribute("borrows", Collections.emptyList());
+            req.setAttribute("renewalDecisionByBorrowId", Collections.emptyMap());
+            req.setAttribute("renewableBorrowCount", 0);
+            req.setAttribute("studentRenewalDays", BorrowHelper.STUDENT_RENEWAL_DAYS);
+            req.setAttribute("studentRenewalWindowDays", BorrowHelper.STUDENT_RENEWAL_WINDOW_DAYS);
+            req.setAttribute("buyListItems", Collections.emptyList());
+            req.setAttribute("purchasedOrders", Collections.emptyList());
+            req.setAttribute("bookCurrentPage", 1);
+            req.setAttribute("bookTotalPages", 1);
+            req.setAttribute("purchaseCurrentPage", 1);
+            req.setAttribute("purchaseTotalPages", 1);
+            req.setAttribute("bookSearch", "");
+            req.setAttribute("purchaseSearch", "");
+            req.setAttribute("buyListTotal", 0.0d);
+            req.getRequestDispatcher("/WEB-INF/views/client/borrow/student.jsp").forward(req, resp);
             return;
         }
 
@@ -131,8 +148,24 @@ public class BorrowStudentHandler {
         req.setAttribute("purchaseTotalItems", purchasePageSlice.getTotalItems());
         req.setAttribute("purchaseSearch", purchaseSearch);
 
-        req.setAttribute("borrows", daoBorrow.getBorrowRowsByStudent(studentId));
-        req.getRequestDispatcher("/WEB-INF/views/borrow/student.jsp").forward(req, resp);
+        List<BorrowRow> borrows = daoBorrow.getBorrowRowsByStudent(studentId);
+        Map<Integer, BorrowRenewalDecision> renewalDecisionByBorrowId = new HashMap<>();
+        int renewableBorrowCount = 0;
+        LocalDate today = LocalDate.now();
+        for (BorrowRow borrow : borrows) {
+            BorrowRenewalDecision renewalDecision = helper.evaluateRenewal(borrow, today);
+            renewalDecisionByBorrowId.put(borrow.getBorrowID(), renewalDecision);
+            if (renewalDecision.isEligible()) {
+                renewableBorrowCount++;
+            }
+        }
+
+        req.setAttribute("renewalDecisionByBorrowId", renewalDecisionByBorrowId);
+        req.setAttribute("renewableBorrowCount", renewableBorrowCount);
+        req.setAttribute("studentRenewalDays", BorrowHelper.STUDENT_RENEWAL_DAYS);
+        req.setAttribute("studentRenewalWindowDays", BorrowHelper.STUDENT_RENEWAL_WINDOW_DAYS);
+        req.setAttribute("borrows", borrows);
+        req.getRequestDispatcher("/WEB-INF/views/client/borrow/student.jsp").forward(req, resp);
     }
 
     // ========== BORROW CART ACTIONS ==========
@@ -376,7 +409,7 @@ public class BorrowStudentHandler {
         req.setAttribute("checkoutQuantity", totalQuantity);
         req.setAttribute("checkoutTotal", buyListSnapshot.getTotalAmount());
         req.setAttribute("checkoutInvalidCount", invalidCount);
-        req.getRequestDispatcher("/WEB-INF/views/borrow/checkout.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/client/borrow/checkout.jsp").forward(req, resp);
     }
 
     public void showCheckoutSuccess(HttpServletRequest req, HttpServletResponse resp)
@@ -424,7 +457,7 @@ public class BorrowStudentHandler {
         req.setAttribute("successItems", orderItems);
         req.setAttribute("successItemCount", orderItems.size());
         req.setAttribute("successTotalQuantity", totalQuantity);
-        req.getRequestDispatcher("/WEB-INF/views/borrow/checkout-success.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/client/borrow/checkout-success.jsp").forward(req, resp);
     }
 
     // ========== BUY LIST (giữ nguyên) ==========
@@ -514,8 +547,9 @@ public class BorrowStudentHandler {
         }
     }
 
-    public void updateBuyListQuantity(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản học sinh.")) {
+    public void updateBuyListQuantity(HttpServletRequest req, HttpServletResponse resp)
+            throws SQLException, IOException {
+        if (!ensureStudentOnly(req, resp, "Chi tai khoan hoc sinh moi duoc sua danh sach mua.")) {
             return;
         }
         int bookId, quantity;
@@ -620,8 +654,9 @@ public class BorrowStudentHandler {
         }
     }
 
-    public void requestReturnAsStudent(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản học sinh.")) {
+    public void requestReturnAsStudent(HttpServletRequest req, HttpServletResponse resp)
+            throws SQLException, IOException {
+        if (!ensureStudentOnly(req, resp, "Chi tai khoan hoc sinh moi duoc gui yeu cau tra.")) {
             return;
         }
         Staff staff = requireLoggedStaff(req, resp);
@@ -637,18 +672,56 @@ public class BorrowStudentHandler {
         try {
             borrowId = helper.parsePositiveInt(req.getParameter("borrowID"), "BorrowID");
         } catch (Exception e) {
-            helper.redirectWithMessage(req, resp, "error", "BorrowID không hợp lệ.");
+            helper.redirectWithMessageAndAnchor(req, resp, "error", "BorrowID khong hop le.", "borrow-panel");
             return;
         }
         if (!daoBorrow.existsOwnedByStudentAndNotReturned(borrowId, studentId)) {
-            helper.redirectWithMessage(req, resp, "error", "Không tìm thấy phiếu mượn hợp lệ.");
+            helper.redirectWithMessageAndAnchor(req, resp, "error", "Khong tim thay phieu muon hop le de yeu cau tra.",
+                    "borrow-panel");
             return;
         }
-        helper.redirectWithMessage(req, resp, "msg", "Đã gửi yêu cầu trả sách. Vui lòng chờ xác nhận.");
+
+        helper.redirectWithMessageAndAnchor(req, resp, "msg",
+                "Da gui yeu cau tra sach. Vui long cho staff/admin xac nhan.", "borrow-panel");
     }
 
-    // ========== PRIVATE ==========
-    private boolean ensureStudentOnly(HttpServletRequest req, HttpServletResponse resp, String message) throws IOException {
+    public void renewBorrowAsStudent(HttpServletRequest req, HttpServletResponse resp)
+            throws SQLException, IOException {
+        if (!ensureStudentOnly(req, resp, "Chi tai khoan hoc sinh moi duoc gia han online.")) {
+            return;
+        }
+
+        Staff staff = requireLoggedStaff(req, resp);
+        if (staff == null) {
+            return;
+        }
+
+        Integer studentId = helper.resolveStudentIdForStaff(staff);
+        if (studentId == null) {
+            helper.redirectWithMessageAndAnchor(req, resp, "error",
+                    "Khong xac dinh duoc ma sinh vien cho tai khoan hien tai.", "borrow-panel");
+            return;
+        }
+
+        int borrowId;
+        try {
+            borrowId = helper.parsePositiveInt(req.getParameter("borrowID"), "BorrowID");
+        } catch (Exception e) {
+            helper.redirectWithMessageAndAnchor(req, resp, "error", "BorrowID khong hop le.", "borrow-panel");
+            return;
+        }
+
+        try {
+            BorrowRenewalDecision decision = transactionService.renewBorrowTransaction(borrowId, studentId);
+            helper.redirectWithMessageAndAnchor(req, resp, "msg",
+                    "Da gia han phieu #" + borrowId + " den " + decision.getNextDueDateLabel() + ".", "borrow-panel");
+        } catch (SQLException e) {
+            helper.redirectWithMessageAndAnchor(req, resp, "error", e.getMessage(), "borrow-panel");
+        }
+    }
+
+    private boolean ensureStudentOnly(HttpServletRequest req, HttpServletResponse resp, String message)
+            throws IOException {
         if (RoleUtils.isStudentOnly(req)) {
             return true;
         }

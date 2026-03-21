@@ -176,10 +176,42 @@ public class DAOBorrow {
         return null;
     }
 
+    public Borrow getOwnedByStudentForUpdate(Connection con, int borrowId, int studentId) throws SQLException {
+        String sql = "SELECT BorrowID, StudentID, StaffID, BorrowDate, DueDate, Status, ReturnDate "
+                + "FROM Borrow WITH (UPDLOCK, ROWLOCK) "
+                + "WHERE BorrowID = ? AND StudentID = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, borrowId);
+            ps.setInt(2, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Borrow(
+                            rs.getInt("BorrowID"),
+                            rs.getInt("StudentID"),
+                            rs.getInt("StaffID"),
+                            rs.getString("BorrowDate"),
+                            rs.getString("DueDate"),
+                            rs.getString("Status"),
+                            rs.getString("ReturnDate"));
+                }
+            }
+        }
+        return null;
+    }
+
     public int updateReturned(Connection con, int borrowId) throws SQLException {
         String sql = "UPDATE Borrow SET Status = ?, ReturnDate = CAST(GETDATE() AS DATE) WHERE BorrowID = ?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, "Returned");
+            ps.setInt(2, borrowId);
+            return ps.executeUpdate();
+        }
+    }
+
+    public int updateDueDate(Connection con, int borrowId, LocalDate dueDate) throws SQLException {
+        String sql = "UPDATE Borrow SET DueDate = ? WHERE BorrowID = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(dueDate));
             ps.setInt(2, borrowId);
             return ps.executeUpdate();
         }

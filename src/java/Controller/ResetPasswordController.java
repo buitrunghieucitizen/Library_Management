@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
 
-@WebServlet(name = "ResetPasswordController", urlPatterns = {"/reset-password"})
+@WebServlet(name = "ResetPasswordController", urlPatterns = { "/reset-password" })
 public class ResetPasswordController extends HttpServlet {
 
     private final DAOStaff daoStaff = new DAOStaff();
@@ -43,13 +43,13 @@ public class ResetPasswordController extends HttpServlet {
         String confirmPassword = request.getParameter("confirmPassword");
 
         if (password == null || confirmPassword == null || !password.equals(confirmPassword)) {
-            request.setAttribute("error", "Xac nhan mat khau khong khop.");
+            request.setAttribute("error", "Xác nhận mật khẩu không khớp.");
             request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
             return;
         }
 
         if (!PasswordResetUtils.isValidPassword(password)) {
-            request.setAttribute("error", "Mat khau phai >= 6 ky tu, co chu hoa, chu thuong va so.");
+            request.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự, chứa chữ hoa, chữ thường và số.");
             request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
             return;
         }
@@ -63,12 +63,12 @@ public class ResetPasswordController extends HttpServlet {
         try {
             int updated = daoStaff.updatePasswordByUsername(username, password);
             if (updated <= 0) {
-                request.setAttribute("error", "Khong cap nhat duoc mat khau. Vui long thu lai.");
+                request.setAttribute("error", "Không cập nhật được mật khẩu. Vui lòng thử lại.");
                 request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
                 return;
             }
         } catch (SQLException ex) {
-            request.setAttribute("error", "Loi he thong: " + ex.getMessage());
+            request.setAttribute("error", "Lỗi hệ thống: " + ex.getMessage());
             request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
             return;
         }

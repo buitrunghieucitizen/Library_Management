@@ -1,5 +1,6 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="vi">
     <head>
@@ -11,6 +12,11 @@
     <body>
         <c:set var="activeTab" value="bookfiles" />
         <%@ include file="../admin/_header.jsp" %>
+=======
+<c:set var="pageTitle" value="Quản lý tệp sách" />
+    <c:set var="activeTab" value="bookfiles" />
+    <%@ include file="../admin/layout/_admin_header.jsp" %>
+>>>>>>> origin/master
 
         <div class="container">
             <div class="panel">
@@ -97,7 +103,13 @@
                 </c:if>
             </div>
         </div>
+<<<<<<< HEAD
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
+=======
+    </div>
+<%@ include file="../admin/layout/_admin_footer.jsp" %>
+
+>>>>>>> origin/master

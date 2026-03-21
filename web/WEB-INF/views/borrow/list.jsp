@@ -1,18 +1,8 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
-<!DOCTYPE html>
-<html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Quản lý mượn trả — Admin</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-    </head>
-    <body class="bg-body-tertiary">
-        <c:set var="activeTab" value="borrows" />
-        <%@ include file="../admin/_header.jsp" %>
+<c:set var="pageTitle" value="Quản lý mượn trả" />
+    <c:set var="activeTab" value="borrows" />
+    <%@ include file="../admin/layout/_admin_header.jsp" %>
 
         <div class="container-fluid px-3 px-md-4 py-4" style="max-width:1400px;">
 
@@ -327,128 +317,6 @@
 
             </div><%-- end tab-content --%>
         </div>
+    </div>
+<%@ include file="../admin/layout/_admin_footer.jsp" %>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-        <%-- WebSocket: realtime cho admin --%>
-        <script>
-                                                                                (function () {
-                                                                                    var pendingBadgeTab = document.querySelector('.nav-link[data-bs-target="#tab-pending"] .badge');
-                                                                                    var pendingBadgeNav = document.getElementById('pendingBadge');
-
-                                                                                    // Load initial count
-                                                                                    fetch('${pageContext.request.contextPath}/api/pending-count')
-                                                                                            .then(function (r) {
-                                                                                                return r.ok ? r.json() : null;
-                                                                                            })
-                                                                                            .then(function (data) {
-                                                                                                updateBadges(data);
-                                                                                            })
-                                                                                            .catch(function () {});
-
-                                                                                    // WebSocket
-                                                                                    var protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-                                                                                    var wsUrl = protocol + '//' + location.host + '${pageContext.request.contextPath}/ws/notify/admin';
-                                                                                    var ws = null;
-                                                                                    var reconnectDelay = 2000;
-
-                                                                                    function connectWs() {
-                                                                                        try {
-                                                                                            ws = new WebSocket(wsUrl);
-                                                                                        } catch (e) {
-                                                                                            startPolling();
-                                                                                            return;
-                                                                                        }
-
-                                                                                        ws.onmessage = function (event) {
-                                                                                            try {
-                                                                                                var data = JSON.parse(event.data);
-                                                                                                if (data.type === 'NEW_BORROW' || data.type === 'NEW_HOLD') {
-                                                                                                    showToast(data.message || 'Có thông báo mới!');
-                                                                                                    // Refresh badges
-                                                                                                    fetch('${pageContext.request.contextPath}/api/pending-count')
-                                                                                                            .then(function (r) {
-                                                                                                                return r.ok ? r.json() : null;
-                                                                                                            })
-                                                                                                            .then(function (d) {
-                                                                                                                updateBadges(d);
-                                                                                                            })
-                                                                                                            .catch(function () {});
-                                                                                                    // Auto reload sau 3s để cập nhật danh sách
-                                                                                                    setTimeout(function () {
-                                                                                                        location.reload();
-                                                                                                    }, 3000);
-                                                                                                }
-                                                                                            } catch (e) {
-                                                                                            }
-                                                                                        };
-
-                                                                                        ws.onclose = function () {
-                                                                                            setTimeout(connectWs, reconnectDelay);
-                                                                                            reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
-                                                                                        };
-                                                                                        ws.onerror = function () {
-                                                                                            ws.close();
-                                                                                        };
-                                                                                    }
-
-                                                                                    connectWs();
-
-                                                                                    // Fallback polling
-                                                                                    function startPolling() {
-                                                                                        setInterval(function () {
-                                                                                            fetch('${pageContext.request.contextPath}/api/pending-count')
-                                                                                                    .then(function (r) {
-                                                                                                        return r.ok ? r.json() : null;
-                                                                                                    })
-                                                                                                    .then(function (d) {
-                                                                                                        updateBadges(d);
-                                                                                                    })
-                                                                                                    .catch(function () {});
-                                                                                        }, 10000);
-                                                                                    }
-                                                                                    setTimeout(function () {
-                                                                                        if (!ws || ws.readyState !== 1)
-                                                                                            startPolling();
-                                                                                    }, 5000);
-
-                                                                                    function updateBadges(data) {
-                                                                                        if (!data)
-                                                                                            return;
-                                                                                        [pendingBadgeTab, pendingBadgeNav].forEach(function (badge) {
-                                                                                            if (!badge)
-                                                                                                return;
-                                                                                            if (data.pendingCount > 0) {
-                                                                                                badge.textContent = data.pendingCount;
-                                                                                                badge.style.display = '';
-                                                                                            } else {
-                                                                                                badge.style.display = 'none';
-                                                                                            }
-                                                                                        });
-                                                                                    }
-
-                                                                                    function showToast(message) {
-                                                                                        var container = document.getElementById('wsToastContainer');
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = 'wsToastContainer';
-                                                                                            container.className = 'position-fixed top-0 end-0 p-3';
-                                                                                            container.style.zIndex = '9999';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        var tid = 'toast-' + Date.now();
-                                                                                        container.insertAdjacentHTML('beforeend',
-                                                                                                '<div id="' + tid + '" class="toast align-items-center text-bg-primary border-0 show mb-2" role="alert" style="min-width:320px;">'
-                                                                                                + '<div class="d-flex"><div class="toast-body" style="font-size:14px;">' + message + '</div>'
-                                                                                                + '<button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest(\'.toast\').remove()"></button>'
-                                                                                                + '</div></div>');
-                                                                                        setTimeout(function () {
-                                                                                            var t = document.getElementById(tid);
-                                                                                            if (t)
-                                                                                                t.remove();
-                                                                                        }, 6000);
-                                                                                    }
-                                                                                })();
-        </script>
-    </body>
-</html>

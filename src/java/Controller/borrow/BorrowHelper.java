@@ -1,10 +1,14 @@
 package Controller.borrow;
 
 import Entities.Book;
+import Entities.Borrow;
 import Entities.Staff;
 import Model.DAOStudent;
 import Utils.RoleUtils;
+import Utils.StudentContextUtils;
 import ViewModel.BookPriceRow;
+import ViewModel.BorrowRenewalDecision;
+import ViewModel.BorrowRow;
 import ViewModel.BuyListSnapshot;
 import ViewModel.PageSlice;
 import ViewModel.StudentBuyListRow;
@@ -15,6 +19,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,6 +30,9 @@ import java.util.Map;
 public class BorrowHelper {
 
     public static final int DEFAULT_STUDENT_BORROW_DAYS = 7;
+    public static final int STUDENT_RENEWAL_DAYS = 7;
+    public static final int STUDENT_RENEWAL_WINDOW_DAYS = 3;
+    public static final int MAX_STUDENT_BORROW_DAYS = DEFAULT_STUDENT_BORROW_DAYS + STUDENT_RENEWAL_DAYS;
     public static final int ADMIN_BORROW_PAGE_SIZE = 10;
     public static final int STUDENT_BOOK_PAGE_SIZE = 8;
     public static final int STUDENT_PURCHASE_PAGE_SIZE = 8;
@@ -57,11 +65,15 @@ public class BorrowHelper {
         return isAdminSection(req) ? ADMIN_BORROWS_PATH : PUBLIC_BORROWS_PATH;
     }
 
-    // ========== REDIRECT HELPERS ==========
-    public void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp,
-            String key, String value) throws IOException {
+    public void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp, String key, String value) throws IOException {
+        redirectWithMessageAndAnchor(req, resp, key, value, null);
+    }
+
+    public void redirectWithMessageAndAnchor(HttpServletRequest req, HttpServletResponse resp,
+            String key, String value, String anchor) throws IOException {
         String encoded = URLEncoder.encode(value, StandardCharsets.UTF_8);
-        resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list&" + key + "=" + encoded);
+        String safeAnchor = anchor == null || anchor.trim().isEmpty() ? "" : "#" + anchor.trim();
+        resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list&" + key + "=" + encoded + safeAnchor);
     }
 
     public void redirectToHome(HttpServletRequest req, HttpServletResponse resp,
@@ -118,21 +130,84 @@ public class BorrowHelper {
 
     // ========== STUDENT ID RESOLUTION ==========
     public Integer resolveStudentIdForStaff(Staff staff) throws SQLException {
-        if (staff == null) {
-            return null;
-        }
-        Integer candidateFromUsername = extractTrailingNumber(staff.getUsername());
-        if (candidateFromUsername != null && daoStudent.getById(candidateFromUsername) != null) {
-            return candidateFromUsername;
-        }
-        int sameId = staff.getStaffID();
-        if (sameId > 0 && daoStudent.getById(sameId) != null) {
-            return sameId;
-        }
-        return null;
+        return StudentContextUtils.resolveStudentId(staff, daoStudent);
     }
 
-    // ========== BOOK FILTERING ==========
+    public BorrowRenewalDecision evaluateRenewal(Borrow borrow) {
+        return evaluateRenewal(borrow, LocalDate.now());
+    }
+
+    public BorrowRenewalDecision evaluateRenewal(Borrow borrow, LocalDate today) {
+        if (borrow == null) {
+            return BorrowRenewalDecision.ineligible("Khong tim thay phieu muon.");
+        }
+        return evaluateRenewal(borrow.getBorrowDate(), borrow.getDueDate(), borrow.getStatus(), today);
+    }
+
+    public BorrowRenewalDecision evaluateRenewal(BorrowRow row, LocalDate today) {
+        if (row == null) {
+            return BorrowRenewalDecision.ineligible("Khong tim thay phieu muon.");
+        }
+        return evaluateRenewal(row.getBorrowDate(), row.getDueDate(), row.getStatus(), today);
+    }
+
+    private BorrowRenewalDecision evaluateRenewal(String borrowDateRaw, String dueDateRaw, String status, LocalDate today) {
+        LocalDate borrowDate = parseIsoDate(borrowDateRaw);
+        LocalDate dueDate = parseIsoDate(dueDateRaw);
+
+        if (borrowDate == null || dueDate == null) {
+            return BorrowRenewalDecision.ineligible("Khong the doc ngay muon hoac han tra.");
+        }
+
+        if (!"Borrowing".equalsIgnoreCase(trim(status))) {
+            if ("Overdue".equalsIgnoreCase(trim(status)) || today.isAfter(dueDate)) {
+                return BorrowRenewalDecision.ineligible("Phieu da qua han nen khong the gia han online.");
+            }
+            if ("Returned".equalsIgnoreCase(trim(status))) {
+                return BorrowRenewalDecision.ineligible("Phieu da hoan tat nen khong the gia han.");
+            }
+            return BorrowRenewalDecision.ineligible("Chi phieu dang muon moi duoc gia han.");
+        }
+
+        if (today.isAfter(dueDate)) {
+            return BorrowRenewalDecision.ineligible("Phieu da qua han nen khong the gia han online.");
+        }
+
+        if (dueDate.isAfter(today.plusDays(STUDENT_RENEWAL_WINDOW_DAYS))) {
+            return BorrowRenewalDecision.ineligible(
+                    "Chi co the gia han trong " + STUDENT_RENEWAL_WINDOW_DAYS + " ngay cuoi truoc han tra.");
+        }
+
+        LocalDate maxDueDate = borrowDate.plusDays(MAX_STUDENT_BORROW_DAYS);
+        if (!dueDate.isBefore(maxDueDate)) {
+            return BorrowRenewalDecision.ineligible("Phieu nay da dung het luot gia han.");
+        }
+
+        LocalDate nextDueDate = dueDate.plusDays(STUDENT_RENEWAL_DAYS);
+        if (nextDueDate.isAfter(maxDueDate)) {
+            nextDueDate = maxDueDate;
+        }
+
+        if (!nextDueDate.isAfter(dueDate)) {
+            return BorrowRenewalDecision.ineligible("Khong con ngay gia han hop le cho phieu nay.");
+        }
+
+        return BorrowRenewalDecision.eligible(nextDueDate,
+                "Gia han them " + STUDENT_RENEWAL_DAYS + " ngay den " + nextDueDate + ".");
+    }
+
+    private LocalDate parseIsoDate(String raw) {
+        String value = trim(raw);
+        if (value.isEmpty()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(value);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public List<Book> filterBorrowableBooks(List<Book> allBooks) {
         List<Book> available = new ArrayList<>();
         for (Book book : allBooks == null ? Collections.<Book>emptyList() : allBooks) {

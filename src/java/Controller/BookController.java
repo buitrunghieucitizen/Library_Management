@@ -60,7 +60,7 @@ public class BookController extends HttpServlet {
                         return;
                     }
                     if ("create".equals(action)) {
-                        req.getRequestDispatcher("/WEB-INF/views/book/create.jsp").forward(req, resp);
+                        req.getRequestDispatcher("/WEB-INF/views/admin/book/create.jsp").forward(req, resp);
                     } else if ("edit".equals(action)) {
                         showEdit(req, resp);
                     } else {
@@ -131,7 +131,7 @@ public class BookController extends HttpServlet {
 
         req.setAttribute("book", book);
         req.setAttribute("currentPrice", daoBookPrice.getCurrentPriceInfo(id));
-        req.getRequestDispatcher("/WEB-INF/views/book/edit.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/book/edit.jsp").forward(req, resp);
     }
 
     private boolean isAdmin(HttpServletRequest req) {
@@ -160,8 +160,12 @@ public class BookController extends HttpServlet {
         int available = Integer.parseInt(req.getParameter("available"));
         int categoryID = Integer.parseInt(req.getParameter("categoryID"));
         int publisherID = Integer.parseInt(req.getParameter("publisherID"));
+        String description = trimToNull(req.getParameter("description"));
+        String shelfLocation = trimToNull(req.getParameter("shelfLocation"));
+        String imageUrl = trimToNull(req.getParameter("imageUrl"));
 
-        Book book = new Book(name, quantity, available, categoryID, publisherID);
+        Book book = new Book(name, quantity, available, categoryID, publisherID,
+                description, shelfLocation, imageUrl);
         if (hasId) {
             book.setBookID(Integer.parseInt(req.getParameter("bookID")));
         }

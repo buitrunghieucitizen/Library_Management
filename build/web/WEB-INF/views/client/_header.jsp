@@ -1,9 +1,14 @@
-<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ page pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:url var="homeUrl" value="/home" />
+<c:url var="profileUrl" value="/profile" />
 <c:url var="logoutUrl" value="/logout" />
+<c:set var="viewerName" value="${empty requestScope.studentDisplayName ? (empty sessionScope.staff.staffName ? 'Sinh viên thư viện' : sessionScope.staff.staffName) : requestScope.studentDisplayName}" />
+<c:set var="viewerInitial" value="${empty requestScope.studentDisplayInitial ? (empty viewerName ? 'S' : fn:toUpperCase(fn:substring(viewerName, 0, 1))) : requestScope.studentDisplayInitial}" />
+<c:set var="viewerAvatarUrl" value="${empty currentStudent ? '' : currentStudent.avatarUrl}" />
 
+<<<<<<< HEAD
 <nav class="navbar navbar-expand navbar-dark sticky-top" style="background: linear-gradient(135deg, #1a2744 0%, #2a5298 100%);">
     <div class="container-fluid px-3">
         <a class="navbar-brand d-flex align-items-center gap-2" href="${homeUrl}">
@@ -117,10 +122,51 @@
                     <span class="text-white-50 d-none d-md-inline" style="font-size:13px;">${sessionScope.staff.staffName}</span>
                 </div>
                 <a href="${logoutUrl}" class="btn btn-sm btn-outline-light" style="font-size:12px;">Đăng xuất</a>
+=======
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<nav class="top-nav student-top-nav">
+    <div class="top-nav-shell">
+        <div class="top-nav-left">
+            <button class="student-nav-toggle" type="button" id="studentNavToggle" aria-label="Mở menu sinh viên">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <a href="${homeUrl}" class="brand">
+                <span class="brand-mark">LM</span>
+                <span class="brand-copy">
+                    <span class="brand-overline">Student Portal</span>
+                    <strong>Cổng thư viện</strong>
+                </span>
+            </a>
+        </div>
+
+        <div class="nav-right">
+            <c:if test="${not empty sessionScope.staff}">
+                <a href="${profileUrl}" class="user-chip user-chip-link">
+                    <span class="user-avatar">
+                        <c:choose>
+                            <c:when test="${not empty viewerAvatarUrl}">
+                                <img src="${viewerAvatarUrl}" alt="${viewerName}" class="user-avatar-image">
+                            </c:when>
+                            <c:otherwise>
+                                <c:out value="${viewerInitial}" />
+                            </c:otherwise>
+                        </c:choose>
+                    </span>
+                    <span class="user-name"><c:out value="${viewerName}" /></span>
+                </a>
+                <a href="${logoutUrl}" class="nav-button">Đăng xuất</a>
+>>>>>>> origin/master
             </c:if>
         </div>
     </div>
 </nav>
+<<<<<<< HEAD
 <%-- WebSocket: student nhận thông báo từ admin --%>
 <c:if test="${not empty studentId}">
     <script>
@@ -217,3 +263,6 @@
                 })();
     </script>
 </c:if>
+=======
+<div class="student-nav-overlay" id="studentNavOverlay"></div>
+>>>>>>> origin/master

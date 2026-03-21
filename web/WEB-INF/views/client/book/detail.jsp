@@ -130,6 +130,42 @@
                             </div>
                         </div>
                     </div>
+                    <p class="detail-description"><c:out value="${bookDescriptionText}" /></p>
+                </article>
+
+                <article class="card-soft detail-info-card">
+                    <div class="section-header-inline">
+                        <div>
+                            <h2>Truy cập nhanh</h2>
+                            <div class="note">Mở nhanh các thao tác thường dùng khi bạn đang xem chi tiết sách.</div>
+                        </div>
+                    </div>
+                    <div class="summary-list">
+                        <div class="summary-row">
+                            <span>Tình trạng kho</span>
+                            <strong><c:out value="${availabilityStatusLabel}" /></strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>File số khả dụng</span>
+                            <strong>${bookFileCount}</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>Vị trí kệ</span>
+                            <strong><c:out value="${bookLocationText}" /></strong>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="card-soft related-books-panel">
+                <div class="section-header-inline student-section-head">
+                    <div>
+                        <h2>Sách liên quan</h2>
+                        <div class="note">Gợi ý theo cùng thể loại hoặc cùng nhà xuất bản để bạn chuyển tiếp nhanh.</div>
+                    </div>
+                    <div class="student-head-badges">
+                        <span class="student-chip neutral">${relatedBookCount} gợi ý</span>
+                    </div>
                 </div>
             </main>
         </div>

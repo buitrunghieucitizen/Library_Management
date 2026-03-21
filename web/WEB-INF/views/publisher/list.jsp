@@ -1,15 +1,8 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Danh sách nhà xuất bản</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-</head>
-<body>
+<c:set var="pageTitle" value="Danh sách nhà xuất bản" />
     <c:set var="activeTab" value="publishers" />
-    <%@ include file="../admin/_header.jsp" %>
+    <%@ include file="../admin/layout/_admin_header.jsp" %>
 
     <div class="container">
         <h2>Danh sách nhà xuất bản</h2>
@@ -69,5 +62,5 @@
             </div>
         </c:if>
     </div>
-</body>
-</html>
+<%@ include file="../admin/layout/_admin_footer.jsp" %>
+

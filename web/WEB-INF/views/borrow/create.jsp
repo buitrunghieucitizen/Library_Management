@@ -1,17 +1,8 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<!DOCTYPE html>
-<html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Tạo phiếu mượn sách — Admin</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-    </head>
-    <body class="bg-body-tertiary">
-        <c:set var="activeTab" value="borrows" />
-        <%@ include file="../admin/_header.jsp" %>
+<c:set var="pageTitle" value="Tạo phiếu mượn sách" />
+    <c:set var="activeTab" value="borrows" />
+    <%@ include file="../admin/layout/_admin_header.jsp" %>
 
         <div class="container py-4" style="max-width:680px;">
             <a href="${pageContext.request.contextPath}/admin/borrows?action=list"
@@ -77,6 +68,13 @@
             </div>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
-</html>
+            <div class="actions">
+                <button class="btn btn-primary" type="submit">Tạo phiếu</button>
+                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/admin/borrows?action=list">Hủy</a>
+            </div>
+        </form>
+    </div>
+<%@ include file="../admin/layout/_admin_footer.jsp" %>
+
+
+

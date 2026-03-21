@@ -38,13 +38,13 @@ public class AuthorController extends HttpServlet {
         try {
             switch (action) {
                 case "create":
-                    req.getRequestDispatcher("/WEB-INF/views/author/create.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/author/create.jsp").forward(req, resp);
                     break;
                 case "edit": {
                     int id = Integer.parseInt(req.getParameter("id"));
                     Author a = dao.getById(id);
                     req.setAttribute("author", a);
-                    req.getRequestDispatcher("/WEB-INF/views/author/edit.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/author/edit.jsp").forward(req, resp);
                     break;
                 }
                 case "delete": {
@@ -62,7 +62,7 @@ public class AuthorController extends HttpServlet {
                     req.setAttribute("currentPage", pageSlice.getPage());
                     req.setAttribute("totalPages", pageSlice.getTotalPages());
                     req.setAttribute("totalItems", pageSlice.getTotalItems());
-                    req.getRequestDispatcher("/WEB-INF/views/author/list.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/WEB-INF/views/admin/author/list.jsp").forward(req, resp);
                     break;
                 }
             }

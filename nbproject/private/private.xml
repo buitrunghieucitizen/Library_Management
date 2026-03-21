@@ -54,6 +54,12 @@
             <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/buy/student_buy.jsp</file>
             <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/category/list.jsp</file>
             <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/BorrowNotificationEndpoint.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/WebSocketConfig.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/WebSocketInitializer.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/NotificationBroadcaster.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/login.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/Login.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Filter/AuthFilter.java</file>
         </group>
     </open-files>
 </project-private>

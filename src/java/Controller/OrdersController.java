@@ -21,7 +21,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet(name = "OrdersController", urlPatterns = {"/admin/orders_old"})
+@WebServlet(name = "OrdersController", urlPatterns = { "/admin/orders_old" })
 public class OrdersController extends HttpServlet {
 
     private static final String ORDERS_PATH = "/admin/orders";
@@ -34,7 +34,8 @@ public class OrdersController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (!canManageOrders(req)) {
-            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
+            resp.sendRedirect(req.getContextPath()
+                    + "/index.jsp?error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
             return;
         }
 
@@ -53,7 +54,7 @@ public class OrdersController extends HttpServlet {
             req.setAttribute("totalPages", pageSlice.getTotalPages());
             req.setAttribute("totalItems", pageSlice.getTotalItems());
             req.setAttribute("isAdmin", RoleUtils.isAdmin(req));
-            req.getRequestDispatcher("/WEB-INF/views/orders/list.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/admin/orders/list.jsp").forward(req, resp);
         } catch (SQLException e) {
             throw new ServletException(e);
         }
@@ -62,7 +63,8 @@ public class OrdersController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (!canManageOrders(req)) {
-            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
+            resp.sendRedirect(req.getContextPath()
+                    + "/index.jsp?error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
             return;
         }
 
@@ -175,7 +177,8 @@ public class OrdersController extends HttpServlet {
         }
     }
 
-    private void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp, String key, String value) throws IOException {
+    private void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp, String key, String value)
+            throws IOException {
         resp.sendRedirect(buildListRedirect(req, key, value));
     }
 

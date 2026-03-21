@@ -1,24 +1,17 @@
-﻿<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Danh sach tac gia</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-</head>
-<body>
+<c:set var="pageTitle" value="Danh sách tác giả" />
     <c:set var="activeTab" value="authors" />
-    <%@ include file="../admin/_header.jsp" %>
+    <%@ include file="../admin/layout/_admin_header.jsp" %>
 
     <div class="container">
         <div class="panel">
             <div class="section-header">
                 <div>
-                    <h2>Danh sach tac gia</h2>
-                    <div class="note">Tong ban ghi: ${totalItems}</div>
+                    <h2>Danh sách tác giả</h2>
+                    <div class="note">Tổng bản ghi: ${totalItems}</div>
                 </div>
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/authors?action=create">+ Them tac gia</a>
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/authors?action=create">+ Thêm tác giả</a>
             </div>
 
             <c:if test="${not empty param.msg}">
@@ -31,9 +24,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ma</th>
-                        <th>Ten tac gia</th>
-                        <th>Hanh dong</th>
+                        <th>Mã</th>
+                        <th>Tên tác giả</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -42,14 +35,14 @@
                             <td>${a.authorID}</td>
                             <td>${a.authorName}</td>
                             <td class="actions">
-                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/authors?action=edit&id=${a.authorID}">Sua</a>
-                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/authors?action=delete&id=${a.authorID}" onclick="return confirm('Xoa tac gia nay?')">Xoa</a>
+                                <a class="btn btn-warning" href="${pageContext.request.contextPath}/admin/authors?action=edit&id=${a.authorID}">Sửa</a>
+                                <a class="btn btn-danger" href="${pageContext.request.contextPath}/admin/authors?action=delete&id=${a.authorID}" onclick="return confirm('Xóa tác giả này?')">Xóa</a>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty authors}">
                         <tr>
-                            <td colspan="3" class="empty-row-lg">Chua co tac gia.</td>
+                            <td colspan="3" class="empty-row-lg">Chưa có tác giả.</td>
                         </tr>
                     </c:if>
                 </tbody>
@@ -62,7 +55,7 @@
                             <c:param name="action" value="list"/>
                             <c:param name="page" value="${currentPage - 1}"/>
                         </c:url>
-                        <a class="page-link" href="${prevUrl}">Trang truoc</a>
+                        <a class="page-link" href="${prevUrl}">Trang trước</a>
                     </c:if>
 
                     <c:forEach begin="1" end="${totalPages}" var="p">
@@ -84,5 +77,5 @@
             </c:if>
         </div>
     </div>
-</body>
-</html>
+<%@ include file="../admin/layout/_admin_footer.jsp" %>
+

@@ -53,8 +53,54 @@ public class DAOBookFile {
         return list;
     }
 
+    public List<BookFile> getActiveByBookId(int bookId) throws SQLException {
+        String sql = "SELECT BookFileID, BookID, StaffID, FileName, FileUrl, FileType, FileSize, UploadAt, IsActive "
+                + "FROM BookFile WHERE BookID = ? AND IsActive = 1 "
+                + "ORDER BY UploadAt DESC, BookFileID DESC";
+        List<BookFile> list = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, bookId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new BookFile(rs.getInt("BookFileID"), rs.getInt("BookID"), rs.getInt("StaffID"),
+                            rs.getString("FileName"), rs.getString("FileUrl"), rs.getString("FileType"),
+                            rs.getLong("FileSize"), rs.getString("UploadAt"), rs.getBoolean("IsActive")));
+                }
+            }
+        } finally {
+            con.close();
+        }
+        return list;
+    }
+
     public BookFile getById(int id) throws SQLException {
         String sql = "SELECT BookFileID, BookID, StaffID, FileName, FileUrl, FileType, FileSize, UploadAt, IsActive FROM BookFile WHERE BookFileID = ?";
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new BookFile(rs.getInt("BookFileID"), rs.getInt("BookID"), rs.getInt("StaffID"),
+                            rs.getString("FileName"), rs.getString("FileUrl"), rs.getString("FileType"),
+                            rs.getLong("FileSize"), rs.getString("UploadAt"), rs.getBoolean("IsActive"));
+                }
+            }
+        } finally {
+            con.close();
+        }
+        return null;
+    }
+
+    public BookFile getActiveById(int id) throws SQLException {
+        String sql = "SELECT BookFileID, BookID, StaffID, FileName, FileUrl, FileType, FileSize, UploadAt, IsActive "
+                + "FROM BookFile WHERE BookFileID = ? AND IsActive = 1";
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
