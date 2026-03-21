@@ -7,8 +7,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cổng thư viện | Đăng nhập</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css?v=20260321-login">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth.css?v=20260321-login">
 </head>
 <body class="auth-page">
     <main class="auth-wrap login-shell" aria-labelledby="auth-title">
