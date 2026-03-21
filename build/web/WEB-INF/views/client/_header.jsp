@@ -6,6 +6,7 @@
 <c:url var="logoutUrl" value="/logout" />
 <c:set var="viewerName" value="${empty requestScope.studentDisplayName ? (empty sessionScope.staff.staffName ? 'Sinh viên thư viện' : sessionScope.staff.staffName) : requestScope.studentDisplayName}" />
 <c:set var="viewerInitial" value="${empty requestScope.studentDisplayInitial ? (empty viewerName ? 'S' : fn:toUpperCase(fn:substring(viewerName, 0, 1))) : requestScope.studentDisplayInitial}" />
+<c:set var="viewerAvatarUrl" value="${empty currentStudent ? '' : currentStudent.avatarUrl}" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +33,16 @@
         <div class="nav-right">
             <c:if test="${not empty sessionScope.staff}">
                 <a href="${profileUrl}" class="user-chip user-chip-link">
-                    <span class="user-avatar"><c:out value="${viewerInitial}" /></span>
+                    <span class="user-avatar">
+                        <c:choose>
+                            <c:when test="${not empty viewerAvatarUrl}">
+                                <img src="${viewerAvatarUrl}" alt="${viewerName}" class="user-avatar-image">
+                            </c:when>
+                            <c:otherwise>
+                                <c:out value="${viewerInitial}" />
+                            </c:otherwise>
+                        </c:choose>
+                    </span>
                     <span class="user-name"><c:out value="${viewerName}" /></span>
                 </a>
                 <a href="${logoutUrl}" class="nav-button">Đăng xuất</a>

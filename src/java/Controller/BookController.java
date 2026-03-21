@@ -160,8 +160,12 @@ public class BookController extends HttpServlet {
         int available = Integer.parseInt(req.getParameter("available"));
         int categoryID = Integer.parseInt(req.getParameter("categoryID"));
         int publisherID = Integer.parseInt(req.getParameter("publisherID"));
+        String description = trimToNull(req.getParameter("description"));
+        String shelfLocation = trimToNull(req.getParameter("shelfLocation"));
+        String imageUrl = trimToNull(req.getParameter("imageUrl"));
 
-        Book book = new Book(name, quantity, available, categoryID, publisherID);
+        Book book = new Book(name, quantity, available, categoryID, publisherID,
+                description, shelfLocation, imageUrl);
         if (hasId) {
             book.setBookID(Integer.parseInt(req.getParameter("bookID")));
         }

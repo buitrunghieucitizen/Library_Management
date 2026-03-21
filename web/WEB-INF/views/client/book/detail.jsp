@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${book.bookName}</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css?v=20260321-student-ui">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,7 +36,7 @@
                 <div class="error"><c:out value="${param.error}" /></div>
             </c:if>
 
-            <section class="detail-card">
+            <section class="detail-card detail-card-extended">
                 <div class="book-cover">
                     <c:choose>
                         <c:when test="${not empty book.imageUrl}">
@@ -53,11 +53,12 @@
                     </c:choose>
                 </div>
 
-                <div>
+                <div class="detail-main-copy">
+                    <span class="page-hero-kicker">Book Detail</span>
                     <h1 class="detail-title">${book.bookName}</h1>
                     <p class="detail-author">${authorsText}</p>
 
-                    <div class="meta-grid">
+                    <div class="meta-grid detail-meta-grid">
                         <div class="meta-card">
                             <span>Thể loại</span>
                             <strong>${empty category ? '-' : category.categoryName}</strong>
@@ -67,21 +68,30 @@
                             <strong>${empty publisher ? '-' : publisher.publisherName}</strong>
                         </div>
                         <div class="meta-card">
-                            <span>Số lượng</span>
+                            <span>Tổng số lượng</span>
                             <strong>${book.quantity} cuốn</strong>
                         </div>
                         <div class="meta-card">
-                            <span>Có sẵn</span>
+                            <span>Khả dụng</span>
                             <strong>${book.available} cuốn</strong>
+                        </div>
+                        <div class="meta-card">
+                            <span>Vị trí kệ</span>
+                            <strong><c:out value="${bookLocationText}" /></strong>
+                        </div>
+                        <div class="meta-card">
+                            <span>Trạng thái</span>
+                            <strong><c:out value="${availabilityStatusLabel}" /></strong>
                         </div>
                     </div>
 
-                    <span class="status-pill ${book.available gt 0 ? 'ok' : 'out'}">
-                        <c:choose>
-                            <c:when test="${book.available gt 0}">Có thể mượn</c:when>
-                            <c:otherwise>Đã hết sách</c:otherwise>
-                        </c:choose>
+                    <span class="status-pill ${availabilityStatusKey}">
+                        <c:out value="${availabilityStatusLabel}" />
                     </span>
+
+                    <div class="detail-callout ${availabilityStatusKey}">
+                        <c:out value="${availabilityStatusNote}" />
+                    </div>
 
                     <div class="action-row">
                         <c:if test="${bookFileCount gt 0}">
@@ -110,12 +120,99 @@
 
                         <a class="btn-ghost" href="${borrowCenterUrl}">Mở trung tâm mượn trả</a>
                     </div>
+                </div>
+            </section>
 
-                    <div class="detail-note">
-                        Bạn có thể thêm sách vào danh sách cần mua để gửi duyệt từng quyển hoặc gửi duyệt tất cả
-                        tại màn hình Trung tâm mượn và mua sách.
+            <section class="detail-info-grid">
+                <article class="card-soft detail-info-card">
+                    <div class="section-header-inline">
+                        <div>
+                            <h2>Mô tả sách</h2>
+                            <div class="note">
+                                <c:out value="${bookHasManualDescription ? 'Thông tin mô tả đã được thư viện nhập cho đầu sách này.' : 'Mô tả đang dùng bản tóm tắt tự động từ dữ liệu hiện có của thư viện.'}" />
+                            </div>
+                        </div>
+                    </div>
+                    <p class="detail-description"><c:out value="${bookDescriptionText}" /></p>
+                </article>
+
+                <article class="card-soft detail-info-card">
+                    <div class="section-header-inline">
+                        <div>
+                            <h2>Truy cập nhanh</h2>
+                            <div class="note">Mở nhanh các thao tác thường dùng khi bạn đang xem chi tiết sách.</div>
+                        </div>
+                    </div>
+                    <div class="summary-list">
+                        <div class="summary-row">
+                            <span>Tình trạng kho</span>
+                            <strong><c:out value="${availabilityStatusLabel}" /></strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>File số khả dụng</span>
+                            <strong>${bookFileCount}</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>Vị trí kệ</span>
+                            <strong><c:out value="${bookLocationText}" /></strong>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="card-soft related-books-panel">
+                <div class="section-header-inline student-section-head">
+                    <div>
+                        <h2>Sách liên quan</h2>
+                        <div class="note">Gợi ý theo cùng thể loại hoặc cùng nhà xuất bản để bạn chuyển tiếp nhanh.</div>
+                    </div>
+                    <div class="student-head-badges">
+                        <span class="student-chip neutral">${relatedBookCount} gợi ý</span>
                     </div>
                 </div>
+
+                <c:choose>
+                    <c:when test="${empty relatedBooks}">
+                        <div class="book-file-empty">Chưa có đầu sách liên quan phù hợp để gợi ý thêm.</div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="related-book-grid">
+                            <c:forEach var="relatedBook" items="${relatedBooks}">
+                                <c:url var="relatedBookUrl" value="/home/book">
+                                    <c:param name="id" value="${relatedBook.bookID}" />
+                                </c:url>
+
+                                <a class="related-book-card" href="${relatedBookUrl}">
+                                    <div class="related-book-cover">
+                                        <c:choose>
+                                            <c:when test="${not empty relatedBook.imageUrl}">
+                                                <img src="${relatedBook.imageUrl}" alt="${relatedBook.bookName}" loading="lazy" decoding="async">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span>${fn:toUpperCase(fn:substring(relatedBook.bookName, 0, 1))}</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div class="related-book-copy">
+                                        <h3>${relatedBook.bookName}</h3>
+                                        <p>${relatedBook.available} sẵn • ${relatedBook.quantity} tổng</p>
+                                        <c:choose>
+                                            <c:when test="${relatedBook.available le 0}">
+                                                <span class="pill out">Hết sách</span>
+                                            </c:when>
+                                            <c:when test="${relatedBook.available le 2 or (relatedBook.quantity gt 0 and relatedBook.available * 100 le relatedBook.quantity * 20)}">
+                                                <span class="pill low">Sắp hết</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="pill ok">Còn sách</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </a>
+                            </c:forEach>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
             </section>
 
             <section class="card-soft book-files-panel" id="book-files">

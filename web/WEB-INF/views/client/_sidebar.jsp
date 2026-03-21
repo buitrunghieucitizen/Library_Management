@@ -96,5 +96,20 @@
                 </c:otherwise>
             </c:choose>
         </span>
+        <c:if test="${not empty currentStudent.className or not empty currentStudent.facultyName}">
+            <span>
+                <c:choose>
+                    <c:when test="${not empty currentStudent.className and not empty currentStudent.facultyName}">
+                        ${currentStudent.className} • ${currentStudent.facultyName}
+                    </c:when>
+                    <c:when test="${not empty currentStudent.className}">
+                        ${currentStudent.className}
+                    </c:when>
+                    <c:otherwise>
+                        ${currentStudent.facultyName}
+                    </c:otherwise>
+                </c:choose>
+            </span>
+        </c:if>
     </div>
 </aside>

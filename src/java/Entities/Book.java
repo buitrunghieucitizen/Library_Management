@@ -15,43 +15,48 @@ public class Book {
     private int Available;
     private int CategoryID;
     private int PublisherID;
+    private String Description;
+    private String ShelfLocation;
     private String ImageUrl;
 
     public Book(int BookID, String BookName, int Quantity, int Available, int CategoryID, int PublisherID) {
-        this.BookID = BookID;
-        this.BookName = BookName;
-        this.Quantity = Quantity;
-        this.Available = Available;
-        this.CategoryID = CategoryID;
-        this.PublisherID = PublisherID;
-        this.ImageUrl = null;
+        this(BookID, BookName, Quantity, Available, CategoryID, PublisherID, null, null, null);
     }
 
     public Book(int BookID, String BookName, int Quantity, int Available, int CategoryID, int PublisherID, String ImageUrl) {
+        this(BookID, BookName, Quantity, Available, CategoryID, PublisherID, null, null, ImageUrl);
+    }
+
+    public Book(int BookID, String BookName, int Quantity, int Available, int CategoryID, int PublisherID,
+            String Description, String ShelfLocation, String ImageUrl) {
         this.BookID = BookID;
         this.BookName = BookName;
         this.Quantity = Quantity;
         this.Available = Available;
         this.CategoryID = CategoryID;
         this.PublisherID = PublisherID;
+        this.Description = Description;
+        this.ShelfLocation = ShelfLocation;
         this.ImageUrl = ImageUrl;
     }
 
     public Book(String BookName, int Quantity, int Available, int CategoryID, int PublisherID) {
-        this.BookName = BookName;
-        this.Quantity = Quantity;
-        this.Available = Available;
-        this.CategoryID = CategoryID;
-        this.PublisherID = PublisherID;
-        this.ImageUrl = null;
+        this(BookName, Quantity, Available, CategoryID, PublisherID, null, null, null);
     }
 
     public Book(String BookName, int Quantity, int Available, int CategoryID, int PublisherID, String ImageUrl) {
+        this(BookName, Quantity, Available, CategoryID, PublisherID, null, null, ImageUrl);
+    }
+
+    public Book(String BookName, int Quantity, int Available, int CategoryID, int PublisherID,
+            String Description, String ShelfLocation, String ImageUrl) {
         this.BookName = BookName;
         this.Quantity = Quantity;
         this.Available = Available;
         this.CategoryID = CategoryID;
         this.PublisherID = PublisherID;
+        this.Description = Description;
+        this.ShelfLocation = ShelfLocation;
         this.ImageUrl = ImageUrl;
     }
 
@@ -103,6 +108,22 @@ public class Book {
         this.PublisherID = PublisherID;
     }
 
+    public String getDescription() {
+        return Description;
+    }
+
+    public void setDescription(String Description) {
+        this.Description = Description;
+    }
+
+    public String getShelfLocation() {
+        return ShelfLocation;
+    }
+
+    public void setShelfLocation(String ShelfLocation) {
+        this.ShelfLocation = ShelfLocation;
+    }
+
     public String getImageUrl() {
         return ImageUrl;
     }
@@ -113,8 +134,9 @@ public class Book {
 
     @Override
     public String toString() {
-        return "Book{" + "BookID=" + BookID + ", BookName=" + BookName + ", Quantity=" + Quantity + ", Available=" + Available + ", CategoryID=" + CategoryID + ", PublisherID=" + PublisherID + ", ImageUrl=" + ImageUrl + '}';
+        return "Book{" + "BookID=" + BookID + ", BookName=" + BookName + ", Quantity=" + Quantity
+                + ", Available=" + Available + ", CategoryID=" + CategoryID
+                + ", PublisherID=" + PublisherID + ", Description=" + Description
+                + ", ShelfLocation=" + ShelfLocation + ", ImageUrl=" + ImageUrl + '}';
     }
-    
-    
 }

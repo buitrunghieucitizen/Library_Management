@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cổng sinh viên</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css?v=20260321-student-ui">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,45 +19,85 @@
     <c:url var="borrowCenterUrl" value="/borrows">
         <c:param name="action" value="list" />
     </c:url>
+    <c:url var="profileUrl" value="/profile" />
 
     <div class="layout student-layout student-layout-home">
         <%@ include file="../_sidebar.jsp" %>
 
         <main class="content student-content">
             <section class="hero page-hero">
-                <div>
-                    <span class="page-hero-kicker">Student Library Hub</span>
-                    <h1>Cổng thư viện sinh viên</h1>
-                    <p>Tìm sách, lọc theo tác giả, thể loại, nhà xuất bản và mở nhanh trung tâm mượn trả trong cùng một không gian làm việc.</p>
+                <div class="student-hero-copy">
+                    <span class="page-hero-kicker">Personal Dashboard</span>
+                    <h1>Xin chào, <c:out value="${empty studentDisplayName ? 'sinh viên' : studentDisplayName}" /></h1>
+                    <p>Theo dõi nhanh tình trạng mượn sách, hạn trả, đơn mua và tiếp tục tìm sách trong cùng một màn hình làm việc.</p>
+                    <div class="student-hero-badges">
+                        <span class="student-chip">Đang mượn ${studentBorrowingCount}</span>
+                        <span class="student-chip">Sắp đến hạn ${studentDueSoonCount}</span>
+                        <span class="student-chip">Đơn mua ${studentOrderCount}</span>
+                    </div>
                 </div>
                 <div class="page-hero-actions">
                     <a href="${borrowCenterUrl}" class="hero-action primary">Mở trung tâm mượn trả</a>
-                    <a href="${homeUrl}" class="hero-action secondary">Làm mới bộ lọc</a>
+                    <a href="${profileUrl}" class="hero-action secondary">Mở hồ sơ sinh viên</a>
                 </div>
             </section>
 
             <section class="student-kpi-grid">
                 <article class="student-kpi-card">
-                    <span>Tổng đầu sách</span>
-                    <strong>${totalBooks}</strong>
-                    <p>Kết quả đang khớp với bộ lọc hiện tại.</p>
+                    <span>Đang mượn</span>
+                    <strong>${studentBorrowingCount}</strong>
+                    <p>Số phiếu mượn hiện còn hiệu lực trên tài khoản của bạn.</p>
                 </article>
                 <article class="student-kpi-card">
-                    <span>Phiếu đang giữ</span>
-                    <strong>${fn:length(holds)}</strong>
-                    <p>Danh sách đang hiển thị ở cột theo dõi bên phải.</p>
+                    <span>Sắp đến hạn</span>
+                    <strong>${studentDueSoonCount}</strong>
+                    <p>Các phiếu sẽ đến hạn trong ${studentDueSoonWindowDays} ngày tới.</p>
                 </article>
                 <article class="student-kpi-card">
-                    <span>Bộ lọc chữ cái</span>
-                    <strong><c:out value="${letter eq 'ALL' ? 'ALL' : letter}" /></strong>
-                    <p>Giúp thu hẹp nhanh theo ký tự đầu tên sách.</p>
+                    <span>Đơn mua</span>
+                    <strong>${studentOrderCount}</strong>
+                    <p>Tổng số đơn mua đã tạo, không tính các đơn đã hủy hoặc bị từ chối.</p>
                 </article>
                 <article class="student-kpi-card">
-                    <span>Trang dữ liệu</span>
-                    <strong>${currentPage}/${totalPages}</strong>
-                    <p>Điều hướng bộ sưu tập đang được phân trang.</p>
+                    <span>Vi phạm / quá hạn</span>
+                    <strong><c:out value="${studentHasViolation ? studentOverdueCount : '0'}" /></strong>
+                    <p><c:out value="${studentHasViolation ? 'Bạn đang có phiếu quá hạn cần xử lý.' : 'Hiện chưa có vi phạm hoặc phiếu quá hạn.'}" /></p>
                 </article>
             </section>
+
+            <section class="student-highlight-grid">
+                <article class="student-highlight-card good">
+                    <span>Kho sách hiện tại</span>
+                    <strong>${totalBooks}</strong>
+                    <p>Kết quả đang khớp với bộ lọc sách hiện tại.</p>
+                </article>
+                <article class="student-highlight-card ${studentPendingOrderCount gt 0 ? 'warn' : 'neutral'}">
+                    <span>Đơn đang xử lý</span>
+                    <strong>${studentPendingOrderCount}</strong>
+                    <p>Các đơn ở trạng thái chờ duyệt, hàng chờ hoặc sẵn sàng.</p>
+                </article>
+                <article class="student-highlight-card neutral">
+                    <span>Bộ lọc hiện tại</span>
+                    <strong><c:out value="${letter eq 'ALL' ? 'ALL' : letter}" /></strong>
+                    <p>Trang ${currentPage}/${totalPages} của bộ sưu tập sinh viên.</p>
+                </article>
+            </section>
+
+            <c:if test="${studentHasViolation}">
+                <div class="student-inline-alert warn">
+                    Bạn đang có ${studentOverdueCount} phiếu quá hạn. Nên mở ngay trung tâm mượn trả để xử lý hoặc gửi yêu cầu trả sách.
+                </div>
+            </c:if>
+            <c:if test="${studentDueSoonCount gt 0}">
+                <div class="student-inline-alert">
+                    Có ${studentDueSoonCount} phiếu sẽ đến hạn trong ${studentDueSoonWindowDays} ngày tới. Hãy theo dõi để tránh phát sinh quá hạn.
+                </div>
+            </c:if>
+            <c:if test="${studentPendingOrderCount gt 0}">
+                <div class="student-inline-alert success">
+                    Bạn có ${studentPendingOrderCount} đơn mua đang được xử lý. Có thể vào trung tâm mượn trả hoặc trang mua sách để theo dõi tiếp.
+                </div>
+            </c:if>
 
             <form class="search-form" method="get" action="${homeUrl}">
                 <div class="search-row">
@@ -150,12 +190,18 @@
                                 </div>
                                 <div class="book-meta">
                                     <h3 class="book-title">${book.bookName}</h3>
-                                    <span class="pill ${book.available gt 0 ? 'ok' : 'out'}">
-                                        <c:choose>
-                                            <c:when test="${book.available gt 0}">${book.available} có sẵn</c:when>
-                                            <c:otherwise>Đã hết sách</c:otherwise>
-                                        </c:choose>
-                                    </span>
+                                    <span class="book-subline">${book.quantity} tổng • ${book.available} sẵn</span>
+                                    <c:choose>
+                                        <c:when test="${book.available le 0}">
+                                            <span class="pill out">Hết sách</span>
+                                        </c:when>
+                                        <c:when test="${book.available le 2 or (book.quantity gt 0 and book.available * 100 le book.quantity * 20)}">
+                                            <span class="pill low">Sắp hết</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="pill ok">Còn sách</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                             </a>
                         </c:forEach>
@@ -205,7 +251,15 @@
         </main>
 
         <aside class="sidebar-right">
-            <div class="section-title">Phiếu mượn hiện tại</div>
+            <div class="section-title">Theo dõi cá nhân</div>
+            <div class="dashboard-side-summary">
+                <span class="student-chip soft">Đang mượn ${studentBorrowingCount}</span>
+                <span class="student-chip warning">Đến hạn ${studentDueSoonCount}</span>
+                <span class="student-chip ${studentHasViolation ? 'warning' : 'success'}">
+                    <c:out value="${studentHasViolation ? 'Quá hạn ' : 'Ổn định '}" />${studentOverdueCount}
+                </span>
+            </div>
+
             <c:choose>
                 <c:when test="${empty holds}">
                     <div class="empty-box">Không có sách đang mượn.</div>
