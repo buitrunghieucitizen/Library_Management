@@ -55,6 +55,12 @@ public class AuthFilter implements Filter {
             return;
         }
 
+        // Bypass WebSocket + API paths
+        if (path.startsWith("/ws/") || path.startsWith("/sse/") || path.startsWith("/api/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         if (isPublicPath(path)) {
             chain.doFilter(request, response);
             return;
@@ -99,7 +105,7 @@ public class AuthFilter implements Filter {
         }
 
         if (isStudentOnly) {
-            if (path.equals("/books") || path.equals("/borrows") ||path.equals("/buy") || path.equals("/index.jsp")
+            if (path.equals("/books") || path.equals("/borrows") || path.equals("/buy") || path.equals("/index.jsp")
                     || path.equals("/") || path.equals("/logout")) {
                 chain.doFilter(request, response);
             } else {

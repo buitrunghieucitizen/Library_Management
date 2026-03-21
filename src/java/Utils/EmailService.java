@@ -1,5 +1,6 @@
 package Utils;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import javax.mail.Authenticator;
@@ -13,7 +14,24 @@ import javax.mail.internet.MimeMessage;
 
 public class EmailService {
 
-    public void sendOtpEmail(String toEmail, String otpCode) throws MessagingException {
+    /**
+     * Send OTP email (existing — giữ nguyên).
+     */
+    public void sendOtpEmail(String toEmail, String otpCode) throws MessagingException, UnsupportedEncodingException {
+        String subject = "Mã OTP đặt lại mật khẩu";
+        String html = buildOtpContent(otpCode);
+        sendHtml(toEmail, subject, html);
+    }
+
+    /**
+     * NEW: Generic send HTML email. Used by HoldNotificationService and any
+     * future email needs.
+     */
+    public void sendHtml(String toEmail, String subject, String htmlContent) throws MessagingException, UnsupportedEncodingException {
+        if (!EmailConfig.isConfigured()) {
+            throw new MessagingException("Email chưa được cấu hình (MAIL_USERNAME / MAIL_PASSWORD trống).");
+        }
+
         Session session = Session.getInstance(buildProperties(), new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -22,10 +40,10 @@ public class EmailService {
         });
 
         MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(EmailConfig.getFromEmail()));
+        message.setFrom(new InternetAddress(EmailConfig.getFromEmail(), EmailConfig.getFromName(), "UTF-8"));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail, false));
-        message.setSubject("Ma OTP dat lai mat khau", StandardCharsets.UTF_8.name());
-        message.setContent(buildOtpContent(otpCode), "text/html; charset=UTF-8");
+        message.setSubject(subject, StandardCharsets.UTF_8.name());
+        message.setContent(htmlContent, "text/html; charset=UTF-8");
 
         Transport.send(message);
     }
@@ -42,12 +60,13 @@ public class EmailService {
 
     private String buildOtpContent(String otpCode) {
         return "<!DOCTYPE html>"
-                + "<html><head><meta charset='UTF-8'></head><body style='font-family:Segoe UI,Tahoma,Arial,sans-serif;color:#1f2937'>"
-                + "<h2 style='color:#1e3c72'>Khoi phuc mat khau - Library Manager</h2>"
-                + "<p>Ban vua yeu cau dat lai mat khau. Ma OTP cua ban la:</p>"
+                + "<html><head><meta charset='UTF-8'></head>"
+                + "<body style='font-family:Segoe UI,Tahoma,Arial,sans-serif;color:#1f2937'>"
+                + "<h2 style='color:#1e3c72'>Khôi phục mật khẩu — Library Manager</h2>"
+                + "<p>Bạn vừa yêu cầu đặt lại mật khẩu. Mã OTP của bạn là:</p>"
                 + "<p style='font-size:28px;font-weight:700;letter-spacing:4px;color:#2a5298'>" + otpCode + "</p>"
-                + "<p>Ma co hieu luc trong 10 phut.</p>"
-                + "<p>Neu ban khong thuc hien thao tac nay, vui long bo qua email.</p>"
+                + "<p>Mã có hiệu lực trong 10 phút.</p>"
+                + "<p>Nếu bạn không thực hiện thao tác này, vui lòng bỏ qua email.</p>"
                 + "</body></html>";
     }
 }

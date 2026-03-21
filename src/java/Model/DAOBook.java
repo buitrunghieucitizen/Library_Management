@@ -12,7 +12,8 @@ import java.util.List;
 public class DAOBook {
 
     public List<Book> getAll() throws SQLException {
-        String sql = "SELECT BookID, BookName, Quantity, Available, CategoryID, PublisherID FROM Book ORDER BY BookID DESC";
+        String sql = "SELECT BookID, BookName, Quantity, Available, CategoryID, PublisherID, ImageUrl "
+                + "FROM Book ORDER BY BookID DESC";
         List<Book> list = new ArrayList<>();
         Connection con = DBConnection.getConnection();
         if (con == null) {
@@ -20,14 +21,14 @@ public class DAOBook {
         }
         try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Book b = new Book(
+                list.add(new Book(
                         rs.getInt("BookID"),
                         rs.getString("BookName"),
                         rs.getInt("Quantity"),
                         rs.getInt("Available"),
                         rs.getInt("CategoryID"),
-                        rs.getInt("PublisherID"));
-                list.add(b);
+                        rs.getInt("PublisherID"),
+                        rs.getString("ImageUrl")));
             }
         } finally {
             con.close();
@@ -36,7 +37,8 @@ public class DAOBook {
     }
 
     public Book getById(int id) throws SQLException {
-        String sql = "SELECT BookID, BookName, Quantity, Available, CategoryID, PublisherID FROM Book WHERE BookID = ?";
+        String sql = "SELECT BookID, BookName, Quantity, Available, CategoryID, PublisherID, ImageUrl "
+                + "FROM Book WHERE BookID = ?";
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
@@ -51,7 +53,8 @@ public class DAOBook {
                             rs.getInt("Quantity"),
                             rs.getInt("Available"),
                             rs.getInt("CategoryID"),
-                            rs.getInt("PublisherID"));
+                            rs.getInt("PublisherID"),
+                            rs.getString("ImageUrl"));
                 }
             }
         } finally {
@@ -101,7 +104,8 @@ public class DAOBook {
     public List<Book> getFiltered(String search, String letter, Integer categoryId,
             Integer publisherId, String authorName) throws SQLException {
         StringBuilder sql = new StringBuilder(
-                "SELECT DISTINCT b.BookID, b.BookName, b.Quantity, b.Available, b.CategoryID, b.PublisherID "
+                "SELECT DISTINCT b.BookID, b.BookName, b.Quantity, b.Available, "
+                + "b.CategoryID, b.PublisherID, b.ImageUrl "
                 + "FROM Book b "
                 + "LEFT JOIN BookAuthor ba ON b.BookID = ba.BookID "
                 + "LEFT JOIN Author a ON ba.AuthorID = a.AuthorID "
@@ -148,7 +152,8 @@ public class DAOBook {
                             rs.getInt("Quantity"),
                             rs.getInt("Available"),
                             rs.getInt("CategoryID"),
-                            rs.getInt("PublisherID")));
+                            rs.getInt("PublisherID"),
+                            rs.getString("ImageUrl")));
                 }
             }
         } finally {
@@ -158,14 +163,14 @@ public class DAOBook {
     }
 
     public int insert(Connection con, Book b) throws SQLException {
-        String sql = "INSERT INTO Book(BookName, Quantity, Available, CategoryID, PublisherID) VALUES(?,?,?,?,?)";
+        String sql = "INSERT INTO Book(BookName, Quantity, Available, CategoryID, PublisherID, ImageUrl) VALUES(?,?,?,?,?,?)";
         try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, b.getBookName());
             ps.setInt(2, b.getQuantity());
             ps.setInt(3, b.getAvailable());
             ps.setInt(4, b.getCategoryID());
             ps.setInt(5, b.getPublisherID());
-
+            ps.setString(6, b.getImageUrl());
             int affected = ps.executeUpdate();
             if (affected > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -179,14 +184,15 @@ public class DAOBook {
     }
 
     public int update(Connection con, Book b) throws SQLException {
-        String sql = "UPDATE Book SET BookName=?, Quantity=?, Available=?, CategoryID=?, PublisherID=? WHERE BookID=?";
+        String sql = "UPDATE Book SET BookName=?, Quantity=?, Available=?, CategoryID=?, PublisherID=?, ImageUrl=? WHERE BookID=?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, b.getBookName());
             ps.setInt(2, b.getQuantity());
             ps.setInt(3, b.getAvailable());
             ps.setInt(4, b.getCategoryID());
             ps.setInt(5, b.getPublisherID());
-            ps.setInt(6, b.getBookID());
+            ps.setString(6, b.getImageUrl());
+            ps.setInt(7, b.getBookID());
             return ps.executeUpdate();
         }
     }
@@ -224,8 +230,7 @@ public class DAOBook {
     }
 
     public int decreaseStockAndAvailable(Connection con, int bookId, int quantity) throws SQLException {
-        String sql = "UPDATE Book "
-                + "SET Quantity = Quantity - ?, Available = Available - ? "
+        String sql = "UPDATE Book SET Quantity = Quantity - ?, Available = Available - ? "
                 + "WHERE BookID = ? AND Quantity >= ? AND Available >= ?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, quantity);

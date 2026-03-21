@@ -1208,3 +1208,187 @@ tr:hover td {
         margin: 20px auto;
     }
 }
+
+/* ===================================================================
+   book-theme.css — Custom overrides for Bootstrap 5
+   Include AFTER bootstrap.min.css
+   =================================================================== */
+
+:root {
+    --lib-navy: #1a2744;
+    --lib-blue: #2a5298;
+}
+
+/* ── Navbar ── */
+.navbar { box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+
+/* ── Sidebar ── */
+.sidebar-left { min-height: calc(100vh - 56px); }
+.sidebar-left .nav-link { font-size: 14px; transition: background .15s, color .15s; }
+.sidebar-left .nav-link:hover { background: rgba(42,82,152,.06); }
+.sidebar-left .nav-link.active { background: rgba(42,82,152,.1); color: #2a5298 !important; }
+
+/* ── Card hover on book grid ── */
+.card { transition: transform .15s ease, box-shadow .15s ease; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+
+/* ── Book cover placeholder gradient ── */
+.book-cover-gradient {
+    background: linear-gradient(135deg, var(--lib-navy), var(--lib-blue));
+}
+
+/* ── Dropdown cart ── */
+.dropdown-menu { border-radius: 12px !important; }
+
+/* ── Letter strip buttons ── */
+.letter-strip .btn { min-width: 32px; padding: 4px 6px; font-size: 12px; }
+
+/* ── Tables (admin pages — keep existing) ── */
+table { border-collapse: collapse; }
+th {
+    background: linear-gradient(135deg, var(--lib-navy), var(--lib-blue));
+    color: #fff;
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 13px;
+}
+td {
+    padding: 11px 14px;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 14px;
+    vertical-align: top;
+}
+tr:hover td { background: #f8fbff; }
+
+/* ── Existing utility classes (backward compat for admin pages) ── */
+.msg, .success-box {
+    background: #dcfce7;
+    color: #166534;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 12px 0;
+}
+.error, .error-box {
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 12px 0;
+}
+
+/* ── Hero ── */
+.hero-banner {
+    background: linear-gradient(135deg, var(--lib-navy) 0%, var(--lib-blue) 100%);
+    border-radius: 16px;
+}
+
+/* ── Inline form ── */
+.inline-form { margin: 0; display: inline; }
+
+/* ── Detail page ── */
+.detail-note {
+    margin-top: 24px;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 18px;
+    line-height: 1.7;
+    color: #64748b;
+}
+
+/* ── Login / register pages (backward compat) ── */
+.card-shell {
+    width: min(640px, calc(100% - 32px));
+    margin: 30px auto;
+    padding: 28px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+.card-shell .brand {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 12px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--lib-navy), var(--lib-blue));
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.card-shell .btn-submit {
+    width: 100%;
+    margin-top: 10px;
+}
+.login-divider {
+    margin: 14px 0;
+    text-align: center;
+    border-bottom: 1px solid #dbe3ef;
+    line-height: 0;
+}
+.login-divider span {
+    background: #fff;
+    color: #6b7280;
+    font-size: 13px;
+    padding: 0 10px;
+}
+.btn-google {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #1f2937;
+    font-weight: 600;
+    padding: 10px 14px;
+}
+.btn-google:hover { border-color: #9ca3af; background: #f8fafc; }
+.google-mark {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #ea4335; color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+}
+
+/* ── Checkout layout (backward compat) ── */
+.checkout-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.9fr) minmax(280px, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+.checkout-summary { position: sticky; top: 86px; }
+.summary-list { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+.summary-row { display: flex; justify-content: space-between; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #e2e8f0; }
+.summary-row:last-child { border-bottom: none; }
+.summary-row.total { background: #f8fafc; font-weight: 700; }
+
+/* ── Admin borrow status badges (backward compat) ── */
+.status-borrowing, .status-overdue, .status-returned, .status-pending {
+    display: inline-flex; align-items: center;
+    padding: 4px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+}
+.status-borrowing { background: #dbeafe; color: #1d4ed8; }
+.status-overdue { background: #fee2e2; color: #b91c1c; }
+.status-returned { background: #dcfce7; color: #15803d; }
+.status-pending { background: #fef3c7; color: #92400e; }
+
+/* ── Admin action buttons (backward compat) ── */
+.btn-approve { background: #2a5298; color: #fff; border: none; border-radius: 8px; padding: 9px 14px; font-weight: 600; }
+.btn-approve:hover { background: #1a2744; color: #fff; }
+.btn-reject { background: #dc2626; color: #fff; border: none; border-radius: 8px; padding: 9px 14px; font-weight: 600; }
+.btn-reject:hover { background: #b91c1c; color: #fff; }
+.btn-return { background: #16a34a; color: #fff; border: none; border-radius: 8px; padding: 9px 14px; font-weight: 600; }
+.btn-return:hover { background: #15803d; color: #fff; }
+
+/* ── Responsive ── */
+@media (max-width: 960px) {
+    .checkout-layout { grid-template-columns: 1fr; }
+    .checkout-summary { position: static; }
+}

@@ -1,12 +1,16 @@
 package Controller.client;
 
+import Controller.borrow.BorrowHelper;
+import Controller.borrow.BorrowValidator;
 import Entities.Book;
 import Entities.Category;
 import Entities.Publisher;
+import Entities.Staff;
 import Model.DAOAuthor;
 import Model.DAOBook;
 import Model.DAOCategory;
 import Model.DAOPublisher;
+import Model.DAOStudent;
 import Utils.RoleUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -58,6 +62,19 @@ public class BookDetailController extends HttpServlet {
             request.setAttribute("category", category);
             request.setAttribute("publisher", publisher);
             request.setAttribute("authorsText", authorsText);
+            Staff staff = RoleUtils.getLoggedStaff(request);
+            if (staff != null) {
+                BorrowHelper borrowHelper = new BorrowHelper(new DAOStudent());
+                Integer studentId = borrowHelper.resolveStudentIdForStaff(staff);
+                if (studentId != null) {
+                    request.setAttribute("studentId", studentId);
+                }
+                // Cart data cho header
+                request.setAttribute("borrowCart", borrowHelper.getBorrowCartBooks(request, java.util.Map.of()));
+                request.setAttribute("borrowCartSize", borrowHelper.getBorrowCartSize(request));
+                request.setAttribute("maxCartSize", BorrowValidator.MAX_CART_SIZE);
+                request.setAttribute("borrowCartIds", borrowHelper.getOrCreateBorrowCart(request));
+            }
             request.getRequestDispatcher("/WEB-INF/views/client/book/detail.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/home");

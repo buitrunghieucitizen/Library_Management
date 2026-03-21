@@ -3,5 +3,57 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group/>
+        <group name="PRJ301">
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Model/DBConnection.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/ViewModel/BookFileRow.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/ViewModel/BookPriceRow.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/ViewModel/PageSlice.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/ViewModel/PurchaseRequestItem.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Entities/BookAuthor.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Entities/Book.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/client/book/detail.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/client/home/index.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/client/HomeController.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/client/BookDetailController.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/borrow/BorrowStudentHandler.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/borrow/BorrowTransactionService.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/borrow/BorrowAdminHandler.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/assets/css/book-theme.css</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/client/_footer.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/client/_header.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/client/_sidebar.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Entities/Borrow.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Entities/BorrowItem.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Model/DAOBorrow.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Model/DAOBorrowItem.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/BorrowController.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/borrow/BorrowHelper.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Model/DAOBook.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/RoleUtils.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Model/DAOStudent.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Entities/Fine.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Model/DAOFine.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/borrow/BorrowValidator.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Model/DAOAuthor.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/EmailConfig.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/EmailService.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Entities/Student.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/web.xml</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Entities/BookHold.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/ViewModel/HoldRow.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Model/DAOBookHold.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/HoldNotificationService.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/borrow/list.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/borrow/create.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/PendingCountController.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/index.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/index.html</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/admin/_header.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/bookfile/list.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/book/list.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/buy/student_buy.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/category/list.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/BorrowNotificationEndpoint.java</file>
+        </group>
     </open-files>
 </project-private>

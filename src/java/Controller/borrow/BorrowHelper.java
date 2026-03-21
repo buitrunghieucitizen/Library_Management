@@ -32,6 +32,7 @@ public class BorrowHelper {
     public static final String PUBLIC_BORROWS_PATH = "/borrows";
     public static final String ADMIN_BORROWS_PATH = "/admin/borrows";
     public static final String BUY_LIST_SESSION_KEY = "studentBuyList";
+    public static final String BORROW_CART_SESSION_KEY = "borrowCart";
 
     private final DAOStudent daoStudent;
 
@@ -39,6 +40,7 @@ public class BorrowHelper {
         this.daoStudent = daoStudent;
     }
 
+    // ========== ROUTING ==========
     public boolean shouldRedirectToAdminRoute(HttpServletRequest req) {
         return PUBLIC_BORROWS_PATH.equals(req.getServletPath()) && !RoleUtils.isStudentOnly(req);
     }
@@ -55,15 +57,26 @@ public class BorrowHelper {
         return isAdminSection(req) ? ADMIN_BORROWS_PATH : PUBLIC_BORROWS_PATH;
     }
 
-    public void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp, String key, String value) throws IOException {
+    // ========== REDIRECT HELPERS ==========
+    public void redirectWithMessage(HttpServletRequest req, HttpServletResponse resp,
+            String key, String value) throws IOException {
         String encoded = URLEncoder.encode(value, StandardCharsets.UTF_8);
         resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list&" + key + "=" + encoded);
     }
 
-    public void redirectToCheckoutSuccess(HttpServletRequest req, HttpServletResponse resp, int orderId) throws IOException {
-        resp.sendRedirect(req.getContextPath() + PUBLIC_BORROWS_PATH + "?action=checkoutSuccess&orderID=" + orderId);
+    public void redirectToHome(HttpServletRequest req, HttpServletResponse resp,
+            String key, String value) throws IOException {
+        String encoded = URLEncoder.encode(value, StandardCharsets.UTF_8);
+        resp.sendRedirect(req.getContextPath() + "/home?" + key + "=" + encoded);
     }
 
+    public void redirectToCheckoutSuccess(HttpServletRequest req, HttpServletResponse resp,
+            int orderId) throws IOException {
+        resp.sendRedirect(req.getContextPath() + PUBLIC_BORROWS_PATH
+                + "?action=checkoutSuccess&orderID=" + orderId);
+    }
+
+    // ========== PARSING ==========
     public int parsePositiveInt(String raw, String fieldName) {
         int value = Integer.parseInt(raw);
         if (value <= 0) {
@@ -88,73 +101,140 @@ public class BorrowHelper {
         return value == null ? "" : value.trim();
     }
 
+    // ========== PAGINATION ==========
     public <T> PageSlice<T> paginate(List<T> source, int requestedPage, int pageSize) {
         if (source == null) {
             source = Collections.emptyList();
         }
-
         int totalItems = source.size();
         int safePageSize = pageSize <= 0 ? 1 : pageSize;
         int totalPages = Math.max(1, (int) Math.ceil(totalItems / (double) safePageSize));
         int currentPage = Math.min(Math.max(1, requestedPage), totalPages);
         int fromIndex = Math.min((currentPage - 1) * safePageSize, totalItems);
         int toIndex = Math.min(fromIndex + safePageSize, totalItems);
-
         List<T> pageItems = source.subList(fromIndex, toIndex);
         return new PageSlice<>(pageItems, currentPage, totalPages, totalItems);
     }
 
+    // ========== STUDENT ID RESOLUTION ==========
     public Integer resolveStudentIdForStaff(Staff staff) throws SQLException {
         if (staff == null) {
             return null;
         }
-
         Integer candidateFromUsername = extractTrailingNumber(staff.getUsername());
         if (candidateFromUsername != null && daoStudent.getById(candidateFromUsername) != null) {
             return candidateFromUsername;
         }
-
         int sameId = staff.getStaffID();
         if (sameId > 0 && daoStudent.getById(sameId) != null) {
             return sameId;
         }
-
         return null;
     }
 
+    // ========== BOOK FILTERING ==========
     public List<Book> filterBorrowableBooks(List<Book> allBooks) {
-        List<Book> availableBooks = new ArrayList<>();
+        List<Book> available = new ArrayList<>();
         for (Book book : allBooks == null ? Collections.<Book>emptyList() : allBooks) {
             if (book.getAvailable() > 0) {
-                availableBooks.add(book);
+                available.add(book);
             }
         }
-        return availableBooks;
+        return available;
     }
 
     public List<Book> filterBooksByKeyword(List<Book> books, String keyword) {
-        String normalizedKeyword = trim(keyword).toLowerCase();
-        if (normalizedKeyword.isEmpty()) {
+        String normalized = trim(keyword).toLowerCase();
+        if (normalized.isEmpty()) {
             return books;
         }
-
         List<Book> filtered = new ArrayList<>();
         for (Book book : books) {
-            if (String.valueOf(book.getBookID()).contains(normalizedKeyword)
-                    || (book.getBookName() != null && book.getBookName().toLowerCase().contains(normalizedKeyword))) {
+            if (String.valueOf(book.getBookID()).contains(normalized)
+                    || (book.getBookName() != null && book.getBookName().toLowerCase().contains(normalized))) {
                 filtered.add(book);
             }
         }
         return filtered;
     }
 
+    // ========== BORROW CART (SESSION-BASED, MAX 3 BOOKS) ==========
+    /**
+     * Get or create the borrow cart from session. Cart is a List of BookIDs
+     * (max 3 items).
+     */
+    @SuppressWarnings("unchecked")
+    public List<Integer> getOrCreateBorrowCart(HttpServletRequest req) {
+        HttpSession session = req.getSession();
+        Object raw = session.getAttribute(BORROW_CART_SESSION_KEY);
+        if (raw instanceof List<?>) {
+            return (List<Integer>) raw;
+        }
+        List<Integer> cart = new ArrayList<>();
+        session.setAttribute(BORROW_CART_SESSION_KEY, cart);
+        return cart;
+    }
+
+    /**
+     * Add a book to borrow cart. Returns error message or null if success.
+     */
+    public String addToBorrowCart(HttpServletRequest req, int bookId) {
+        List<Integer> cart = getOrCreateBorrowCart(req);
+        if (cart.size() >= BorrowValidator.MAX_CART_SIZE) {
+            return "Gio muon da day (" + BorrowValidator.MAX_CART_SIZE + " quyen). "
+                    + "Gui yeu cau muon hoac xoa bot sach.";
+        }
+        if (cart.contains(bookId)) {
+            return "Sach nay da co trong gio muon.";
+        }
+        cart.add(bookId);
+        return null; // success
+    }
+
+    /**
+     * Remove a book from borrow cart.
+     */
+    public boolean removeFromBorrowCart(HttpServletRequest req, int bookId) {
+        List<Integer> cart = getOrCreateBorrowCart(req);
+        return cart.remove(Integer.valueOf(bookId));
+    }
+
+    /**
+     * Clear the borrow cart.
+     */
+    public void clearBorrowCart(HttpServletRequest req) {
+        getOrCreateBorrowCart(req).clear();
+    }
+
+    /**
+     * Get cart size.
+     */
+    public int getBorrowCartSize(HttpServletRequest req) {
+        return getOrCreateBorrowCart(req).size();
+    }
+
+    /**
+     * Build cart items with book details for display.
+     */
+    public List<Book> getBorrowCartBooks(HttpServletRequest req, Map<Integer, Book> bookMap) {
+        List<Integer> cart = getOrCreateBorrowCart(req);
+        List<Book> books = new ArrayList<>();
+        for (Integer bookId : cart) {
+            Book book = bookMap.get(bookId);
+            if (book != null) {
+                books.add(book);
+            }
+        }
+        return books;
+    }
+
+    // ========== BUY LIST (EXISTING, UNCHANGED) ==========
+    @SuppressWarnings("unchecked")
     public LinkedHashMap<Integer, Integer> getOrCreateBuyList(HttpServletRequest req) {
         HttpSession session = req.getSession();
         Object raw = session.getAttribute(BUY_LIST_SESSION_KEY);
         if (raw instanceof LinkedHashMap<?, ?>) {
-            @SuppressWarnings("unchecked")
-            LinkedHashMap<Integer, Integer> existing = (LinkedHashMap<Integer, Integer>) raw;
-            return existing;
+            return (LinkedHashMap<Integer, Integer>) raw;
         }
         LinkedHashMap<Integer, Integer> created = new LinkedHashMap<>();
         session.setAttribute(BUY_LIST_SESSION_KEY, created);
@@ -180,25 +260,22 @@ public class BorrowHelper {
         for (Map.Entry<Integer, Integer> entry : buyList.entrySet()) {
             int bookId = entry.getKey();
             int quantity = entry.getValue() == null || entry.getValue() <= 0 ? 1 : entry.getValue();
-
             Book book = bookById.get(bookId);
             String bookName = book == null ? ("Book #" + bookId) : book.getBookName();
             int available = book == null ? 0 : book.getAvailable();
-
             BookPriceRow priceRow = priceByBookId.get(bookId);
             double unitPrice = priceRow == null ? 0 : priceRow.getAmount();
             String currency = priceRow == null ? "" : priceRow.getCurrency();
-
             boolean canOrder = book != null && available >= quantity && unitPrice > 0;
             double lineTotal = unitPrice * quantity;
             totalAmount += lineTotal;
-
-            rows.add(new StudentBuyListRow(bookId, bookName, quantity, available, unitPrice, currency, lineTotal, canOrder));
+            rows.add(new StudentBuyListRow(bookId, bookName, quantity, available,
+                    unitPrice, currency, lineTotal, canOrder));
         }
-
         return new BuyListSnapshot(rows, totalAmount);
     }
 
+    // ========== PRIVATE ==========
     private Integer extractTrailingNumber(String value) {
         if (value == null || value.isEmpty()) {
             return null;
@@ -210,9 +287,8 @@ public class BorrowHelper {
         if (index == value.length() - 1) {
             return null;
         }
-        String digits = value.substring(index + 1);
         try {
-            return Integer.parseInt(digits);
+            return Integer.parseInt(value.substring(index + 1));
         } catch (NumberFormatException e) {
             return null;
         }

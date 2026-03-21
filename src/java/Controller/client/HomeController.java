@@ -1,5 +1,7 @@
 package Controller.client;
 
+import Controller.borrow.BorrowHelper;
+import Controller.borrow.BorrowValidator;
 import Entities.Book;
 import Entities.Borrow;
 import Entities.Category;
@@ -8,6 +10,7 @@ import Entities.Staff;
 import Model.DAOBook;
 import Model.DAOBorrow;
 import Model.DAOCategory;
+import Model.DAOFine;
 import Model.DAOPublisher;
 import Model.DAOStudent;
 import Utils.RoleUtils;
@@ -17,11 +20,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet(name = "StudentHome", urlPatterns = {"/home"})
 public class HomeController extends HttpServlet {
@@ -33,6 +39,9 @@ public class HomeController extends HttpServlet {
     private final DAOPublisher daoPublisher = new DAOPublisher();
     private final DAOBorrow daoBorrow = new DAOBorrow();
     private final DAOStudent daoStudent = new DAOStudent();
+    private final DAOFine daoFine = new DAOFine();
+    private final BorrowHelper borrowHelper = new BorrowHelper(daoStudent);
+    private final BorrowValidator validator = new BorrowValidator(daoBorrow, daoFine);
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -43,6 +52,10 @@ public class HomeController extends HttpServlet {
         }
 
         request.setCharacterEncoding("UTF-8");
+
+        // Cache studentId trong session — không query DB mỗi request
+        Staff staff = RoleUtils.getLoggedStaff(request);
+        Integer studentId = resolveAndCacheStudentId(request, staff);
 
         String search = trim(request.getParameter("search"));
         String letter = trim(request.getParameter("letter"));
@@ -58,12 +71,31 @@ public class HomeController extends HttpServlet {
         }
 
         try {
+            // DB queries: getFiltered + getAll categories + getAll publishers = 3 queries
             List<Book> books = daoBook.getFiltered(search, letter, categoryId, publisherId, author);
             PageSlice<Book> pageSlice = paginate(books, requestedPage, PAGE_SIZE);
             List<Category> categories = daoCategory.getAll();
             List<Publisher> publishers = daoPublisher.getAll();
-            List<Borrow> holds = resolveActiveBorrows(request);
 
+            // Student-specific: 2 queries (active borrows + eligibility)
+            List<Borrow> holds = Collections.emptyList();
+            BorrowValidator.BorrowEligibility eligibility = null;
+            if (studentId != null) {
+                holds = daoBorrow.getActiveByStudentId(studentId);
+                eligibility = validator.getEligibility(studentId);
+                request.setAttribute("studentId", studentId);
+            }
+
+            // Cart data — chỉ đọc session, không query DB
+            Map<Integer, Book> bookMap = new HashMap<>();
+            for (Book b : books) {
+                bookMap.put(b.getBookID(), b);
+            }
+            List<Book> cartBooks = borrowHelper.getBorrowCartBooks(request, bookMap);
+            int cartSize = borrowHelper.getBorrowCartSize(request);
+            List<Integer> cartBookIds = borrowHelper.getOrCreateBorrowCart(request);
+
+            // Set all attributes
             request.setAttribute("books", pageSlice.getItems());
             request.setAttribute("categories", categories);
             request.setAttribute("publishers", publishers);
@@ -79,6 +111,11 @@ public class HomeController extends HttpServlet {
             request.setAttribute("currentPage", pageSlice.getPage());
             request.setAttribute("totalPages", pageSlice.getTotalPages());
             request.setAttribute("totalBooks", pageSlice.getTotalItems());
+            request.setAttribute("borrowCart", cartBooks);
+            request.setAttribute("borrowCartSize", cartSize);
+            request.setAttribute("borrowCartIds", cartBookIds);
+            request.setAttribute("eligibility", eligibility);
+            request.setAttribute("maxCartSize", BorrowValidator.MAX_CART_SIZE);
 
             request.getRequestDispatcher("/WEB-INF/views/client/home/index.jsp").forward(request, response);
         } catch (SQLException e) {
@@ -86,52 +123,26 @@ public class HomeController extends HttpServlet {
         }
     }
 
-    private List<Borrow> resolveActiveBorrows(HttpServletRequest request) throws SQLException {
-        Staff staff = RoleUtils.getLoggedStaff(request);
-        if (staff == null) {
-            return Collections.emptyList();
-        }
-
-        Integer studentId = resolveStudentId(staff);
-        if (studentId == null) {
-            return Collections.emptyList();
-        }
-        return daoBorrow.getActiveByStudentId(studentId);
-    }
-
-    private Integer resolveStudentId(Staff staff) throws SQLException {
+    /**
+     * Cache studentId trong session. Chỉ query DB lần đầu.
+     */
+    private Integer resolveAndCacheStudentId(HttpServletRequest request, Staff staff) throws ServletException {
         if (staff == null) {
             return null;
         }
-
-        Integer candidateFromUsername = extractTrailingNumber(staff.getUsername());
-        if (candidateFromUsername != null && daoStudent.getById(candidateFromUsername) != null) {
-            return candidateFromUsername;
-        }
-
-        int sameId = staff.getStaffID();
-        if (sameId > 0 && daoStudent.getById(sameId) != null) {
-            return sameId;
-        }
-
-        return null;
-    }
-
-    private Integer extractTrailingNumber(String value) {
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        int index = value.length() - 1;
-        while (index >= 0 && Character.isDigit(value.charAt(index))) {
-            index--;
-        }
-        if (index == value.length() - 1) {
-            return null;
+        HttpSession session = request.getSession();
+        Integer cached = (Integer) session.getAttribute("cachedStudentId");
+        if (cached != null) {
+            return cached;
         }
         try {
-            return Integer.parseInt(value.substring(index + 1));
-        } catch (NumberFormatException e) {
-            return null;
+            Integer studentId = borrowHelper.resolveStudentIdForStaff(staff);
+            if (studentId != null) {
+                session.setAttribute("cachedStudentId", studentId);
+            }
+            return studentId;
+        } catch (SQLException e) {
+            throw new ServletException(e);
         }
     }
 
@@ -180,5 +191,4 @@ public class HomeController extends HttpServlet {
         List<T> items = totalItems == 0 ? List.of() : source.subList(fromIndex, toIndex);
         return new PageSlice<>(items, page, totalPages, totalItems);
     }
-
 }

@@ -1,16 +1,21 @@
 package Controller.borrow;
 
 import Entities.Book;
+import Entities.Borrow;
 import Entities.BorrowItem;
 import Entities.Staff;
 import Entities.Student;
 import Model.DAOBook;
+import Model.DAOBookHold;
 import Model.DAOBorrow;
 import Model.DAOBorrowItem;
 import Model.DAOStudent;
 import Model.DBConnection;
+import Utils.NotificationBroadcaster;
+import Utils.HoldNotificationService;
 import Utils.RoleUtils;
 import ViewModel.BorrowRow;
+import ViewModel.HoldRow;
 import ViewModel.PageSlice;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,41 +35,55 @@ public class BorrowAdminHandler {
     private final DAOBook daoBook;
     private final DAOBorrow daoBorrow;
     private final DAOBorrowItem daoBorrowItem;
+    private final DAOBookHold daoBookHold;
     private final BorrowHelper helper;
     private final BorrowTransactionService transactionService;
+    private final HoldNotificationService holdNotificationService;
 
     public BorrowAdminHandler(DAOStudent daoStudent, DAOBook daoBook, DAOBorrow daoBorrow,
-            DAOBorrowItem daoBorrowItem, BorrowHelper helper, BorrowTransactionService transactionService) {
+            DAOBorrowItem daoBorrowItem, BorrowHelper helper,
+            BorrowTransactionService transactionService) {
         this.daoStudent = daoStudent;
         this.daoBook = daoBook;
         this.daoBorrow = daoBorrow;
         this.daoBorrowItem = daoBorrowItem;
+        this.daoBookHold = new DAOBookHold();
         this.helper = helper;
         this.transactionService = transactionService;
+        this.holdNotificationService = new HoldNotificationService();
     }
 
     public void showList(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, ServletException, IOException {
         if (!helper.canAccessAdminSection(req)) {
-            String errorMessage = URLEncoder.encode("Truy cap bi tu choi", StandardCharsets.UTF_8);
-            resp.sendRedirect(req.getContextPath() + BorrowHelper.PUBLIC_BORROWS_PATH + "?action=list&error=" + errorMessage);
+            String err = URLEncoder.encode("Truy cập bị từ chối", StandardCharsets.UTF_8);
+            resp.sendRedirect(req.getContextPath() + BorrowHelper.PUBLIC_BORROWS_PATH + "?action=list&error=" + err);
             return;
         }
 
         int page = helper.parsePage(req.getParameter("page"), 1);
         List<BorrowRow> rows = daoBorrow.getBorrowRows();
         PageSlice<BorrowRow> pageSlice = helper.paginate(rows, page, BorrowHelper.ADMIN_BORROW_PAGE_SIZE);
+
+        int pendingCount = daoBorrow.countPending();
+        List<BorrowRow> pendingRows = daoBorrow.getPendingBorrowRows();
+        List<HoldRow> activeHolds = daoBookHold.getAllActive();
+
         req.setAttribute("borrows", pageSlice.getItems());
         req.setAttribute("currentPage", pageSlice.getPage());
         req.setAttribute("totalPages", pageSlice.getTotalPages());
         req.setAttribute("totalItems", pageSlice.getTotalItems());
+        req.setAttribute("pendingCount", pendingCount);
+        req.setAttribute("pendingBorrows", pendingRows);
+        req.setAttribute("activeHolds", activeHolds);
+
         req.getRequestDispatcher("/WEB-INF/views/borrow/list.jsp").forward(req, resp);
     }
 
     public void showCreate(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, ServletException, IOException {
         if (!helper.isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
-            helper.redirectWithMessage(req, resp, "error", "Hoc sinh khong duoc tao phieu muon theo form quan tri.");
+            helper.redirectWithMessage(req, resp, "error", "Học sinh không được tạo phiếu mượn theo form quản trị.");
             return;
         }
         loadCreateData(req);
@@ -74,7 +93,7 @@ public class BorrowAdminHandler {
     public void createBorrow(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, ServletException, IOException {
         if (!helper.isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
-            helper.redirectWithMessage(req, resp, "error", "Hoc sinh khong duoc tao phieu muon theo form quan tri.");
+            helper.redirectWithMessage(req, resp, "error", "Học sinh không được tạo phiếu mượn.");
             return;
         }
 
@@ -84,36 +103,33 @@ public class BorrowAdminHandler {
             return;
         }
 
-        int studentId;
-        int bookId;
-        int quantity;
-        LocalDate dueDate;
-        LocalDate borrowDate = LocalDate.now();
-
+        int studentId, bookId, quantity;
+        LocalDate dueDate, borrowDate = LocalDate.now();
         try {
             studentId = helper.parsePositiveInt(req.getParameter("studentID"), "Student");
             bookId = helper.parsePositiveInt(req.getParameter("bookID"), "Book");
             quantity = helper.parsePositiveInt(req.getParameter("quantity"), "Quantity");
             dueDate = LocalDate.parse(req.getParameter("dueDate"));
             if (dueDate.isBefore(borrowDate)) {
-                throw new IllegalArgumentException("Han tra phai >= ngay muon.");
+                throw new IllegalArgumentException("Hạn trả phải >= ngày mượn.");
             }
         } catch (Exception e) {
-            forwardCreateError(req, resp, "Du lieu khong hop le: " + e.getMessage());
+            forwardCreateError(req, resp, "Dữ liệu không hợp lệ: " + e.getMessage());
             return;
         }
 
         try {
             transactionService.createBorrowTransaction(studentId, staff.getStaffID(), bookId, quantity, borrowDate, dueDate);
-            helper.redirectWithMessage(req, resp, "msg", "Tao phieu muon thanh cong.");
+            helper.redirectWithMessage(req, resp, "msg", "Tạo phiếu mượn thành công.");
         } catch (SQLException e) {
             forwardCreateError(req, resp, e.getMessage());
         }
     }
 
-    public void returnBorrow(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+    public void approveBorrow(HttpServletRequest req, HttpServletResponse resp)
+            throws SQLException, IOException {
         if (!helper.isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
-            helper.redirectWithMessage(req, resp, "error", "Hoc sinh khong duoc xac nhan tra sach.");
+            helper.redirectWithMessage(req, resp, "error", "Không có quyền duyệt.");
             return;
         }
 
@@ -121,10 +137,96 @@ public class BorrowAdminHandler {
         try {
             borrowId = helper.parsePositiveInt(req.getParameter("borrowID"), "BorrowID");
         } catch (Exception e) {
-            helper.redirectWithMessage(req, resp, "error", "BorrowID khong hop le.");
+            helper.redirectWithMessage(req, resp, "error", "BorrowID không hợp lệ.");
             return;
         }
 
+        // Lấy info TRƯỚC khi approve (dùng connection riêng, không conflict)
+        Borrow borrow = daoBorrow.getById(borrowId);
+
+        try {
+            transactionService.approveBorrow(borrowId);
+
+            // WebSocket thông báo student
+            if (borrow != null) {
+                NotificationBroadcaster.notifyStudentApproved(borrow.getStudentID(), borrowId);
+            }
+
+            helper.redirectWithMessage(req, resp, "msg", "Đã duyệt phiếu mượn #" + borrowId + " thành công.");
+        } catch (SQLException e) {
+            helper.redirectWithMessage(req, resp, "error", e.getMessage());
+        }
+    }
+
+    public void rejectBorrow(HttpServletRequest req, HttpServletResponse resp)
+            throws SQLException, IOException {
+        if (!helper.isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
+            helper.redirectWithMessage(req, resp, "error", "Không có quyền từ chối.");
+            return;
+        }
+
+        int borrowId;
+        try {
+            borrowId = helper.parsePositiveInt(req.getParameter("borrowID"), "BorrowID");
+        } catch (Exception e) {
+            helper.redirectWithMessage(req, resp, "error", "BorrowID không hợp lệ.");
+            return;
+        }
+
+        Borrow borrow = daoBorrow.getById(borrowId);
+
+        try {
+            transactionService.rejectBorrow(borrowId);
+
+            // WebSocket thông báo student
+            if (borrow != null) {
+                NotificationBroadcaster.notifyStudentRejected(borrow.getStudentID(), borrowId);
+            }
+
+            helper.redirectWithMessage(req, resp, "msg", "Đã từ chối phiếu mượn #" + borrowId + ".");
+        } catch (SQLException e) {
+            helper.redirectWithMessage(req, resp, "error", e.getMessage());
+        }
+    }
+
+    /**
+     * Return borrow — FIX: không gọi getById bên trong transaction. Lấy book
+     * names SAU khi commit.
+     */
+    public void returnBorrow(HttpServletRequest req, HttpServletResponse resp)
+            throws SQLException, IOException {
+        if (!helper.isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
+            helper.redirectWithMessage(req, resp, "error", "Học sinh không được xác nhận trả sách.");
+            return;
+        }
+
+        int borrowId;
+        try {
+            borrowId = helper.parsePositiveInt(req.getParameter("borrowID"), "BorrowID");
+        } catch (Exception e) {
+            helper.redirectWithMessage(req, resp, "error", "BorrowID không hợp lệ.");
+            return;
+        }
+
+        // Lấy borrow info TRƯỚC transaction (connection riêng)
+        Borrow borrowInfo = daoBorrow.getById(borrowId);
+        if (borrowInfo == null) {
+            helper.redirectWithMessage(req, resp, "error", "Không tìm thấy phiếu mượn.");
+            return;
+        }
+        if ("Returned".equalsIgnoreCase(borrowInfo.getStatus())) {
+            helper.redirectWithMessage(req, resp, "msg", "Phiếu này đã được trả trước đó.");
+            return;
+        }
+
+        // Lấy items TRƯỚC transaction (connection riêng)
+        List<BorrowItem> items = daoBorrowItem.getByBorrowId(borrowId);
+        if (items.isEmpty()) {
+            helper.redirectWithMessage(req, resp, "error", "Phiếu mượn không có sách để trả.");
+            return;
+        }
+
+        // === TRANSACTION: chỉ update DB, không gọi method nào mở connection khác ===
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
@@ -133,39 +235,28 @@ public class BorrowAdminHandler {
         try {
             con.setAutoCommit(false);
 
+            // Double-check status with lock
             String status = daoBorrow.getStatusForUpdate(con, borrowId);
-            if (status == null) {
-                con.rollback();
-                helper.redirectWithMessage(req, resp, "error", "Khong tim thay phieu muon.");
-                return;
-            }
-
             if ("Returned".equalsIgnoreCase(status)) {
                 con.rollback();
-                helper.redirectWithMessage(req, resp, "msg", "Phieu nay da duoc tra truoc do.");
+                helper.redirectWithMessage(req, resp, "msg", "Phiếu này đã được trả trước đó.");
                 return;
             }
 
-            List<BorrowItem> items = daoBorrowItem.getByBorrowId(con, borrowId);
-            if (items.isEmpty()) {
-                con.rollback();
-                helper.redirectWithMessage(req, resp, "error", "Phieu muon khong co sach de tra.");
-                return;
-            }
-
+            // Tăng Available cho từng sách
             for (BorrowItem item : items) {
                 int increased = daoBook.increaseAvailable(con, item.getBookID(), item.getQuantity());
                 if (increased == 0) {
-                    throw new SQLException("Khong tim thay sach id=" + item.getBookID());
+                    throw new SQLException("Không tìm thấy sách id=" + item.getBookID());
                 }
             }
 
+            // Cập nhật status = Returned
             if (daoBorrow.updateReturned(con, borrowId) == 0) {
-                throw new SQLException("Cap nhat tra sach that bai.");
+                throw new SQLException("Cập nhật trả sách thất bại.");
             }
 
             con.commit();
-            helper.redirectWithMessage(req, resp, "msg", "Xac nhan tra sach thanh cong.");
         } catch (SQLException e) {
             con.rollback();
             throw e;
@@ -173,6 +264,24 @@ public class BorrowAdminHandler {
             con.setAutoCommit(true);
             con.close();
         }
+
+        // === SAU COMMIT: Xử lý hold + WebSocket (connection riêng, an toàn) ===
+        // WebSocket thông báo student
+        NotificationBroadcaster.notifyStudentReturnConfirmed(borrowInfo.getStudentID(), borrowId);
+
+        // Xử lý hold queue: lấy book names + gửi email
+        StringBuilder holdMsg = new StringBuilder();
+        for (BorrowItem item : items) {
+            Book book = daoBook.getById(item.getBookID()); // connection riêng, OK vì đã commit
+            String bookName = (book != null) ? book.getBookName() : ("Sách #" + item.getBookID());
+            boolean notified = holdNotificationService.processHoldQueue(item.getBookID(), bookName);
+            if (notified) {
+                holdMsg.append(" Đã thông báo người chờ sách \"").append(bookName).append("\".");
+            }
+        }
+
+        helper.redirectWithMessage(req, resp, "msg",
+                "Xác nhận trả sách thành công." + holdMsg.toString());
     }
 
     private void loadCreateData(HttpServletRequest req) throws SQLException {

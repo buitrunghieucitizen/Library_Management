@@ -5,6 +5,7 @@
     <head>
         <meta charset="UTF-8">
         <title>Cổng sinh viên - Mua sách</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
         <style>
             .grid-container {
@@ -33,11 +34,11 @@
             <div class="full-width">
                 <c:if test="${not empty param.msg}"><div class="msg">${param.msg}</div></c:if>
                 <c:if test="${not empty param.error}"><div class="error">${param.error}</div></c:if>
-            </div>
+                </div>
 
-            <div class="card full-width">
-                <h2>Thông tin sinh viên mua hàng</h2>
-                <p>Họ và tên: <strong>${studentName}</strong></p>
+                <div class="card full-width">
+                    <h2>Thông tin sinh viên mua hàng</h2>
+                    <p>Họ và tên: <strong>${studentName}</strong></p>
                 <p>Mã sinh viên: <strong>${studentId}</strong></p>
             </div>
 
@@ -63,14 +64,14 @@
                                     <td>
                                         <form method="POST" action="${pageContext.request.contextPath}/buy">
                                             <input type="hidden" name="action" value="addToWaitlist">
-                                            
+
                                             <input type="hidden" name="bookID" value="${price.bookID}">
                                             <input type="hidden" name="bookName" value="${price.bookName}">
                                             <input type="hidden" name="price" value="${price.amount}">
                                             <input type="number" name="quantity" value="1" min="1" max="${price.available > 0 ? price.available : 99}" style="width: 60px;">
-                                    </td>
-                                    <td>
-                                            <button class="btn btn-buy" type="submit">Thêm vào chờ</button>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-buy" type="submit">Thêm vào chờ</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -92,7 +93,7 @@
 
                 <form method="POST" action="${pageContext.request.contextPath}/buy">
                     <input type="hidden" name="action" value="checkout">
-                    
+
                     <table>
                         <thead>
                             <tr>
@@ -173,5 +174,7 @@
                 </p>
             </div>
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
