@@ -2289,12 +2289,12 @@ body.student-body {
   transform: translateX(2px);
 }
 
-.hold-card:has(.hold-status.overdue) {
+.hold-card.is-overdue {
   background: #fff5f5;
   border-color: #fecaca;
 }
 
-.hold-card:has(.hold-status.borrowing) {
+.hold-card.is-borrowing {
   background: #f0f9ff;
   border-color: #bae6fd;
 }

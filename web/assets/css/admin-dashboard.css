@@ -1516,6 +1516,18 @@
   border-radius: 14px;
 }
 
+.staff-search-form .btn-secondary {
+  background: #fff;
+  color: #475569;
+  border: 1px solid #dbe5f2;
+}
+
+.staff-search-form .btn-secondary:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
 .staff-table-wrap {
   overflow: hidden;
   border-radius: 18px;
@@ -1524,6 +1536,19 @@
 .staff-table {
   min-width: 980px;
   margin-top: 0;
+}
+
+.staff-table td {
+  vertical-align: middle;
+}
+
+.staff-table td.actions {
+  margin-top: 0;
+  min-width: 148px;
+}
+
+.staff-table td.actions .btn {
+  min-width: 84px;
 }
 
 .staff-name-cell {
@@ -1639,8 +1664,19 @@
 }
 
 .staff-empty-icon {
-  font-size: 42px;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f2748 0%, #2563eb 70%, #38bdf8 100%);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   line-height: 1;
+  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.18);
 }
 
 .staff-empty-state p {
@@ -1666,7 +1702,19 @@
 }
 
 .staff-form-grid {
-  gap: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+
+.staff-form-grid .student-form-group {
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 8px;
+}
+
+.staff-form-grid .student-form-group label {
+  margin: 0;
 }
 
 .staff-form-note {
@@ -1734,8 +1782,7 @@
   box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
 }
 
-.staff-role-option.is-selected,
-.staff-role-option:has(input:checked) {
+.staff-role-option.is-selected {
   border-color: #93c5fd;
   background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
 }
@@ -1796,6 +1843,10 @@
   }
 
   .staff-search-form {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-form-grid {
     grid-template-columns: 1fr;
   }
 

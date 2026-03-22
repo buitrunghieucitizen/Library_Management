@@ -7,7 +7,7 @@
 
     <div class="container">
         <div class="student-form-card staff-form-card">
-            <h2><span class="form-icon">✏️</span> Cập nhật tài khoản nhân viên</h2>
+            <h2><span class="form-icon">ED</span> Cập nhật tài khoản nhân viên</h2>
 
             <div class="student-info-badge">
                 <span class="badge-icon">ID</span>
@@ -72,8 +72,8 @@
                 </div>
 
                 <div class="student-form-actions">
-                    <button class="btn btn-primary" type="submit">💾 Cập nhật tài khoản</button>
-                    <a class="btn btn-secondary" href="${ctx}/admin/staffs?action=list">✕ Hủy</a>
+                    <button class="btn btn-primary" type="submit">Cập nhật tài khoản</button>
+                    <a class="btn btn-secondary" href="${ctx}/admin/staffs?action=list">Hủy</a>
                 </div>
             </form>
         </div>

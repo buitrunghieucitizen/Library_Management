@@ -266,7 +266,7 @@
                 </c:when>
                 <c:otherwise>
                     <c:forEach var="hold" items="${holds}">
-                        <div class="hold-card">
+                        <div class="hold-card ${fn:toLowerCase(hold.status) eq 'overdue' ? 'is-overdue' : 'is-borrowing'}">
                             <h3>Phiếu mượn #${hold.borrowID}</h3>
                             <div class="hold-meta">
                                 Ngày mượn: ${hold.borrowDate}<br>

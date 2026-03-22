@@ -17,8 +17,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.text.Normalizer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -148,7 +150,7 @@ public class StaffController extends HttpServlet {
         int staffId = Integer.parseInt(req.getParameter("id"));
         Staff staff = daoStaff.getById(staffId);
         if (staff == null) {
-            resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&error=Khong tim thay tai khoan");
+            resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&error=" + encodeQueryValue("Không tìm thấy tài khoản."));
             return;
         }
 
@@ -164,13 +166,13 @@ public class StaffController extends HttpServlet {
 
         int[] roleIds = parseRoleIds(req);
         if (roleIds.length == 0) {
-            forwardFormError(req, resp, null, "/WEB-INF/views/admin/staff/create.jsp", "Phai chon it nhat 1 role.");
+            forwardFormError(req, resp, null, "/WEB-INF/views/admin/staff/create.jsp", "Phải chọn ít nhất 1 vai trò.");
             return;
         }
 
         daoStaff.insert(staff);
         syncRoles(staff.getStaffID(), roleIds);
-        resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&msg=Tao%20tai%20khoan%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&msg=" + encodeQueryValue("Tạo tài khoản thành công."));
     }
 
     private void updateStaff(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
@@ -181,13 +183,13 @@ public class StaffController extends HttpServlet {
 
         int[] roleIds = parseRoleIds(req);
         if (roleIds.length == 0) {
-            forwardFormError(req, resp, staff, "/WEB-INF/views/admin/staff/edit.jsp", "Phai chon it nhat 1 role.");
+            forwardFormError(req, resp, staff, "/WEB-INF/views/admin/staff/edit.jsp", "Phải chọn ít nhất 1 vai trò.");
             return;
         }
 
         daoStaff.update(staff);
         syncRoles(staff.getStaffID(), roleIds);
-        resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&msg=Cap%20nhat%20tai%20khoan%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&msg=" + encodeQueryValue("Cập nhật tài khoản thành công."));
     }
 
     private void deleteStaff(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
@@ -196,7 +198,7 @@ public class StaffController extends HttpServlet {
             daoStaffRole.delete(staffRole.getStaffID(), staffRole.getRoleID());
         }
         daoStaff.delete(staffId);
-        resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&msg=Xoa%20tai%20khoan%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + STAFFS_PATH + "?action=list&msg=" + encodeQueryValue("Xóa tài khoản thành công."));
     }
 
     private Staff readStaff(HttpServletRequest req, boolean hasId) {
@@ -415,34 +417,38 @@ public class StaffController extends HttpServlet {
         String password = staff.getPassword();
 
         if (staffName.isEmpty() || username.isEmpty() || email.isEmpty() || password == null || password.isBlank()) {
-            forwardFormError(req, resp, staff, view, "Vui long nhap day du thong tin.");
+            forwardFormError(req, resp, staff, view, "Vui lòng nhập đầy đủ thông tin.");
             return false;
         }
 
         if (!PasswordResetUtils.isEmail(email)) {
-            forwardFormError(req, resp, staff, view, "Email khong hop le.");
+            forwardFormError(req, resp, staff, view, "Email không hợp lệ.");
             return false;
         }
 
         Staff sameUsername = daoStaff.getByUsername(username);
         if (sameUsername != null && sameUsername.getStaffID() != staff.getStaffID()) {
-            forwardFormError(req, resp, staff, view, "Ten dang nhap da ton tai.");
+            forwardFormError(req, resp, staff, view, "Tên đăng nhập đã tồn tại.");
             return false;
         }
 
         Staff sameEmail = daoStaff.getByEmail(email);
         if (sameEmail != null && sameEmail.getStaffID() != staff.getStaffID()) {
-            forwardFormError(req, resp, staff, view, "Email da duoc su dung.");
+            forwardFormError(req, resp, staff, view, "Email đã được sử dụng.");
             return false;
         }
 
         Staff legacyEmailOwner = daoStaff.getByUsername(email);
         if (legacyEmailOwner != null && legacyEmailOwner.getStaffID() != staff.getStaffID()) {
-            forwardFormError(req, resp, staff, view, "Email da duoc su dung.");
+            forwardFormError(req, resp, staff, view, "Email đã được sử dụng.");
             return false;
         }
 
         return true;
+    }
+
+    private String encodeQueryValue(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     private String trim(String value) {

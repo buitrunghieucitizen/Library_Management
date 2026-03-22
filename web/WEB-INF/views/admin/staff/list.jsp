@@ -211,8 +211,8 @@
                                                 </div>
                                             </td>
                                             <td class="actions">
-                                                <a class="btn btn-warning" href="${ctx}/admin/staffs?action=edit&id=${row.staff.staffID}">✏️ Sửa</a>
-                                                <a class="btn btn-danger" href="${ctx}/admin/staffs?action=delete&id=${row.staff.staffID}" onclick="return confirm('Xóa tài khoản này?')">🗑️ Xóa</a>
+                                                <a class="btn btn-warning" href="${ctx}/admin/staffs?action=edit&id=${row.staff.staffID}">Sửa</a>
+                                                <a class="btn btn-danger" href="${ctx}/admin/staffs?action=delete&id=${row.staff.staffID}" onclick="return confirm('Xóa tài khoản này?')">Xóa</a>
                                             </td>
                                         </tr>
                                     </c:forEach>
@@ -220,7 +220,7 @@
                                         <tr>
                                             <td colspan="6">
                                                 <div class="staff-empty-state">
-                                                    <div class="staff-empty-icon">👥</div>
+                                                    <div class="staff-empty-icon">SF</div>
                                                     <p>Không tìm thấy tài khoản nào phù hợp.</p>
                                                     <span>Thử thay đổi từ khóa hoặc xóa bộ lọc để xem toàn bộ danh sách.</span>
                                                 </div>

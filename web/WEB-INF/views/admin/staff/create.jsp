@@ -7,7 +7,7 @@
 
     <div class="container">
         <div class="student-form-card staff-form-card">
-            <h2><span class="form-icon">➕</span> Tạo tài khoản nhân viên</h2>
+            <h2><span class="form-icon">+</span> Tạo tài khoản nhân viên</h2>
             <p class="staff-form-intro">Thiết lập hồ sơ đăng nhập, địa chỉ liên hệ và ít nhất một vai trò truy cập cho tài khoản mới.</p>
 
             <c:if test="${not empty error}">
@@ -64,8 +64,8 @@
                 </div>
 
                 <div class="student-form-actions">
-                    <button class="btn btn-primary" type="submit">💾 Lưu tài khoản</button>
-                    <a class="btn btn-secondary" href="${ctx}/admin/staffs?action=list">✕ Hủy</a>
+                    <button class="btn btn-primary" type="submit">Lưu tài khoản</button>
+                    <a class="btn btn-secondary" href="${ctx}/admin/staffs?action=list">Hủy</a>
                 </div>
             </form>
         </div>

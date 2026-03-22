@@ -264,8 +264,34 @@
         }
     }
 
+    function setupStaffRoleOptions() {
+        var roleInputs = document.querySelectorAll(".staff-role-option input[type='checkbox']");
+
+        if (!roleInputs.length) {
+            return;
+        }
+
+        function syncRoleOptionState(input) {
+            var option = input.closest(".staff-role-option");
+
+            if (!option) {
+                return;
+            }
+
+            option.classList.toggle("is-selected", input.checked);
+        }
+
+        roleInputs.forEach(function (input) {
+            syncRoleOptionState(input);
+            input.addEventListener("change", function () {
+                syncRoleOptionState(input);
+            });
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         setupSidebar();
         setupBorrowBuyChart();
+        setupStaffRoleOptions();
     });
 }());
