@@ -1479,7 +1479,22 @@
 }
 
 .staff-dashboard-grid {
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
+}
+
+.staff-primary-column,
+.staff-primary-column .dashboard-card {
+  min-width: 0;
+}
+
+.staff-side-column {
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  align-items: stretch;
+}
+
+.staff-side-column .dashboard-card {
+  height: 100%;
 }
 
 .staff-search-form {
@@ -1843,6 +1858,10 @@
   }
 
   .staff-search-form {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-side-column {
     grid-template-columns: 1fr;
   }
 

@@ -112,7 +112,7 @@
         </section>
 
         <section class="dashboard-grid staff-dashboard-grid">
-            <div class="dashboard-column">
+            <div class="dashboard-column staff-primary-column">
                 <section class="dashboard-card">
                     <div class="dashboard-card-head">
                         <div>
@@ -269,7 +269,7 @@
                 </section>
             </div>
 
-            <div class="dashboard-column">
+            <div class="dashboard-column staff-side-column">
                 <section class="dashboard-card">
                     <div class="dashboard-card-head">
                         <div>
