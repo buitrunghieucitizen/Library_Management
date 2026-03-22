@@ -11,7 +11,7 @@ public class DBConnection {
     private static final int PORT = 1433;
     private static final String DB_NAME = "LibraryManager_V2";
     private static final String USER = "sa";
-    private static final String PASS = "123456789";
+    private static final String PASS = "123456";
 
     private static final DataSource dataSource;
 
