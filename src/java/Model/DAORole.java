@@ -40,6 +40,57 @@ public class DAORole {
         return null;
     }
 
+    public Role getByName(String roleName) throws SQLException {
+        if (roleName == null || roleName.trim().isEmpty()) {
+            return null;
+        }
+
+        String sql = "SELECT TOP 1 RoleID, RoleName FROM Role "
+                + "WHERE LOWER(LTRIM(RTRIM(RoleName))) = LOWER(LTRIM(RTRIM(?)))";
+        Connection con = DBConnection.getConnection();
+        if (con == null)
+            throw new SQLException("Cannot connect to database!");
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, roleName.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next())
+                    return new Role(rs.getInt("RoleID"), rs.getString("RoleName"));
+            }
+        } finally {
+            con.close();
+        }
+        return null;
+    }
+
+    public Integer findRoleIdByNames(String... roleNames) throws SQLException {
+        if (roleNames == null) {
+            return null;
+        }
+
+        for (String roleName : roleNames) {
+            Role role = getByName(roleName);
+            if (role != null) {
+                return role.getRoleID();
+            }
+        }
+        return null;
+    }
+
+    public boolean existsById(int id) throws SQLException {
+        String sql = "SELECT 1 FROM Role WHERE RoleID = ?";
+        Connection con = DBConnection.getConnection();
+        if (con == null)
+            throw new SQLException("Cannot connect to database!");
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } finally {
+            con.close();
+        }
+    }
+
     public int insert(Role r) throws SQLException {
         String sql = "INSERT INTO Role(RoleName) VALUES(?)";
         Connection con = DBConnection.getConnection();

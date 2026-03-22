@@ -56,14 +56,21 @@ public final class StudentContextUtils {
             return null;
         }
 
+        Student mirroredStudent = daoStudent.ensureMirrorFromStaff(staff);
+        if (mirroredStudent != null) {
+            return mirroredStudent.getStudentID();
+        }
+
         Integer candidateFromUsername = extractTrailingNumber(staff.getUsername());
         if (candidateFromUsername != null && daoStudent.getById(candidateFromUsername) != null) {
             return candidateFromUsername;
         }
 
-        int sameId = staff.getStaffID();
-        if (sameId > 0 && daoStudent.getById(sameId) != null) {
-            return sameId;
+        if (!trim(staff.getEmail()).isEmpty()) {
+            Student byEmail = daoStudent.getByEmail(staff.getEmail());
+            if (byEmail != null) {
+                return byEmail.getStudentID();
+            }
         }
 
         return null;
@@ -80,7 +87,7 @@ public final class StudentContextUtils {
             return staffName;
         }
 
-        return "Sinh viên thư viện";
+        return "Sinh vien thu vien";
     }
 
     public static String buildDisplayInitial(Staff staff, Student student) {

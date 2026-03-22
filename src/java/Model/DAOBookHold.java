@@ -13,6 +13,9 @@ public class DAOBookHold {
      * book.
      */
     public boolean hasActiveHold(int studentId, int bookId) throws SQLException {
+        if (!checkTableExists()) {
+            return false;
+        }
         String sql = "SELECT TOP 1 1 FROM BookHold "
                 + "WHERE StudentID = ? AND BookID = ? AND Status IN ('Waiting','Notified')";
         Connection con = DBConnection.getConnection();
@@ -34,6 +37,9 @@ public class DAOBookHold {
      * Create a new hold request.
      */
     public int insert(int studentId, int bookId) throws SQLException {
+        if (!checkTableExists()) {
+            throw new SQLException("Bang BookHold chua ton tai. Hay chay migration trong sql.sql truoc.");
+        }
         String sql = "INSERT INTO BookHold(StudentID, BookID) VALUES(?,?)";
         Connection con = DBConnection.getConnection();
         if (con == null) {
@@ -59,6 +65,9 @@ public class DAOBookHold {
      * queue).
      */
     public List<BookHold> getActiveByBookId(int bookId) throws SQLException {
+        if (!checkTableExists()) {
+            return new ArrayList<>();
+        }
         String sql = "SELECT HoldID, StudentID, BookID, "
                 + "CONVERT(varchar(19), HoldDate, 120) AS HoldDate, Status, "
                 + "CONVERT(varchar(19), NotifiedDate, 120) AS NotifiedDate, "
@@ -87,6 +96,9 @@ public class DAOBookHold {
      * Get all active holds for a student.
      */
     public List<HoldRow> getActiveByStudentId(int studentId) throws SQLException {
+        if (!checkTableExists()) {
+            return new ArrayList<>();
+        }
         String sql = "SELECT h.HoldID, h.StudentID, s.StaffName AS StudentName, s.Email AS StudentEmail, "
                 + "h.BookID, b.BookName, "
                 + "CONVERT(varchar(19), h.HoldDate, 120) AS HoldDate, h.Status, "
@@ -120,6 +132,9 @@ public class DAOBookHold {
      * one is waiting.
      */
     public BookHold getNextWaiting(Connection con, int bookId) throws SQLException {
+        if (!checkTableExists(con)) {
+            return null;
+        }
         String sql = "SELECT TOP 1 HoldID, StudentID, BookID, "
                 + "CONVERT(varchar(19), HoldDate, 120) AS HoldDate, Status, "
                 + "CONVERT(varchar(19), NotifiedDate, 120) AS NotifiedDate, "
@@ -141,6 +156,9 @@ public class DAOBookHold {
      * Mark hold as Notified + set expire date (24h from now).
      */
     public int markNotified(Connection con, int holdId) throws SQLException {
+        if (!checkTableExists(con)) {
+            return 0;
+        }
         String sql = "UPDATE BookHold SET Status = 'Notified', "
                 + "NotifiedDate = SYSUTCDATETIME(), "
                 + "ExpireDate = DATEADD(HOUR, 24, SYSUTCDATETIME()) "
@@ -155,6 +173,9 @@ public class DAOBookHold {
      * Mark hold as Fulfilled (student actually borrowed the book).
      */
     public int markFulfilled(int holdId) throws SQLException {
+        if (!checkTableExists()) {
+            return 0;
+        }
         String sql = "UPDATE BookHold SET Status = 'Fulfilled' WHERE HoldID = ?";
         Connection con = DBConnection.getConnection();
         if (con == null) {
@@ -172,6 +193,9 @@ public class DAOBookHold {
      * Cancel a hold (by student or admin).
      */
     public int cancel(int holdId, int studentId) throws SQLException {
+        if (!checkTableExists()) {
+            return 0;
+        }
         String sql = "UPDATE BookHold SET Status = 'Cancelled' "
                 + "WHERE HoldID = ? AND StudentID = ? AND Status IN ('Waiting','Notified')";
         Connection con = DBConnection.getConnection();
@@ -191,6 +215,9 @@ public class DAOBookHold {
      * Count waiting holds for a specific book (queue size).
      */
     public int countWaiting(int bookId) throws SQLException {
+        if (!checkTableExists()) {
+            return 0;
+        }
         String sql = "SELECT COUNT(*) FROM BookHold WHERE BookID = ? AND Status = 'Waiting'";
         Connection con = DBConnection.getConnection();
         if (con == null) {
@@ -213,6 +240,9 @@ public class DAOBookHold {
      * Expire holds that passed their ExpireDate (batch job).
      */
     public int expireOldHolds() throws SQLException {
+        if (!checkTableExists()) {
+            return 0;
+        }
         String sql = "UPDATE BookHold SET Status = 'Expired' "
                 + "WHERE Status = 'Notified' AND ExpireDate < SYSUTCDATETIME()";
         Connection con = DBConnection.getConnection();
@@ -230,6 +260,9 @@ public class DAOBookHold {
      * Get all holds for admin view.
      */
     public List<HoldRow> getAllActive() throws SQLException {
+        if (!checkTableExists()) {
+            return new ArrayList<>();
+        }
         String sql = "SELECT h.HoldID, h.StudentID, s.StaffName AS StudentName, s.Email AS StudentEmail, "
                 + "h.BookID, b.BookName, "
                 + "CONVERT(varchar(19), h.HoldDate, 120) AS HoldDate, h.Status, "
@@ -356,15 +389,22 @@ public class DAOBookHold {
     }
 
     private boolean checkTableExists() throws SQLException {
-        String sql = "SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BookHold'";
         Connection con = DBConnection.getConnection();
         if (con == null) {
             return false;
         }
-        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-            return rs.next();
+        try {
+            return checkTableExists(con);
         } finally {
             con.close();
+        }
+    }
+
+    private boolean checkTableExists(Connection con) throws SQLException {
+        String sql = "SELECT 1 FROM INFORMATION_SCHEMA.TABLES "
+                + "WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'BookHold'";
+        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            return rs.next();
         }
     }
 }

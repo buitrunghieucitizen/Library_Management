@@ -1,10 +1,18 @@
 package Model;
 
+import Entities.Staff;
 import Entities.Student;
 import ViewModel.StudentProfileSupport;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class DAOStudent {
 
@@ -23,17 +31,19 @@ public class DAOStudent {
 
     public Student getById(int id) throws SQLException {
         try (Connection con = openConnection()) {
-            String sql = buildStudentSelect(detectProfileSupport(con)) + " WHERE StudentID = ?";
-            try (PreparedStatement ps = con.prepareStatement(sql)) {
-                ps.setInt(1, id);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        return mapStudent(rs);
-                    }
-                }
-            }
+            return getById(con, detectProfileSupport(con), id);
         }
-        return null;
+    }
+
+    public Student getByEmail(String email) throws SQLException {
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
+            return null;
+        }
+
+        try (Connection con = openConnection()) {
+            return getByEmail(con, detectProfileSupport(con), normalizedEmail);
+        }
     }
 
     public StudentProfileSupport getProfileSupport() throws SQLException {
@@ -117,12 +127,61 @@ public class DAOStudent {
         }
     }
 
+    public Student ensureMirrorFromStaff(Staff staff) throws SQLException {
+        if (staff == null || staff.getStaffID() <= 0) {
+            return null;
+        }
+
+        try (Connection con = openConnection()) {
+            StudentProfileSupport support = detectProfileSupport(con);
+            Student existing = getById(con, support, staff.getStaffID());
+            if (existing != null) {
+                syncMirrorFromStaff(con, support, existing, staff);
+                return getById(con, support, staff.getStaffID());
+            }
+
+            insertMirrorFromStaff(con, support, staff);
+            Student created = getById(con, support, staff.getStaffID());
+            if (created != null) {
+                return created;
+            }
+        }
+
+        throw new SQLException("Khong the tao ho so Student cho tai khoan #" + staff.getStaffID() + ".");
+    }
+
     private Connection openConnection() throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
         }
         return con;
+    }
+
+    private Student getById(Connection con, StudentProfileSupport support, int id) throws SQLException {
+        String sql = buildStudentSelect(support) + " WHERE StudentID = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapStudent(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    private Student getByEmail(Connection con, StudentProfileSupport support, String email) throws SQLException {
+        String sql = buildStudentSelect(support) + " WHERE LOWER(LTRIM(RTRIM(Email))) = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, normalizeEmail(email));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapStudent(rs);
+                }
+            }
+        }
+        return null;
     }
 
     private StudentProfileSupport detectProfileSupport(Connection con) throws SQLException {
@@ -132,6 +191,90 @@ public class DAOStudent {
                 hasColumn(con, "FacultyName"),
                 hasColumn(con, "AccountStatus"),
                 hasColumn(con, "CreatedAt"));
+    }
+
+    private void insertMirrorFromStaff(Connection con, StudentProfileSupport support, Staff staff)
+            throws SQLException {
+        String sql = buildMirrorInsertSql(support);
+        boolean identityInsertEnabled = false;
+
+        try (Statement statement = con.createStatement()) {
+            statement.execute("SET IDENTITY_INSERT dbo.Student ON");
+            identityInsertEnabled = true;
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            int index = 1;
+            ps.setInt(index++, staff.getStaffID());
+            ps.setString(index++, buildMirrorName(staff));
+
+            String mirrorEmail = resolveMirrorEmail(con, support, staff);
+            if (mirrorEmail.isEmpty()) {
+                ps.setNull(index++, Types.NVARCHAR);
+            } else {
+                ps.setString(index++, mirrorEmail);
+            }
+
+            ps.setNull(index++, Types.NVARCHAR);
+
+            if (support.isAvatarUrlSupported()) {
+                ps.setNull(index++, Types.NVARCHAR);
+            }
+            if (support.isClassNameSupported()) {
+                ps.setNull(index++, Types.NVARCHAR);
+            }
+            if (support.isFacultyNameSupported()) {
+                ps.setNull(index++, Types.NVARCHAR);
+            }
+            if (support.isAccountStatusSupported()) {
+                ps.setString(index++, "Active");
+            }
+            if (support.isCreatedAtSupported()) {
+                ps.setTimestamp(index++, new Timestamp(System.currentTimeMillis()));
+            }
+
+            ps.executeUpdate();
+        } finally {
+            if (identityInsertEnabled) {
+                try (Statement statement = con.createStatement()) {
+                    statement.execute("SET IDENTITY_INSERT dbo.Student OFF");
+                }
+            }
+        }
+    }
+
+    private void syncMirrorFromStaff(Connection con, StudentProfileSupport support, Student existingStudent, Staff staff)
+            throws SQLException {
+        if (existingStudent == null || staff == null) {
+            return;
+        }
+
+        String currentName = trim(existingStudent.getStudentName());
+        String nextName = currentName.isEmpty() ? buildMirrorName(staff) : currentName;
+
+        String currentEmail = normalizeEmail(existingStudent.getEmail());
+        String nextEmail = currentEmail;
+        if (currentEmail.isEmpty() || isPlaceholderEmail(currentEmail)) {
+            nextEmail = resolveMirrorEmail(con, support, staff);
+        }
+
+        boolean shouldUpdateName = !nextName.equals(existingStudent.getStudentName());
+        boolean shouldUpdateEmail = !normalizeEmail(nextEmail).equals(currentEmail);
+        if (!shouldUpdateName && !shouldUpdateEmail) {
+            return;
+        }
+
+        String sql = "UPDATE Student SET StudentName=?, Email=? WHERE StudentID=?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nextName);
+            if (nextEmail.isEmpty()) {
+                ps.setNull(2, Types.NVARCHAR);
+            } else {
+                ps.setString(2, nextEmail);
+            }
+            ps.setInt(3, existingStudent.getStudentID());
+            ps.executeUpdate();
+        }
     }
 
     private boolean hasColumn(Connection con, String columnName) throws SQLException {
@@ -184,5 +327,83 @@ public class DAOStudent {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String buildMirrorInsertSql(StudentProfileSupport support) {
+        StringBuilder columns = new StringBuilder("StudentID, StudentName, Email, Phone");
+        StringBuilder values = new StringBuilder("?, ?, ?, ?");
+
+        if (support.isAvatarUrlSupported()) {
+            columns.append(", AvatarUrl");
+            values.append(", ?");
+        }
+        if (support.isClassNameSupported()) {
+            columns.append(", ClassName");
+            values.append(", ?");
+        }
+        if (support.isFacultyNameSupported()) {
+            columns.append(", FacultyName");
+            values.append(", ?");
+        }
+        if (support.isAccountStatusSupported()) {
+            columns.append(", AccountStatus");
+            values.append(", ?");
+        }
+        if (support.isCreatedAtSupported()) {
+            columns.append(", CreatedAt");
+            values.append(", ?");
+        }
+
+        return "INSERT INTO Student(" + columns + ") VALUES(" + values + ")";
+    }
+
+    private String resolveMirrorEmail(Connection con, StudentProfileSupport support, Staff staff) throws SQLException {
+        String normalizedEmail = normalizeEmail(staff.getEmail());
+        if (!normalizedEmail.isEmpty()) {
+            Student existingByEmail = getByEmail(con, support, normalizedEmail);
+            if (existingByEmail == null || existingByEmail.getStudentID() == staff.getStaffID()) {
+                return normalizedEmail;
+            }
+        }
+        return buildPlaceholderEmail(staff);
+    }
+
+    private String buildMirrorName(Staff staff) {
+        String staffName = trim(staff.getStaffName());
+        if (!staffName.isEmpty()) {
+            return staffName;
+        }
+
+        String username = trim(staff.getUsername());
+        if (!username.isEmpty()) {
+            return username;
+        }
+
+        return "Student #" + staff.getStaffID();
+    }
+
+    private String buildPlaceholderEmail(Staff staff) {
+        String username = trim(staff.getUsername())
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9._-]", "");
+        if (username.isEmpty()) {
+            username = "student" + staff.getStaffID();
+        }
+        return username + "." + staff.getStaffID() + "@student.local";
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return "";
+        }
+        return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private boolean isPlaceholderEmail(String email) {
+        return normalizeEmail(email).endsWith("@student.local");
+    }
+
+    private String trim(String value) {
+        return value == null ? "" : value.trim();
     }
 }

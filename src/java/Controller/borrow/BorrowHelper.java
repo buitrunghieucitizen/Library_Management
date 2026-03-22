@@ -135,7 +135,7 @@ public class BorrowHelper {
             return null;
         }
         // StudentID chính là StaffID — không cần lookup bảng Student
-        return staff.getStaffID();
+        return StudentContextUtils.resolveStudentId(staff, daoStudent);
     }
 
     public BorrowRenewalDecision evaluateRenewal(Borrow borrow) {

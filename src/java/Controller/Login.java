@@ -1,8 +1,12 @@
 package Controller;
 
 import Entities.GoogleAccount;
+import Entities.Role;
+import Entities.Student;
 import Model.DAOStaff;
+import Model.DAORole;
 import Model.DAOStaffRole;
+import Model.DAOStudent;
 import Entities.Staff;
 import Entities.StaffRole;
 import Utils.GoogleOAuthService;
@@ -30,7 +34,9 @@ public class Login extends HttpServlet {
     private static final long LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 phút
 
     private final DAOStaff daoStaff = new DAOStaff();
+    private final DAORole daoRole = new DAORole();
     private final DAOStaffRole daoStaffRole = new DAOStaffRole();
+    private final DAOStudent daoStudent = new DAOStudent();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -182,8 +188,12 @@ public class Login extends HttpServlet {
         List<Integer> roleIds = loadRoleIds(staff, preferStudentRole);
         session.setAttribute("roles", roleIds);
 
-        // Cache studentId
-        session.setAttribute("cachedStudentId", staff.getStaffID());
+        Student studentMirror = ensureStudentMirror(staff, roleIds);
+        if (studentMirror != null) {
+            session.setAttribute("cachedStudentId", studentMirror.getStudentID());
+        } else {
+            session.removeAttribute("cachedStudentId");
+        }
 
         redirectByRole(request, response);
     }
@@ -212,9 +222,9 @@ public class Login extends HttpServlet {
             return;
         }
 
-        Integer inferredRole = preferStudentRole ? RoleUtils.ROLE_STUDENT : inferRole(staff);
+        Integer inferredRole = preferStudentRole ? resolveStudentRoleId() : inferRole(staff);
         if (inferredRole == null) {
-            return;
+            throw new SQLException("Khong tim thay role mac dinh phu hop trong bang Role.");
         }
 
         daoStaffRole.insert(new StaffRole(staff.getStaffID(), inferredRole));
@@ -226,17 +236,55 @@ public class Login extends HttpServlet {
         String staffName = normalize(staff.getStaffName());
 
         if ("admin".equals(username) || username.startsWith("admin") || staffName.contains("admin")) {
-            return RoleUtils.ROLE_ADMIN;
+            return resolveRoleId("Admin", RoleUtils.ROLE_ADMIN);
         }
         if (username.startsWith("student") || staffName.contains("student")) {
-            return RoleUtils.ROLE_STUDENT;
+            return resolveStudentRoleId();
         }
         if (username.startsWith("staff") || username.startsWith("librarian") || staffName.contains("staff")) {
-            return RoleUtils.ROLE_STAFF;
+            return resolveRoleId("Librarian", RoleUtils.ROLE_STAFF, RoleUtils.ROLE_STAFF_ALT);
         }
 
-        // Mặc định: Google login → student
-        return RoleUtils.ROLE_STUDENT;
+        // Mặc định: Google login -> student
+        return resolveStudentRoleId();
+    }
+
+    private Integer resolveStudentRoleId() {
+        return resolveRoleId("Student", RoleUtils.ROLE_STUDENT_ALT, RoleUtils.ROLE_STUDENT);
+    }
+
+    private Integer resolveRoleId(String preferredRoleName, int... fallbackRoleIds) {
+        try {
+            Role role = daoRole.getByName(preferredRoleName);
+            if (role != null) {
+                return role.getRoleID();
+            }
+
+            if (fallbackRoleIds != null) {
+                for (int fallbackRoleId : fallbackRoleIds) {
+                    if (daoRole.existsById(fallbackRoleId)) {
+                        return fallbackRoleId;
+                    }
+                }
+            }
+        } catch (SQLException ignored) {
+        }
+        return null;
+    }
+
+    private Student ensureStudentMirror(Staff staff, List<Integer> roleIds) throws SQLException {
+        if (staff == null || roleIds == null) {
+            return null;
+        }
+
+        for (Integer roleId : roleIds) {
+            if (roleId != null
+                    && (roleId == RoleUtils.ROLE_STUDENT || roleId == RoleUtils.ROLE_STUDENT_ALT)) {
+                return daoStudent.ensureMirrorFromStaff(staff);
+            }
+        }
+
+        return null;
     }
 
     private void forwardLoginError(HttpServletRequest request, HttpServletResponse response,

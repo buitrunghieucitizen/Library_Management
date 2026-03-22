@@ -70,8 +70,34 @@
         });
     }
 
+    function setupStudentCartMenu() {
+        var menus = document.querySelectorAll(".student-cart-menu");
+        if (!menus.length) {
+            return;
+        }
+
+        document.addEventListener("click", function (event) {
+            menus.forEach(function (menu) {
+                if (!menu.contains(event.target)) {
+                    menu.removeAttribute("open");
+                }
+            });
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            menus.forEach(function (menu) {
+                menu.removeAttribute("open");
+            });
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         setupStudentNavigation();
         setupSelectAll();
+        setupStudentCartMenu();
     });
 }());

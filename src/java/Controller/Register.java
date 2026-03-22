@@ -2,8 +2,10 @@ package Controller;
 
 import Entities.Staff;
 import Entities.StaffRole;
+import Model.DAORole;
 import Model.DAOStaff;
 import Model.DAOStaffRole;
+import Model.DAOStudent;
 import Utils.PasswordResetUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -17,8 +19,6 @@ import java.util.regex.Pattern;
 
 @WebServlet(name = "Register", urlPatterns = {"/register"})
 public class Register extends HttpServlet {
-
-    private static final int STUDENT_ROLE_ID = 8;
     private static final int MIN_PASSWORD_LENGTH = 6;
     private static final int MAX_PASSWORD_LENGTH = 100;
     private static final int MAX_NAME_LENGTH = 100;
@@ -27,7 +27,9 @@ public class Register extends HttpServlet {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[\\p{L}\\s]{2,100}$");
 
     private final DAOStaff daoStaff = new DAOStaff();
+    private final DAORole daoRole = new DAORole();
     private final DAOStaffRole daoStaffRole = new DAOStaffRole();
+    private final DAOStudent daoStudent = new DAOStudent();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -123,7 +125,12 @@ public class Register extends HttpServlet {
 
             Staff staff = new Staff(0, name, username, email, password);
             daoStaff.insert(staff);
-            daoStaffRole.insert(new StaffRole(staff.getStaffID(), STUDENT_ROLE_ID));
+            Integer studentRoleId = resolveStudentRoleId();
+            if (studentRoleId == null) {
+                throw new SQLException("Khong tim thay role Student trong bang Role.");
+            }
+            daoStaffRole.insert(new StaffRole(staff.getStaffID(), studentRoleId));
+            daoStudent.ensureMirrorFromStaff(staff);
 
             response.sendRedirect(request.getContextPath() + "/LoginURL?registered=1");
 
@@ -144,5 +151,19 @@ public class Register extends HttpServlet {
 
     private String trim(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private Integer resolveStudentRoleId() throws SQLException {
+        Entities.Role role = daoRole.getByName("Student");
+        if (role != null) {
+            return role.getRoleID();
+        }
+        if (daoRole.existsById(9)) {
+            return 9;
+        }
+        if (daoRole.existsById(8)) {
+            return 8;
+        }
+        return null;
     }
 }
