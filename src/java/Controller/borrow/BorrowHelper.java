@@ -129,8 +129,13 @@ public class BorrowHelper {
     }
 
     // ========== STUDENT ID RESOLUTION ==========
+    // Trong BorrowHelper hoặc StudentContextUtils:
     public Integer resolveStudentIdForStaff(Staff staff) throws SQLException {
-        return StudentContextUtils.resolveStudentId(staff, daoStudent);
+        if (staff == null) {
+            return null;
+        }
+        // StudentID chính là StaffID — không cần lookup bảng Student
+        return staff.getStaffID();
     }
 
     public BorrowRenewalDecision evaluateRenewal(Borrow borrow) {

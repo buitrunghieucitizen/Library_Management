@@ -3,86 +3,6 @@
 <%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <!DOCTYPE html>
 <html lang="vi">
-<<<<<<< HEAD
-    <head>
-        <meta charset="UTF-8">
-        <title>Cổng sinh viên - Mua sách</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-        <style>
-            .grid-container {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-            }
-            .full-width {
-                grid-column: 1 / -1;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="navbar">
-            <h1>Quản lý thư viện</h1>
-            <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-            <a href="${pageContext.request.contextPath}/borrows?action=list">Mượn sách</a>
-            <a href="${pageContext.request.contextPath}/buy" style="font-weight: bold;">Mua sách</a>
-            <div class="nav-right">
-                <span>Xin chào, ${studentName}</span>
-                <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
-            </div>
-        </div>
-
-        <div class="container grid-container">
-            <div class="full-width">
-                <c:if test="${not empty param.msg}"><div class="msg">${param.msg}</div></c:if>
-                <c:if test="${not empty param.error}"><div class="error">${param.error}</div></c:if>
-                </div>
-
-                <div class="card full-width">
-                    <h2>Thông tin sinh viên mua hàng</h2>
-                    <p>Họ và tên: <strong>${studentName}</strong></p>
-                <p>Mã sinh viên: <strong>${studentId}</strong></p>
-            </div>
-
-            <div class="card full-width">
-                <h3>Danh sách đầu sách</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tên sách</th>
-                            <th>Số lượng còn</th>
-                            <th>Giá bán</th>
-                            <th>Số lượng mua</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach var="price" items="${bookPrices}">
-                            <c:if test="${price.amount > 0}"> 
-                                <tr>
-                                    <td>${price.bookName}</td>
-                                    <td>${price.available}</td>
-                                    <td>${price.amount}</td>
-                                    <td>
-                                        <form method="POST" action="${pageContext.request.contextPath}/buy">
-                                            <input type="hidden" name="action" value="addToWaitlist">
-
-                                            <input type="hidden" name="bookID" value="${price.bookID}">
-                                            <input type="hidden" name="bookName" value="${price.bookName}">
-                                            <input type="hidden" name="price" value="${price.amount}">
-                                            <input type="number" name="quantity" value="1" min="1" max="${price.available > 0 ? price.available : 99}" style="width: 60px;">
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-buy" type="submit">Thêm vào chờ</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </c:if>
-                        </c:forEach>
-                    </tbody>
-                </table>
-            </div>
-=======
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -112,7 +32,6 @@
                     <a class="hero-action secondary" href="${buyUrl}">Làm mới trang mua</a>
                 </div>
             </section>
->>>>>>> origin/master
 
             <section class="student-kpi-grid">
                 <article class="student-kpi-card">
@@ -144,11 +63,6 @@
                 <div class="error">${param.error}</div>
             </c:if>
 
-<<<<<<< HEAD
-                <form method="POST" action="${pageContext.request.contextPath}/buy">
-                    <input type="hidden" name="action" value="checkout">
-
-=======
             <section class="card table-card">
                 <div class="section-header-inline">
                     <div>
@@ -177,7 +91,6 @@
                 </div>
 
                 <div class="table-scroll">
->>>>>>> origin/master
                     <table>
                         <thead>
                             <tr>
@@ -280,19 +193,6 @@
                                 <button class="btn btn-buy" type="submit">Xác nhận đặt các sách đã chọn</button>
                             </div>
                         </c:if>
-<<<<<<< HEAD
-                    </tbody>
-                </table>
-                <p style="font-size: 0.9em; color: gray; margin-top: 10px;">
-                    * Cầm <strong>Mã đơn</strong> tới quầy thu ngân thư viện để thanh toán và nhận sách.
-                </p>
-            </div>
-        </div>
-
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
-</html>
-=======
                     </form>
                 </section>
 
@@ -349,4 +249,3 @@
     <%@ include file="../client/_footer.jsp" %>
 </body>
 </html>
->>>>>>> origin/master

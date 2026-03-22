@@ -53,13 +53,26 @@
             <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/book/list.jsp</file>
             <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/buy/student_buy.jsp</file>
             <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/category/list.jsp</file>
-            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/BorrowNotificationEndpoint.java</file>
-            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/WebSocketConfig.java</file>
             <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/WebSocketInitializer.java</file>
             <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/NotificationBroadcaster.java</file>
             <file>file:/E:/Desktop/SWD392/Library_Management/web/login.jsp</file>
             <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/Login.java</file>
             <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Filter/AuthFilter.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/AdminDashboardController.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/admin/borrow/list.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/admin/layout/_admin_header.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/WEB-INF/views/admin/layout/_admin_footer.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Entities/Staff.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Model/DAOStaff.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Entities/GoogleAccount.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/GoogleOAuthService.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/GoogleOAuthConfig.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Controller/Register.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/register.jsp</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/web/refactor.js</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/.env</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/EnvLoader.java</file>
+            <file>file:/E:/Desktop/SWD392/Library_Management/src/java/Utils/AppStartupListener.java</file>
         </group>
     </open-files>
 </project-private>

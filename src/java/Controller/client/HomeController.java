@@ -6,6 +6,7 @@ import Entities.Book;
 import Entities.Borrow;
 import Entities.Category;
 import Entities.Publisher;
+import Entities.Staff;
 import Entities.Student;
 import Model.DAOBook;
 import Model.DAOBorrow;
@@ -13,6 +14,7 @@ import Model.DAOCategory;
 import Model.DAOFine;
 import Model.DAOOrders;
 import Model.DAOPublisher;
+import Model.DAOStudent;
 import Utils.RoleUtils;
 import Utils.StudentContextUtils;
 import ViewModel.OrderRow;
@@ -87,7 +89,6 @@ public class HomeController extends HttpServlet {
             PageSlice<Book> pageSlice = paginate(books, requestedPage, PAGE_SIZE);
             List<Category> categories = daoCategory.getAll();
             List<Publisher> publishers = daoPublisher.getAll();
-            List<Borrow> holds = resolveActiveBorrows(currentStudent);
             List<OrderRow> studentOrders = resolveOrders(currentStudent);
 
             // Student-specific: 2 queries (active borrows + eligibility)

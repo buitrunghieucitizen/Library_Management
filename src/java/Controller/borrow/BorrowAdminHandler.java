@@ -55,6 +55,11 @@ public class BorrowAdminHandler {
 
     public void showList(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, ServletException, IOException {
+        try {
+            daoBookHold.expireAndReleaseHolds();
+        } catch (Exception ignored) {
+        }
+
         if (!helper.canAccessAdminSection(req)) {
             String err = URLEncoder.encode("Truy cập bị từ chối", StandardCharsets.UTF_8);
             resp.sendRedirect(req.getContextPath() + BorrowHelper.PUBLIC_BORROWS_PATH + "?action=list&error=" + err);
@@ -145,11 +150,22 @@ public class BorrowAdminHandler {
         Borrow borrow = daoBorrow.getById(borrowId);
 
         try {
-            transactionService.approveBorrow(borrowId);
+            Staff adminStaff = RoleUtils.getLoggedStaff(req);
+            transactionService.approveBorrow(borrowId, adminStaff != null ? adminStaff.getStaffID() : 0);
 
             // WebSocket thông báo student
             if (borrow != null) {
                 NotificationBroadcaster.notifyStudentApproved(borrow.getStudentID(), borrowId);
+
+                // Broadcast available changed tới tất cả student
+                List<BorrowItem> items = daoBorrowItem.getByBorrowId(borrowId);
+                for (BorrowItem item : items) {
+                    Book book = daoBook.getById(item.getBookID());
+                    if (book != null) {
+                        NotificationBroadcaster.notifyAllStudentsBookChanged(
+                                book.getBookID(), book.getBookName(), book.getAvailable());
+                    }
+                }
             }
 
             helper.redirectWithMessage(req, resp, "msg", "Đã duyệt phiếu mượn #" + borrowId + " thành công.");
@@ -266,17 +282,35 @@ public class BorrowAdminHandler {
         }
 
         // === SAU COMMIT: Xử lý hold + WebSocket (connection riêng, an toàn) ===
-        // WebSocket thông báo student
         NotificationBroadcaster.notifyStudentReturnConfirmed(borrowInfo.getStudentID(), borrowId);
 
-        // Xử lý hold queue: lấy book names + gửi email
         StringBuilder holdMsg = new StringBuilder();
         for (BorrowItem item : items) {
-            Book book = daoBook.getById(item.getBookID()); // connection riêng, OK vì đã commit
+            Book book = daoBook.getById(item.getBookID());
             String bookName = (book != null) ? book.getBookName() : ("Sách #" + item.getBookID());
-            boolean notified = holdNotificationService.processHoldQueue(item.getBookID(), bookName);
-            if (notified) {
+
+            boolean hasHold = holdNotificationService.processHoldQueue(item.getBookID(), bookName);
+
+            if (hasHold) {
+                // Có người hold → GIẢM Available lại 1 (reserve cho họ)
+                Connection reserveCon = DBConnection.getConnection();
+                if (reserveCon != null) {
+                    try {
+                        daoBook.decreaseAvailable(reserveCon, item.getBookID(), 1);
+                    } catch (SQLException e) {
+                        System.err.println("[Hold] Không thể reserve sách: " + e.getMessage());
+                    } finally {
+                        reserveCon.close();
+                    }
+                }
                 holdMsg.append(" Đã thông báo người chờ sách \"").append(bookName).append("\".");
+            }
+
+            // Broadcast available changed tới tất cả student
+            Book updatedBook = daoBook.getById(item.getBookID());
+            if (updatedBook != null) {
+                NotificationBroadcaster.notifyAllStudentsBookChanged(
+                        updatedBook.getBookID(), updatedBook.getBookName(), updatedBook.getAvailable());
             }
         }
 

@@ -3,9 +3,13 @@ package Controller.borrow;
 import Entities.Borrow;
 import Model.DAOBorrow;
 import Model.DAOFine;
+import Model.DBConnection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 /**
  * Validates all business rules before a student can borrow books.
@@ -17,6 +21,7 @@ public class BorrowValidator {
 
     public static final int MAX_ACTIVE_BORROWS = 3;
     public static final int MAX_CART_SIZE = 3;
+    public static final int MAX_BORROWS_PER_WEEK = 3;
 
     private final DAOBorrow daoBorrow;
     private final DAOFine daoFine;
@@ -36,7 +41,7 @@ public class BorrowValidator {
     public List<String> validateBorrowEligibility(int studentId, int cartSize) throws SQLException {
         List<String> errors = new ArrayList<>();
 
-        // Rule 1: Check overdue
+        // Rule 1: Check overdue (giữ nguyên)
         List<Borrow> activeBorrows = daoBorrow.getActiveByStudentId(studentId);
         boolean hasOverdue = false;
         for (Borrow b : activeBorrows) {
@@ -46,28 +51,36 @@ public class BorrowValidator {
             }
         }
         if (hasOverdue) {
-            errors.add("Ban dang co sach muon qua han. Vui long tra sach truoc khi muon them.");
+            errors.add("Bạn đang có sách mượn quá hạn. Vui lòng trả sách trước khi mượn thêm.");
         }
 
-        // Rule 2: Check active count (Borrowing + Overdue + Pending)
-        int borrowingCount = activeBorrows.size(); // Borrowing + Overdue
+        // Rule 2: Max active (giữ nguyên)
+        int borrowingCount = activeBorrows.size();
         int pendingCount = daoBorrow.countByStudentAndStatus(studentId, "Pending");
         int totalActive = borrowingCount + pendingCount;
-
         if (totalActive >= MAX_ACTIVE_BORROWS) {
-            errors.add("Ban dang co " + totalActive + "/" + MAX_ACTIVE_BORROWS
-                    + " phieu muon (dang muon + cho duyet). Khong the muon them.");
+            errors.add("Bạn đang có " + totalActive + "/" + MAX_ACTIVE_BORROWS
+                    + " phiếu mượn (đang mượn + chờ duyệt). Không thể mượn thêm.");
         } else if (totalActive + cartSize > MAX_ACTIVE_BORROWS) {
             int canBorrow = MAX_ACTIVE_BORROWS - totalActive;
-            errors.add("Ban chi co the muon them " + canBorrow
-                    + " quyen nua (hien co " + totalActive + "/" + MAX_ACTIVE_BORROWS + " phieu).");
+            errors.add("Bạn chỉ có thể mượn thêm " + canBorrow + " quyển nữa.");
         }
 
-        // Rule 3: Check unpaid fines
+        // Rule 3: Unpaid fines (giữ nguyên)
         if (daoFine.hasUnpaidFine(studentId)) {
             double totalFine = daoFine.getTotalUnpaid(studentId);
-            errors.add("Ban dang no " + String.format("%,.0f", totalFine)
-                    + " VND tien phat. Vui long thanh toan truoc khi muon.");
+            errors.add("Bạn đang nợ " + String.format("%,.0f", totalFine)
+                    + " VNĐ tiền phạt. Vui lòng thanh toán trước khi mượn.");
+        }
+
+        // Rule 4: MỚI — max 3 quyển/tuần
+        int borrowedThisWeek = countBorrowsThisWeek(studentId);
+        if (borrowedThisWeek >= MAX_BORROWS_PER_WEEK) {
+            errors.add("Bạn đã mượn " + borrowedThisWeek + " quyển trong tuần này. "
+                    + "Giới hạn " + MAX_BORROWS_PER_WEEK + " quyển/tuần.");
+        } else if (borrowedThisWeek + cartSize > MAX_BORROWS_PER_WEEK) {
+            int canBorrow = MAX_BORROWS_PER_WEEK - borrowedThisWeek;
+            errors.add("Tuần này bạn chỉ có thể mượn thêm " + canBorrow + " quyển.");
         }
 
         return errors;
@@ -109,10 +122,43 @@ public class BorrowValidator {
         double unpaidAmount = hasUnpaidFine ? daoFine.getTotalUnpaid(studentId) : 0;
         int totalActive = activeBorrows.size() + pendingCount;
         int remaining = Math.max(0, MAX_ACTIVE_BORROWS - totalActive);
-        boolean eligible = !hasOverdue && !hasUnpaidFine && remaining > 0;
 
-        return new BorrowEligibility(eligible, totalActive, remaining,
-                hasOverdue, hasUnpaidFine, unpaidAmount);
+        int borrowedThisWeek = countBorrowsThisWeek(studentId);
+        int weekRemaining = Math.max(0, MAX_BORROWS_PER_WEEK - borrowedThisWeek);
+
+        // Effective remaining = min of slot remaining and week remaining
+        int effectiveRemaining = Math.min(remaining, weekRemaining);
+
+        boolean eligible = !hasOverdue && !hasUnpaidFine && effectiveRemaining > 0;
+
+        return new BorrowEligibility(eligible, totalActive, effectiveRemaining,
+                hasOverdue, hasUnpaidFine, unpaidAmount, borrowedThisWeek, MAX_BORROWS_PER_WEEK);
+    }
+
+    // Thêm method mới:
+    private int countBorrowsThisWeek(int studentId) throws SQLException {
+        // Đếm tổng sách đã mượn trong tuần này (Monday → Sunday)
+        String sql = "SELECT ISNULL(SUM(bi.Quantity), 0) "
+                + "FROM Borrow b "
+                + "JOIN BorrowItem bi ON bi.BorrowID = b.BorrowID "
+                + "WHERE b.StudentID = ? "
+                + "AND b.Status IN ('Borrowing', 'Returned', 'Pending', 'Overdue') "
+                + "AND b.BorrowDate >= DATEADD(DAY, 1-DATEPART(WEEKDAY, GETDATE()), CAST(GETDATE() AS DATE))";
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } finally {
+            con.close();
+        }
+        return 0;
     }
 
     /**
@@ -126,15 +172,20 @@ public class BorrowValidator {
         private final boolean hasOverdue;
         private final boolean hasUnpaidFine;
         private final double unpaidFineAmount;
+        private final int borrowedThisWeek;
+        private final int maxPerWeek;
 
         public BorrowEligibility(boolean eligible, int activeBorrows, int remainingSlots,
-                boolean hasOverdue, boolean hasUnpaidFine, double unpaidFineAmount) {
+                boolean hasOverdue, boolean hasUnpaidFine, double unpaidFineAmount,
+                int borrowedThisWeek, int maxPerWeek) {
             this.eligible = eligible;
             this.activeBorrows = activeBorrows;
             this.remainingSlots = remainingSlots;
             this.hasOverdue = hasOverdue;
             this.hasUnpaidFine = hasUnpaidFine;
             this.unpaidFineAmount = unpaidFineAmount;
+            this.borrowedThisWeek = borrowedThisWeek;
+            this.maxPerWeek = maxPerWeek;
         }
 
         public boolean isEligible() {
@@ -159,6 +210,14 @@ public class BorrowValidator {
 
         public double getUnpaidFineAmount() {
             return unpaidFineAmount;
+        }
+
+        public int getBorrowedThisWeek() {
+            return borrowedThisWeek;
+        }
+
+        public int getMaxPerWeek() {
+            return maxPerWeek;
         }
     }
 }

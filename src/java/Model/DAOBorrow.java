@@ -146,7 +146,11 @@ public class DAOBorrow {
         String sql = "INSERT INTO Borrow(StudentID, StaffID, BorrowDate, DueDate, Status) VALUES(?,?,?,?,?)";
         try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, studentId);
-            ps.setInt(2, staffId);
+            if (staffId > 0) {
+                ps.setInt(2, staffId);
+            } else {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            }
             ps.setDate(3, Date.valueOf(borrowDate));
             ps.setDate(4, Date.valueOf(dueDate));
             ps.setString(5, status);
@@ -239,7 +243,8 @@ public class DAOBorrow {
     }
 
     public List<BorrowRow> getBorrowRowsByStudent(Integer studentId) throws SQLException {
-        String sql = "SELECT b.BorrowID, s.StudentName, st.StaffName, "
+        String sql = "SELECT b.BorrowID, stu.StaffName AS StudentName, "
+                + "ISNULL(approver.StaffName, '—') AS StaffName, "
                 + "CONVERT(varchar(10), b.BorrowDate, 23) AS BorrowDate, "
                 + "CONVERT(varchar(10), b.DueDate, 23) AS DueDate, "
                 + "b.Status, "
@@ -247,12 +252,13 @@ public class DAOBorrow {
                 + "ISNULL(STRING_AGG(CASE WHEN bi.BookID IS NULL THEN NULL "
                 + "ELSE CONCAT(bo.BookName, ' (x', bi.Quantity, ')') END, ', '), '') AS Items "
                 + "FROM Borrow b "
-                + "JOIN Student s ON s.StudentID = b.StudentID "
-                + "JOIN Staff st ON st.StaffID = b.StaffID "
+                + "JOIN Staff stu ON stu.StaffID = b.StudentID "
+                + "LEFT JOIN Staff approver ON approver.StaffID = b.StaffID "
                 + "LEFT JOIN BorrowItem bi ON bi.BorrowID = b.BorrowID "
                 + "LEFT JOIN Book bo ON bo.BookID = bi.BookID "
                 + (studentId != null ? "WHERE b.StudentID = ? " : "")
-                + "GROUP BY b.BorrowID, s.StudentName, st.StaffName, b.BorrowDate, b.DueDate, b.Status, b.ReturnDate "
+                + "GROUP BY b.BorrowID, stu.StaffName, approver.StaffName, "
+                + "b.BorrowDate, b.DueDate, b.Status, b.ReturnDate "
                 + "ORDER BY b.BorrowID DESC";
 
         List<BorrowRow> rows = new ArrayList<>();
@@ -327,7 +333,8 @@ public class DAOBorrow {
      * Get all pending borrows for admin view.
      */
     public List<BorrowRow> getPendingBorrowRows() throws SQLException {
-        String sql = "SELECT b.BorrowID, s.StudentName, st.StaffName, "
+        String sql = "SELECT b.BorrowID, stu.StaffName AS StudentName, "
+                + "ISNULL(approver.StaffName, '—') AS StaffName, "
                 + "CONVERT(varchar(10), b.BorrowDate, 23) AS BorrowDate, "
                 + "CONVERT(varchar(10), b.DueDate, 23) AS DueDate, "
                 + "b.Status, "
@@ -335,14 +342,14 @@ public class DAOBorrow {
                 + "ISNULL(STRING_AGG(CASE WHEN bi.BookID IS NULL THEN NULL "
                 + "ELSE CONCAT(bo.BookName, ' (x', bi.Quantity, ')') END, ', '), '') AS Items "
                 + "FROM Borrow b "
-                + "JOIN Student s ON s.StudentID = b.StudentID "
-                + "JOIN Staff st ON st.StaffID = b.StaffID "
+                + "JOIN Staff stu ON stu.StaffID = b.StudentID "
+                + "LEFT JOIN Staff approver ON approver.StaffID = b.StaffID "
                 + "LEFT JOIN BorrowItem bi ON bi.BorrowID = b.BorrowID "
                 + "LEFT JOIN Book bo ON bo.BookID = bi.BookID "
                 + "WHERE b.Status = 'Pending' "
-                + "GROUP BY b.BorrowID, s.StudentName, st.StaffName, b.BorrowDate, b.DueDate, b.Status, b.ReturnDate "
+                + "GROUP BY b.BorrowID, stu.StaffName, approver.StaffName, "
+                + "b.BorrowDate, b.DueDate, b.Status, b.ReturnDate "
                 + "ORDER BY b.BorrowID DESC";
-
         List<BorrowRow> rows = new ArrayList<>();
         Connection con = DBConnection.getConnection();
         if (con == null) {

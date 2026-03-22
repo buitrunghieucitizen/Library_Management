@@ -81,6 +81,24 @@ public class NotificationBroadcaster {
         sendStudent(sid, "{\"type\":\"BOOK_AVAILABLE\",\"message\":\"Sách \\\"" + esc(book) + "\\\" đã có sẵn!\"}");
     }
 
+    /**
+     * Broadcast tới TẤT CẢ student đang online: sách vừa thay đổi available.
+     * Client sẽ reload trang để cập nhật số lượng.
+     */
+    public static void notifyAllStudentsBookChanged(int bookId, String bookName, int newAvailable) {
+        String json = "{\"type\":\"BOOK_CHANGED\""
+                + ",\"bookId\":" + bookId
+                + ",\"bookName\":\"" + esc(bookName) + "\""
+                + ",\"available\":" + newAvailable
+                + ",\"message\":\"Sách \\\"" + esc(bookName) + "\\\" vừa cập nhật: còn " + newAvailable + " quyển.\"}";
+        // Gửi tới TẤT CẢ student sessions
+        for (var entry : studentSessions.entrySet()) {
+            for (Session s : entry.getValue()) {
+                send(s, json);
+            }
+        }
+    }
+
     private static void sendAdmin(String json) {
         for (Session s : adminSessions) {
             send(s, json);

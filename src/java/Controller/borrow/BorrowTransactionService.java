@@ -4,6 +4,7 @@ import Entities.Borrow;
 import Entities.BorrowItem;
 import Entities.OrderDetail;
 import Model.DAOBook;
+import Model.DAOBookHold;
 import Model.DAOBookPrice;
 import Model.DAOBorrow;
 import Model.DAOBorrowItem;
@@ -16,6 +17,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.sql.PreparedStatement;
 
 public class BorrowTransactionService {
 
@@ -67,7 +69,7 @@ public class BorrowTransactionService {
             }
 
             // Create borrow record with Pending status
-            int borrowId = daoBorrow.insertPending(con, studentId, staffId, borrowDate, dueDate);
+            int borrowId = daoBorrow.insertPending(con, studentId, 0, borrowDate, dueDate);
 
             // Insert each book as a BorrowItem (qty=1 per book)
             for (int bookId : bookIds) {
@@ -94,7 +96,7 @@ public class BorrowTransactionService {
      * ADMIN: Approve a pending borrow request. This is where we actually
      * decrease Available.
      */
-    public void approveBorrow(int borrowId) throws SQLException {
+    public void approveBorrow(int borrowId, int approverStaffId) throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
@@ -126,6 +128,32 @@ public class BorrowTransactionService {
 
             // Update status to Borrowing
             daoBorrow.updateStatus(con, borrowId, "Borrowing");
+
+            // Auto fulfill hold nếu student có hold cho sách này
+            DAOBookHold daoBookHold = new DAOBookHold();
+            for (BorrowItem item : items) {
+                // Tìm hold Notified của student cho bookId này → set Fulfilled
+                try {
+                    String fulfillSql = "UPDATE BookHold SET Status = 'Fulfilled' "
+                            + "WHERE StudentID = (SELECT StudentID FROM Borrow WHERE BorrowID = ?) "
+                            + "AND BookID = ? AND Status = 'Notified'";
+                    try (PreparedStatement psHold = con.prepareStatement(fulfillSql)) {
+                        psHold.setInt(1, borrowId);
+                        psHold.setInt(2, item.getBookID());
+                        psHold.executeUpdate();
+                    }
+                } catch (SQLException ignored) {
+                }
+            }
+
+            if (approverStaffId > 0) {
+                String sqlStaff = "UPDATE Borrow SET StaffID = ? WHERE BorrowID = ? AND StaffID IS NULL";
+                try (PreparedStatement ps2 = con.prepareStatement(sqlStaff)) {
+                    ps2.setInt(1, approverStaffId);
+                    ps2.setInt(2, borrowId);
+                    ps2.executeUpdate();
+                }
+            }
 
             con.commit();
         } catch (SQLException e) {

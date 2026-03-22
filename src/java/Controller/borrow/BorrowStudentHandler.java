@@ -189,6 +189,16 @@ public class BorrowStudentHandler {
             return;
         }
 
+        // CHECK: Nếu sách có người hold Notified và student hiện tại KHÔNG phải người hold
+        // → không cho mượn, phải đợi hold expire
+        Staff staff = RoleUtils.getLoggedStaff(req);
+        Integer studentId = (staff != null) ? staff.getStaffID() : null;
+        if (studentId != null && daoBookHold.hasNotifiedHoldByOther(bookId, studentId)) {
+            helper.redirectToHome(req, resp, "error",
+                    "Sách này đang được giữ cho người đặt trước. Vui lòng đặt giữ chỗ và chờ.");
+            return;
+        }
+
         String error = helper.addToBorrowCart(req, bookId);
         if (error != null) {
             helper.redirectToHome(req, resp, "error", error);
@@ -253,7 +263,7 @@ public class BorrowStudentHandler {
         try {
             int size = cart.size();
             int borrowId = transactionService.createPendingBorrow(
-                    studentId, staff.getStaffID(), cart, borrowDate, dueDate);
+                    studentId, 0, cart, borrowDate, dueDate);
             helper.clearBorrowCart(req);
             NotificationBroadcaster.notifyAdminNewBorrow(borrowId, staff.getStaffName(), size);
             helper.redirectToHome(req, resp, "msg",

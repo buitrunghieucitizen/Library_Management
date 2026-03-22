@@ -87,13 +87,13 @@ public class DAOBookHold {
      * Get all active holds for a student.
      */
     public List<HoldRow> getActiveByStudentId(int studentId) throws SQLException {
-        String sql = "SELECT h.HoldID, h.StudentID, s.StudentName, s.Email AS StudentEmail, "
+        String sql = "SELECT h.HoldID, h.StudentID, s.StaffName AS StudentName, s.Email AS StudentEmail, "
                 + "h.BookID, b.BookName, "
                 + "CONVERT(varchar(19), h.HoldDate, 120) AS HoldDate, h.Status, "
                 + "CONVERT(varchar(19), h.NotifiedDate, 120) AS NotifiedDate, "
                 + "CONVERT(varchar(19), h.ExpireDate, 120) AS ExpireDate, b.Available "
                 + "FROM BookHold h "
-                + "JOIN Student s ON s.StudentID = h.StudentID "
+                + "JOIN Staff s ON s.StaffID = h.StudentID "
                 + "JOIN Book b ON b.BookID = h.BookID "
                 + "WHERE h.StudentID = ? AND h.Status IN ('Waiting','Notified') "
                 + "ORDER BY h.HoldDate ASC";
@@ -230,13 +230,13 @@ public class DAOBookHold {
      * Get all holds for admin view.
      */
     public List<HoldRow> getAllActive() throws SQLException {
-        String sql = "SELECT h.HoldID, h.StudentID, s.StudentName, s.Email AS StudentEmail, "
+        String sql = "SELECT h.HoldID, h.StudentID, s.StaffName AS StudentName, s.Email AS StudentEmail, "
                 + "h.BookID, b.BookName, "
                 + "CONVERT(varchar(19), h.HoldDate, 120) AS HoldDate, h.Status, "
                 + "CONVERT(varchar(19), h.NotifiedDate, 120) AS NotifiedDate, "
                 + "CONVERT(varchar(19), h.ExpireDate, 120) AS ExpireDate, b.Available "
                 + "FROM BookHold h "
-                + "JOIN Student s ON s.StudentID = h.StudentID "
+                + "JOIN Staff s ON s.StaffID = h.StudentID "
                 + "JOIN Book b ON b.BookID = h.BookID "
                 + "WHERE h.Status IN ('Waiting','Notified') "
                 + "ORDER BY h.BookID, h.HoldDate ASC";
@@ -271,5 +271,100 @@ public class DAOBookHold {
                 rs.getString("HoldDate"), rs.getString("Status"),
                 rs.getString("NotifiedDate"), rs.getString("ExpireDate"),
                 rs.getInt("Available"));
+    }
+
+    /**
+     * Check nếu sách có hold Notified bởi student KHÁC (không phải studentId
+     * này). Dùng để block người khác mượn sách đang reserved cho hold.
+     */
+    public boolean hasNotifiedHoldByOther(int bookId, int excludeStudentId) throws SQLException {
+        if (!checkTableExists()) {
+            return false;
+        }
+        String sql = "SELECT TOP 1 1 FROM BookHold "
+                + "WHERE BookID = ? AND Status = 'Notified' AND StudentID != ? "
+                + "AND ExpireDate > SYSUTCDATETIME()";
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            return false;
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, bookId);
+            ps.setInt(2, excludeStudentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } finally {
+            con.close();
+        }
+    }
+
+    /**
+     * Expire old holds + tăng Available cho sách bị reserve. Gọi bởi scheduled
+     * task hoặc khi student vào trang.
+     */
+    public int expireAndReleaseHolds() throws SQLException {
+        if (!checkTableExists()) {
+            return 0;
+        }
+
+        // Tìm holds cần expire
+        String findSql = "SELECT HoldID, BookID FROM BookHold "
+                + "WHERE Status = 'Notified' AND ExpireDate < SYSUTCDATETIME()";
+
+        List<int[]> toExpire = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            return 0;
+        }
+        try (PreparedStatement ps = con.prepareStatement(findSql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                toExpire.add(new int[]{rs.getInt("HoldID"), rs.getInt("BookID")});
+            }
+        } finally {
+            con.close();
+        }
+
+        int count = 0;
+        for (int[] hold : toExpire) {
+            Connection con2 = DBConnection.getConnection();
+            if (con2 == null) {
+                continue;
+            }
+            try {
+                con2.setAutoCommit(false);
+
+                // Expire hold
+                String expireSql = "UPDATE BookHold SET Status = 'Expired' WHERE HoldID = ? AND Status = 'Notified'";
+                try (PreparedStatement ps = con2.prepareStatement(expireSql)) {
+                    ps.setInt(1, hold[0]);
+                    if (ps.executeUpdate() > 0) {
+                        // Tăng Available lại (unreserve)
+                        new DAOBook().increaseAvailable(con2, hold[1], 1);
+                        count++;
+                    }
+                }
+                con2.commit();
+            } catch (SQLException e) {
+                con2.rollback();
+            } finally {
+                con2.setAutoCommit(true);
+                con2.close();
+            }
+        }
+        return count;
+    }
+
+    private boolean checkTableExists() throws SQLException {
+        String sql = "SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BookHold'";
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            return false;
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            return rs.next();
+        } finally {
+            con.close();
+        }
     }
 }

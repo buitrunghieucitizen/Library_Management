@@ -1,81 +1,82 @@
 package Entities;
 
 public class Staff {
-    private int StaffID;
-    private String StaffName;
-    private String Username;
-    private String Email;
-    private String Password;
+
+    private int staffID;
+    private String staffName;
+    private String username;
+    private String email;
+    private String password;
 
     public Staff() {
     }
 
-    public Staff(int StaffID, String StaffName, String Username, String Password) {
-        this(StaffID, StaffName, Username, null, Password);
+    public Staff(int staffID, String staffName, String username, String password) {
+        this(staffID, staffName, username, null, password);
     }
 
-    public Staff(int StaffID, String StaffName, String Username, String Email, String Password) {
-        this.StaffID = StaffID;
-        this.StaffName = StaffName;
-        this.Username = Username;
-        this.Email = Email;
-        this.Password = Password;
+    public Staff(int staffID, String staffName, String username, String email, String password) {
+        this.staffID = staffID;
+        this.staffName = staffName;
+        this.username = username;
+        this.email = email;
+        this.password = password;
     }
 
-    public Staff(String StaffName, String Username, String Password) {
-        this(StaffName, Username, null, Password);
+    public Staff(String staffName, String username, String password) {
+        this(staffName, username, null, password);
     }
 
-    public Staff(String StaffName, String Username, String Email, String Password) {
-        this.StaffName = StaffName;
-        this.Username = Username;
-        this.Email = Email;
-        this.Password = Password;
+    public Staff(String staffName, String username, String email, String password) {
+        this.staffName = staffName;
+        this.username = username;
+        this.email = email;
+        this.password = password;
     }
 
     public int getStaffID() {
-        return StaffID;
+        return staffID;
     }
 
-    public void setStaffID(int StaffID) {
-        this.StaffID = StaffID;
+    public void setStaffID(int staffID) {
+        this.staffID = staffID;
     }
 
     public String getStaffName() {
-        return StaffName;
+        return staffName;
     }
 
-    public void setStaffName(String StaffName) {
-        this.StaffName = StaffName;
+    public void setStaffName(String staffName) {
+        this.staffName = staffName;
     }
 
     public String getUsername() {
-        return Username;
+        return username;
     }
 
-    public void setUsername(String Username) {
-        this.Username = Username;
-    }
-
-    public String getPassword() {
-        return Password;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
-        return Email;
+        return email;
     }
 
-    public void setEmail(String Email) {
-        this.Email = Email;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public void setPassword(String Password) {
-        this.Password = Password;
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Override
     public String toString() {
-        return "Staff{" + "StaffID=" + StaffID + ", StaffName=" + StaffName
-                + ", Username=" + Username + ", Email=" + Email + '}';
+        return "Staff{staffID=" + staffID + ", staffName=" + staffName
+                + ", username=" + username + ", email=" + email + "}";
     }
 }
