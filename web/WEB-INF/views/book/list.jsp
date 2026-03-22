@@ -1,4 +1,4 @@
-﻿<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <c:set var="isAdmin" value="false" />
@@ -83,7 +83,9 @@
                 <c:if test="${isAdminSection && isAdmin}">
                     <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/books?action=create">+ Thêm sách mới</a>
                 </c:if>
-            </div>
+                <c:if test="${not empty param.error or not empty error}">
+                    <div class="error"><c:out value="${not empty param.error ? param.error : error}" /></div>
+                </c:if>
 
             <c:if test="${not empty param.msg or not empty msg}">
                 <div class="msg"><c:out value="${not empty param.msg ? param.msg : msg}" /></div>
@@ -144,23 +146,24 @@
                         <a class="page-link" href="${prevUrl}">Trang trước</a>
                     </c:if>
 
-                    <c:forEach begin="1" end="${totalPages}" var="p">
-                        <c:url var="pageUrl" value="${listPath}">
-                            <c:param name="action" value="list"/>
-                            <c:param name="page" value="${p}"/>
-                        </c:url>
-                        <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageUrl}">${p}</a>
-                    </c:forEach>
+                        <c:forEach begin="1" end="${totalPages}" var="p">
+                            <c:url var="pageUrl" value="${listPath}">
+                                <c:param name="action" value="list"/>
+                                <c:param name="page" value="${p}"/>
+                            </c:url>
+                            <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageUrl}">${p}</a>
+                        </c:forEach>
 
-                    <c:if test="${currentPage < totalPages}">
-                        <c:url var="nextUrl" value="${listPath}">
-                            <c:param name="action" value="list"/>
-                            <c:param name="page" value="${currentPage + 1}"/>
-                        </c:url>
-                        <a class="page-link" href="${nextUrl}">Trang sau</a>
-                    </c:if>
-                </div>
-            </c:if>
+                        <c:if test="${currentPage < totalPages}">
+                            <c:url var="nextUrl" value="${listPath}">
+                                <c:param name="action" value="list"/>
+                                <c:param name="page" value="${currentPage + 1}"/>
+                            </c:url>
+                            <a class="page-link" href="${nextUrl}">Trang sau</a>
+                        </c:if>
+                    </div>
+                </c:if>
+            </div>
         </div>
     </div>
     <c:choose>

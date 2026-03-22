@@ -1,17 +1,24 @@
 package Controller.client;
 
+import Controller.borrow.BorrowHelper;
+import Controller.borrow.BorrowValidator;
 import Entities.Book;
 import Entities.Borrow;
 import Entities.Category;
 import Entities.Publisher;
+import Entities.Staff;
 import Entities.Student;
 import Model.DAOBook;
+import Model.DAOBookHold;
 import Model.DAOBorrow;
 import Model.DAOCategory;
+import Model.DAOFine;
 import Model.DAOOrders;
 import Model.DAOPublisher;
+import Model.DAOStudent;
 import Utils.RoleUtils;
 import Utils.StudentContextUtils;
+import ViewModel.HoldRow;
 import ViewModel.OrderRow;
 import ViewModel.PageSlice;
 import jakarta.servlet.ServletException;
@@ -19,13 +26,16 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 
 @WebServlet(name = "StudentHome", urlPatterns = {"/home"})
@@ -41,6 +51,11 @@ public class HomeController extends HttpServlet {
     private final DAOCategory daoCategory = new DAOCategory();
     private final DAOPublisher daoPublisher = new DAOPublisher();
     private final DAOBorrow daoBorrow = new DAOBorrow();
+    private final DAOBookHold daoBookHold = new DAOBookHold();
+    private final DAOStudent daoStudent = new DAOStudent();
+    private final DAOFine daoFine = new DAOFine();
+    private final BorrowHelper borrowHelper = new BorrowHelper(daoStudent);
+    private final BorrowValidator validator = new BorrowValidator(daoBorrow, daoFine);
     private final DAOOrders daoOrders = new DAOOrders();
 
     @Override
@@ -52,6 +67,10 @@ public class HomeController extends HttpServlet {
         }
 
         request.setCharacterEncoding("UTF-8");
+
+        // Cache studentId trong session — không query DB mỗi request
+        Staff staff = RoleUtils.getLoggedStaff(request);
+        Integer studentId = resolveAndCacheStudentId(request, staff);
 
         String search = trim(request.getParameter("search"));
         String letter = trim(request.getParameter("letter"));
@@ -67,23 +86,45 @@ public class HomeController extends HttpServlet {
         }
 
         try {
+            // DB queries: getFiltered + getAll categories + getAll publishers = 3 queries
             Student currentStudent = StudentContextUtils.resolveCurrentStudent(request);
             List<Book> books = daoBook.getFiltered(search, letter, categoryId, publisherId, author);
             PageSlice<Book> pageSlice = paginate(books, requestedPage, PAGE_SIZE);
             List<Category> categories = daoCategory.getAll();
             List<Publisher> publishers = daoPublisher.getAll();
-            List<Borrow> holds = resolveActiveBorrows(currentStudent);
             List<OrderRow> studentOrders = resolveOrders(currentStudent);
+
+            // Student-specific: 2 queries (active borrows + eligibility)
+            List<Borrow> holds = Collections.emptyList();
+            List<HoldRow> studentHolds = Collections.emptyList();
+            BorrowValidator.BorrowEligibility eligibility = null;
+            if (studentId != null) {
+                holds = daoBorrow.getActiveByStudentId(studentId);
+                studentHolds = daoBookHold.getActiveByStudentId(studentId);
+                eligibility = validator.getEligibility(studentId);
+                request.setAttribute("studentId", studentId);
+            }
+
+            // Cart data — chỉ đọc session, không query DB
+            Map<Integer, Book> bookMap = new HashMap<>();
+            for (Book b : books) {
+                bookMap.put(b.getBookID(), b);
+            }
+            List<Book> cartBooks = borrowHelper.getBorrowCartBooks(request, bookMap);
+            int cartSize = borrowHelper.getBorrowCartSize(request);
+            List<Integer> cartBookIds = borrowHelper.getOrCreateBorrowCart(request);
 
             int overdueCount = countOverdueBorrows(holds);
             int dueSoonCount = countDueSoonBorrows(holds);
             int orderCount = countActiveOrders(studentOrders);
             int pendingOrderCount = countPendingOrders(studentOrders);
 
+            // Set all attributes
             request.setAttribute("books", pageSlice.getItems());
             request.setAttribute("categories", categories);
             request.setAttribute("publishers", publishers);
             request.setAttribute("holds", holds);
+            request.setAttribute("studentHolds", studentHolds);
             request.setAttribute("currentStudent", currentStudent);
             request.setAttribute("search", search);
             request.setAttribute("letter", letter);
@@ -96,6 +137,11 @@ public class HomeController extends HttpServlet {
             request.setAttribute("currentPage", pageSlice.getPage());
             request.setAttribute("totalPages", pageSlice.getTotalPages());
             request.setAttribute("totalBooks", pageSlice.getTotalItems());
+            request.setAttribute("borrowCart", cartBooks);
+            request.setAttribute("borrowCartSize", cartSize);
+            request.setAttribute("borrowCartIds", cartBookIds);
+            request.setAttribute("eligibility", eligibility);
+            request.setAttribute("maxCartSize", BorrowValidator.MAX_CART_SIZE);
             request.setAttribute("studentBorrowingCount", holds.size());
             request.setAttribute("studentDueSoonCount", dueSoonCount);
             request.setAttribute("studentOrderCount", orderCount);
@@ -105,6 +151,29 @@ public class HomeController extends HttpServlet {
             request.setAttribute("studentDueSoonWindowDays", DUE_SOON_WINDOW_DAYS);
 
             request.getRequestDispatcher("/WEB-INF/views/client/home/index.jsp").forward(request, response);
+        } catch (SQLException e) {
+            throw new ServletException(e);
+        }
+    }
+
+    /**
+     * Cache studentId trong session. Chỉ query DB lần đầu.
+     */
+    private Integer resolveAndCacheStudentId(HttpServletRequest request, Staff staff) throws ServletException {
+        if (staff == null) {
+            return null;
+        }
+        HttpSession session = request.getSession();
+        Integer cached = (Integer) session.getAttribute("cachedStudentId");
+        if (cached != null) {
+            return cached;
+        }
+        try {
+            Integer studentId = borrowHelper.resolveStudentIdForStaff(staff);
+            if (studentId != null) {
+                session.setAttribute("cachedStudentId", studentId);
+            }
+            return studentId;
         } catch (SQLException e) {
             throw new ServletException(e);
         }

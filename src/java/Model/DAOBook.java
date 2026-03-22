@@ -13,69 +13,51 @@ import java.util.List;
 public class DAOBook {
 
     public List<Book> getAll() throws SQLException {
+        String sql = "SELECT BookID, BookName, Quantity, Available, CategoryID, PublisherID, ImageUrl "
+                + "FROM Book ORDER BY BookID DESC";
         List<Book> list = new ArrayList<>();
-        try (Connection con = openConnection()) {
-            String sql = buildBookSelect(detectFieldSupport(con)) + " ORDER BY BookID DESC";
-            try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapBook(rs));
-                }
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Book(
+                        rs.getInt("BookID"),
+                        rs.getString("BookName"),
+                        rs.getInt("Quantity"),
+                        rs.getInt("Available"),
+                        rs.getInt("CategoryID"),
+                        rs.getInt("PublisherID"),
+                        rs.getString("ImageUrl")));
             }
         }
         return list;
     }
 
     public Book getById(int id) throws SQLException {
-        try (Connection con = openConnection()) {
-            String sql = buildBookSelect(detectFieldSupport(con)) + " WHERE BookID = ?";
-            try (PreparedStatement ps = con.prepareStatement(sql)) {
-                ps.setInt(1, id);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        return mapBook(rs);
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public int insert(Book b) throws SQLException {
-        Connection con = DBConnection.getConnection();
-        if (con == null) {
-            throw new SQLException("Cannot connect to database!");
-        }
-        try {
-            return insert(con, b);
-        } finally {
-            con.close();
-        }
-    }
-
-    public int update(Book b) throws SQLException {
-        Connection con = DBConnection.getConnection();
-        if (con == null) {
-            throw new SQLException("Cannot connect to database!");
-        }
-        try {
-            return update(con, b);
-        } finally {
-            con.close();
-        }
-    }
-
-    public int delete(int id) throws SQLException {
-        String sql = "DELETE FROM Book WHERE BookID = ?";
+        String sql = "SELECT BookID, BookName, Quantity, Available, CategoryID, PublisherID, ImageUrl "
+                + "FROM Book WHERE BookID = ?";
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
         }
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
-            return ps.executeUpdate();
-        } finally {
-            con.close();
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Book(
+                            rs.getInt("BookID"),
+                            rs.getString("BookName"),
+                            rs.getInt("Quantity"),
+                            rs.getInt("Available"),
+                            rs.getInt("CategoryID"),
+                            rs.getInt("PublisherID"),
+                            rs.getString("ImageUrl"));
+                }
+            }
         }
+        return null;
     }
 
     public List<Book> getFiltered(String search, String letter, Integer categoryId,
@@ -84,20 +66,20 @@ public class DAOBook {
         try {
             BookFieldSupport support = detectFieldSupport(con);
             StringBuilder sql = new StringBuilder(
-                "SELECT DISTINCT b.BookID, b.BookName, b.Quantity, b.Available, b.CategoryID, b.PublisherID "
-                + (support.isDescriptionSupported()
-                        ? ", b.Description"
-                        : ", CAST(NULL AS NVARCHAR(1000)) AS Description ")
-                + (support.isShelfLocationSupported()
-                        ? ", b.ShelfLocation"
-                        : ", CAST(NULL AS NVARCHAR(100)) AS ShelfLocation ")
-                + (support.isImageUrlSupported()
-                        ? ", b.ImageUrl "
-                        : ", CAST(NULL AS NVARCHAR(500)) AS ImageUrl ")
-                + "FROM Book b "
-                + "LEFT JOIN BookAuthor ba ON b.BookID = ba.BookID "
-                + "LEFT JOIN Author a ON ba.AuthorID = a.AuthorID "
-                + "WHERE 1=1 ");
+                    "SELECT DISTINCT b.BookID, b.BookName, b.Quantity, b.Available, b.CategoryID, b.PublisherID "
+                    + (support.isDescriptionSupported()
+                    ? ", b.Description"
+                    : ", CAST(NULL AS NVARCHAR(1000)) AS Description ")
+                    + (support.isShelfLocationSupported()
+                    ? ", b.ShelfLocation"
+                    : ", CAST(NULL AS NVARCHAR(100)) AS ShelfLocation ")
+                    + (support.isImageUrlSupported()
+                    ? ", b.ImageUrl "
+                    : ", CAST(NULL AS NVARCHAR(500)) AS ImageUrl ")
+                    + "FROM Book b "
+                    + "LEFT JOIN BookAuthor ba ON b.BookID = ba.BookID "
+                    + "LEFT JOIN Author a ON ba.AuthorID = a.AuthorID "
+                    + "WHERE 1=1 ");
             List<Object> params = new ArrayList<>();
 
             if (search != null && !search.trim().isEmpty()) {
@@ -135,6 +117,44 @@ public class DAOBook {
                 }
             }
             return list;
+        } finally {
+            con.close();
+        }
+    }
+
+    public int insert(Book b) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try {
+            return insert(con, b);
+        } finally {
+            con.close();
+        }
+    }
+
+    public int update(Book b) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try {
+            return update(con, b);
+        } finally {
+            con.close();
+        }
+    }
+
+    public int delete(int id) throws SQLException {
+        String sql = "DELETE FROM Book WHERE BookID = ?";
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate();
         } finally {
             con.close();
         }
@@ -254,8 +274,7 @@ public class DAOBook {
     }
 
     public int decreaseStockAndAvailable(Connection con, int bookId, int quantity) throws SQLException {
-        String sql = "UPDATE Book "
-                + "SET Quantity = Quantity - ?, Available = Available - ? "
+        String sql = "UPDATE Book SET Quantity = Quantity - ?, Available = Available - ? "
                 + "WHERE BookID = ? AND Quantity >= ? AND Available >= ?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, quantity);
@@ -302,14 +321,14 @@ public class DAOBook {
     private String buildBookSelect(BookFieldSupport support) {
         return "SELECT BookID, BookName, Quantity, Available, CategoryID, PublisherID"
                 + (support.isDescriptionSupported()
-                        ? ", Description"
-                        : ", CAST(NULL AS NVARCHAR(1000)) AS Description")
+                ? ", Description"
+                : ", CAST(NULL AS NVARCHAR(1000)) AS Description")
                 + (support.isShelfLocationSupported()
-                        ? ", ShelfLocation"
-                        : ", CAST(NULL AS NVARCHAR(100)) AS ShelfLocation")
+                ? ", ShelfLocation"
+                : ", CAST(NULL AS NVARCHAR(100)) AS ShelfLocation")
                 + (support.isImageUrlSupported()
-                        ? ", ImageUrl"
-                        : ", CAST(NULL AS NVARCHAR(500)) AS ImageUrl")
+                ? ", ImageUrl"
+                : ", CAST(NULL AS NVARCHAR(500)) AS ImageUrl")
                 + " FROM Book";
     }
 

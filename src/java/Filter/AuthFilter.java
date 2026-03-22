@@ -57,6 +57,12 @@ public class AuthFilter implements Filter {
             return;
         }
 
+        // Bypass WebSocket + API paths
+        if (path.startsWith("/ws/") || path.startsWith("/sse/") || path.startsWith("/api/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         if (isPublicPath(path)) {
             chain.doFilter(request, response);
             return;

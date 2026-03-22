@@ -5,3 +5,6 @@
 *.class
 *.war
 *.log
+.env
+*.env
+!.env.example

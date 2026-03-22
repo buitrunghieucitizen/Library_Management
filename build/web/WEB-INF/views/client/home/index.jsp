@@ -25,15 +25,23 @@
         <%@ include file="../_sidebar.jsp" %>
 
         <main class="content student-content">
+            <c:if test="${not empty param.msg}">
+                <div class="msg"><c:out value="${param.msg}" /></div>
+            </c:if>
+            <c:if test="${not empty param.error}">
+                <div class="error-box"><c:out value="${param.error}" /></div>
+            </c:if>
+
             <section class="hero page-hero">
                 <div class="student-hero-copy">
                     <span class="page-hero-kicker">Personal Dashboard</span>
                     <h1>Xin chào, <c:out value="${empty studentDisplayName ? 'sinh viên' : studentDisplayName}" /></h1>
-                    <p>Theo dõi nhanh tình trạng mượn sách, hạn trả, đơn mua và tiếp tục tìm sách trong cùng một màn hình làm việc.</p>
+                    <p>Theo dõi nhanh tình trạng mượn sách, hạn trả, đơn mua, giỏ mượn và đặt giữ chỗ trong cùng một màn hình làm việc.</p>
                     <div class="student-hero-badges">
                         <span class="student-chip">Đang mượn ${studentBorrowingCount}</span>
                         <span class="student-chip">Sắp đến hạn ${studentDueSoonCount}</span>
                         <span class="student-chip">Đơn mua ${studentOrderCount}</span>
+                        <span class="student-chip">Giỏ mượn ${borrowCartSize}/${maxCartSize}</span>
                     </div>
                 </div>
                 <div class="page-hero-actions">
@@ -41,6 +49,20 @@
                     <a href="${profileUrl}" class="hero-action secondary">Mở hồ sơ sinh viên</a>
                 </div>
             </section>
+
+            <c:if test="${eligibility != null}">
+                <section class="card-soft student-quick-nav">
+                    <span class="student-chip soft">Phiếu mượn ${eligibility.activeBorrows}/${maxCartSize}</span>
+                    <span class="student-chip ${eligibility.remainingSlots gt 0 ? 'success' : 'warning'}">Còn có thể mượn ${eligibility.remainingSlots}</span>
+                    <span class="student-chip neutral">Tuần này ${eligibility.borrowedThisWeek}/${eligibility.maxPerWeek}</span>
+                    <c:if test="${eligibility.hasOverdue}">
+                        <span class="student-chip warning">Có sách quá hạn</span>
+                    </c:if>
+                    <c:if test="${eligibility.hasUnpaidFine}">
+                        <span class="student-chip warning">Có nợ phạt chưa thanh toán</span>
+                    </c:if>
+                </section>
+            </c:if>
 
             <section class="student-kpi-grid">
                 <article class="student-kpi-card">
@@ -96,6 +118,11 @@
             <c:if test="${studentPendingOrderCount gt 0}">
                 <div class="student-inline-alert success">
                     Bạn có ${studentPendingOrderCount} đơn mua đang được xử lý. Có thể vào trung tâm mượn trả hoặc trang mua sách để theo dõi tiếp.
+                </div>
+            </c:if>
+            <c:if test="${eligibility != null and eligibility.hasUnpaidFine}">
+                <div class="student-inline-alert warn">
+                    Tài khoản hiện có nợ phạt chưa thanh toán. Hệ thống sẽ chặn gửi yêu cầu mượn mới hoặc đặt giữ chỗ cho tới khi xử lý xong.
                 </div>
             </c:if>
 
@@ -172,38 +199,79 @@
                                 <c:param name="id" value="${book.bookID}" />
                             </c:url>
 
-                            <a class="book-card" href="${bookDetailUrl}">
-                                <div class="book-visual">
+                            <c:set var="inCart" value="false" />
+                            <c:forEach var="cartId" items="${borrowCartIds}">
+                                <c:if test="${cartId eq book.bookID}">
+                                    <c:set var="inCart" value="true" />
+                                </c:if>
+                            </c:forEach>
+
+                            <div class="book-card">
+                                <a href="${bookDetailUrl}" style="text-decoration:none;color:inherit;display:block;">
+                                    <div class="book-visual">
+                                        <c:choose>
+                                            <c:when test="${not empty book.imageUrl}">
+                                                <img src="${book.imageUrl}" alt="${book.bookName}" class="book-image" loading="lazy" decoding="async">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span>
+                                                    <c:choose>
+                                                        <c:when test="${not empty book.bookName}">${fn:toUpperCase(fn:substring(book.bookName, 0, 1))}</c:when>
+                                                        <c:otherwise>?</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div class="book-meta">
+                                        <h3 class="book-title">${book.bookName}</h3>
+                                        <span class="book-subline">${book.quantity} tổng • ${book.available} sẵn</span>
+                                        <c:choose>
+                                            <c:when test="${book.available le 0}">
+                                                <span class="pill out">Hết sách</span>
+                                            </c:when>
+                                            <c:when test="${book.available le 2 or (book.quantity gt 0 and book.available * 100 le book.quantity * 20)}">
+                                                <span class="pill low">Sắp hết</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="pill ok">Còn sách</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </a>
+
+                                <div style="padding:0 14px 14px;display:grid;gap:8px;">
                                     <c:choose>
-                                        <c:when test="${not empty book.imageUrl}">
-                                            <img src="${book.imageUrl}" alt="${book.bookName}" class="book-image" loading="lazy" decoding="async">
+                                        <c:when test="${inCart}">
+                                            <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form" style="display:block;">
+                                                <input type="hidden" name="action" value="removeFromCart">
+                                                <input type="hidden" name="bookID" value="${book.bookID}">
+                                                <button type="submit" class="btn btn-success btn-block">Đã thêm vào giỏ mượn</button>
+                                            </form>
+                                            <div class="borrow-action-note success">Sách này đang nằm trong giỏ mượn của bạn.</div>
                                         </c:when>
-                                        <c:otherwise>
-                                            <span>
-                                                <c:choose>
-                                                    <c:when test="${not empty book.bookName}">${fn:toUpperCase(fn:substring(book.bookName, 0, 1))}</c:when>
-                                                    <c:otherwise>?</c:otherwise>
-                                                </c:choose>
-                                            </span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                                <div class="book-meta">
-                                    <h3 class="book-title">${book.bookName}</h3>
-                                    <span class="book-subline">${book.quantity} tổng • ${book.available} sẵn</span>
-                                    <c:choose>
+                                        <c:when test="${book.available gt 0 and borrowCartSize lt maxCartSize}">
+                                            <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form" style="display:block;">
+                                                <input type="hidden" name="action" value="addToCart">
+                                                <input type="hidden" name="bookID" value="${book.bookID}">
+                                                <button type="submit" class="btn btn-primary btn-block">Thêm vào giỏ mượn</button>
+                                            </form>
+                                            <div class="borrow-action-note muted">Chọn nhiều sách rồi gửi yêu cầu mượn ở trung tâm mượn trả.</div>
+                                        </c:when>
                                         <c:when test="${book.available le 0}">
-                                            <span class="pill out">Hết sách</span>
-                                        </c:when>
-                                        <c:when test="${book.available le 2 or (book.quantity gt 0 and book.available * 100 le book.quantity * 20)}">
-                                            <span class="pill low">Sắp hết</span>
+                                            <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form" style="display:block;">
+                                                <input type="hidden" name="action" value="placeHold">
+                                                <input type="hidden" name="bookID" value="${book.bookID}">
+                                                <button type="submit" class="btn btn-warning btn-block">Đặt giữ chỗ</button>
+                                            </form>
+                                            <div class="borrow-action-note muted">Hệ thống sẽ gửi email khi sách có sẵn và tới lượt bạn.</div>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="pill ok">Còn sách</span>
+                                            <span class="student-chip neutral" style="width:100%;">Giỏ mượn đã đầy</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
-                            </a>
+                            </div>
                         </c:forEach>
                     </div>
                 </c:otherwise>
@@ -283,6 +351,37 @@
                     </c:forEach>
                 </c:otherwise>
             </c:choose>
+
+            <c:if test="${not empty studentHolds}">
+                <div class="section-title" style="margin-top:18px;">Đặt giữ chỗ</div>
+                <c:forEach var="sh" items="${studentHolds}">
+                    <div class="hold-card">
+                        <h3><c:out value="${sh.bookName}" /></h3>
+                        <div class="hold-meta">
+                            Đặt lúc: ${sh.holdDate}
+                            <c:if test="${not empty sh.notifiedDate}">
+                                <br>Đã thông báo: ${sh.notifiedDate}
+                            </c:if>
+                            <c:if test="${not empty sh.expireDate}">
+                                <br>Giữ đến: ${sh.expireDate}
+                            </c:if>
+                        </div>
+                        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <span class="student-chip ${fn:toLowerCase(sh.status) eq 'notified' ? 'success' : 'warning'}">
+                                <c:choose>
+                                    <c:when test="${fn:toLowerCase(sh.status) eq 'notified'}">Sách đã sẵn sàng</c:when>
+                                    <c:otherwise>Đang chờ hàng đợi</c:otherwise>
+                                </c:choose>
+                            </span>
+                        </div>
+                        <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form" style="display:block;margin-top:10px;">
+                            <input type="hidden" name="action" value="cancelHold">
+                            <input type="hidden" name="holdID" value="${sh.holdID}">
+                            <button type="submit" class="btn btn-danger btn-block">Hủy giữ chỗ</button>
+                        </form>
+                    </div>
+                </c:forEach>
+            </c:if>
         </aside>
     </div>
 

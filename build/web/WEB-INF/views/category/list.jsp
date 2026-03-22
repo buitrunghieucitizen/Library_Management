@@ -14,12 +14,12 @@
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/categories?action=create">+ Thêm thể loại</a>
             </div>
 
-            <c:if test="${not empty param.msg}">
-                <div class="msg"><c:out value="${param.msg}" /></div>
-            </c:if>
-            <c:if test="${not empty param.error}">
-                <div class="error"><c:out value="${param.error}" /></div>
-            </c:if>
+                <c:if test="${not empty param.msg}">
+                    <div class="msg"><c:out value="${param.msg}" /></div>
+                </c:if>
+                <c:if test="${not empty param.error}">
+                    <div class="error"><c:out value="${param.error}" /></div>
+                </c:if>
 
             <table>
                 <thead>
@@ -58,23 +58,24 @@
                         <a class="page-link" href="${prevUrl}">Trang trước</a>
                     </c:if>
 
-                    <c:forEach begin="1" end="${totalPages}" var="p">
-                        <c:url var="pageUrl" value="/admin/categories">
-                            <c:param name="action" value="list"/>
-                            <c:param name="page" value="${p}"/>
-                        </c:url>
-                        <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageUrl}">${p}</a>
-                    </c:forEach>
+                        <c:forEach begin="1" end="${totalPages}" var="p">
+                            <c:url var="pageUrl" value="/admin/categories">
+                                <c:param name="action" value="list"/>
+                                <c:param name="page" value="${p}"/>
+                            </c:url>
+                            <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageUrl}">${p}</a>
+                        </c:forEach>
 
-                    <c:if test="${currentPage < totalPages}">
-                        <c:url var="nextUrl" value="/admin/categories">
-                            <c:param name="action" value="list"/>
-                            <c:param name="page" value="${currentPage + 1}"/>
-                        </c:url>
-                        <a class="page-link" href="${nextUrl}">Trang sau</a>
-                    </c:if>
-                </div>
-            </c:if>
+                        <c:if test="${currentPage < totalPages}">
+                            <c:url var="nextUrl" value="/admin/categories">
+                                <c:param name="action" value="list"/>
+                                <c:param name="page" value="${currentPage + 1}"/>
+                            </c:url>
+                            <a class="page-link" href="${nextUrl}">Trang sau</a>
+                        </c:if>
+                    </div>
+                </c:if>
+            </div>
         </div>
     </div>
 <%@ include file="../admin/layout/_admin_footer.jsp" %>

@@ -1,51 +1,54 @@
 package Model;
 
+import com.microsoft.sqlserver.jdbc.SQLServerConnectionPoolDataSource;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
+import javax.sql.DataSource;
 
 public class DBConnection {
 
-    private static final String URL = "jdbc:sqlserver://localhost:1433;"
-            + "databaseName=LibraryManager_V2;"
-            + "encrypt=false;"
-            + "trustServerCertificate=true";
-
+    private static final String HOST = "localhost";
+    private static final int PORT = 1433;
+    private static final String DB_NAME = "LibraryManager_V2";
     private static final String USER = "sa";
-    private static final String PASS = "123456";
+    private static final String PASS = "123456789";
+
+    private static final DataSource dataSource;
+
+    static {
+        SQLServerConnectionPoolDataSource ds = new SQLServerConnectionPoolDataSource();
+        ds.setServerName(HOST);
+        ds.setPortNumber(PORT);
+        ds.setDatabaseName(DB_NAME);
+        ds.setUser(USER);
+        ds.setPassword(PASS);
+        ds.setEncrypt(false);
+        ds.setTrustServerCertificate(true);
+        dataSource = ds;
+    }
 
     public static Connection getConnection() {
         try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            return DriverManager.getConnection(URL, USER, PASS);
-        } catch (ClassNotFoundException e) {
-            System.out.println("ERROR: SQL Server JDBC Driver not found!");
-            System.out.println("Please add sqljdbc42.jar to Libraries.");
-            e.printStackTrace();
+            return dataSource.getConnection();
         } catch (SQLException e) {
-            System.out.println("ERROR: Cannot connect to database!");
-            System.out.println("URL: " + URL);
+            System.err.println("ERROR: Cannot connect to database!");
             e.printStackTrace();
         }
         return null;
     }
 
-    // =============================
-    // TEST CONNECTION
-    // =============================
     public static void main(String[] args) {
         Connection con = getConnection();
         if (con != null) {
             try {
-                System.out.println("=== KET NOI THANH CONG! ===");
+                System.out.println("=== KẾT NỐI THÀNH CÔNG! ===");
                 System.out.println("Database: " + con.getCatalog());
-                System.out.println("AutoCommit: " + con.getAutoCommit());
                 con.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("=== KET NOI THAT BAI! ===");
+            System.out.println("=== KẾT NỐI THẤT BẠI! ===");
         }
     }
 }

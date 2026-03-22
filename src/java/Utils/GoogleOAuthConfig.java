@@ -2,29 +2,10 @@ package Utils;
 
 public final class GoogleOAuthConfig {
 
-    private static final String DEFAULT_CLIENT_ID
-            = "";
-
-    private static final String DEFAULT_CLIENT_SECRET
-            = "";
-
-    private static final String DEFAULT_REDIRECT_URI
-            = "http://localhost:8080/LibraryManager/LoginURL";
-
-    public static final String CLIENT_ID = readSetting(
-            "GOOGLE_CLIENT_ID",
-            DEFAULT_CLIENT_ID
-    );
-
-    public static final String CLIENT_SECRET = readSetting(
-            "GOOGLE_CLIENT_SECRET",
-            DEFAULT_CLIENT_SECRET
-    );
-
-    public static final String REDIRECT_URI = readSetting(
-            "GOOGLE_REDIRECT_URI",
-            DEFAULT_REDIRECT_URI
-    );
+    public static final String CLIENT_ID = EnvLoader.get("GOOGLE_CLIENT_ID", "");
+    public static final String CLIENT_SECRET = EnvLoader.get("GOOGLE_CLIENT_SECRET", "");
+    public static final String REDIRECT_URI = EnvLoader.get("GOOGLE_REDIRECT_URI",
+            "http://localhost:8080/libraryManager/LoginURL");
 
     public static final String GRANT_TYPE = "authorization_code";
     public static final String TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
@@ -36,21 +17,7 @@ public final class GoogleOAuthConfig {
     }
 
     public static boolean isConfigured() {
-        return !isBlank(CLIENT_ID) && !isBlank(CLIENT_SECRET) && !isBlank(REDIRECT_URI);
-    }
-
-    private static String readSetting(String key, String fallback) {
-        String envValue = System.getenv(key);
-        if (!isBlank(envValue)) {
-            return envValue.trim();
-        }
-
-        String propertyValue = System.getProperty(key);
-        if (!isBlank(propertyValue)) {
-            return propertyValue.trim();
-        }
-
-        return fallback;
+        return !isBlank(CLIENT_ID) && !isBlank(CLIENT_SECRET);
     }
 
     private static boolean isBlank(String value) {

@@ -44,9 +44,7 @@ public class BorrowController extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + BorrowHelper.ADMIN_BORROWS_PATH + "?action=list");
             return;
         }
-
         String action = normalizeAction(req.getParameter("action"));
-
         try {
             switch (action) {
                 case "create":
@@ -79,20 +77,46 @@ public class BorrowController extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + BorrowHelper.ADMIN_BORROWS_PATH + "?action=list");
             return;
         }
-
         String action = normalizeAction(req.getParameter("action"));
-
         try {
             switch (action) {
+                // Admin
                 case "create":
                     adminHandler.createBorrow(req, resp);
                     break;
                 case "return":
                     adminHandler.returnBorrow(req, resp);
                     break;
+                case "approve":
+                    adminHandler.approveBorrow(req, resp);
+                    break;
+                case "reject":
+                    adminHandler.rejectBorrow(req, resp);
+                    break;
+
+                // Student borrow cart
+                case "addToCart":
+                    studentHandler.addToBorrowCart(req, resp);
+                    break;
+                case "removeFromCart":
+                    studentHandler.removeFromBorrowCart(req, resp);
+                    break;
+                case "submitBorrow":
+                    studentHandler.submitBorrowRequest(req, resp);
+                    break;
                 case "borrow":
                     studentHandler.borrowAsStudent(req, resp);
                     break;
+
+                // Student hold
+                case "placeHold":
+                    studentHandler.placeHold(req, resp);
+                    break;
+                case "cancelHold":
+                    studentHandler.cancelHold(req, resp);
+                    break;
+
+                // Student buy
                 case "buy":
                     studentHandler.buyBookAsStudent(req, resp);
                     break;

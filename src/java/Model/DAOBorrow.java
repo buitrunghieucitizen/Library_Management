@@ -118,8 +118,7 @@ public class DAOBorrow {
 
     public List<Borrow> getActiveByStudentId(int studentId) throws SQLException {
         String sql = "SELECT BorrowID, StudentID, StaffID, BorrowDate, DueDate, Status, ReturnDate "
-                + "FROM Borrow "
-                + "WHERE StudentID = ? AND Status IN ('Borrowing', 'Overdue') "
+                + "FROM Borrow WHERE StudentID = ? AND Status IN ('Borrowing', 'Overdue') "
                 + "ORDER BY DueDate ASC, BorrowID DESC";
         List<Borrow> list = new ArrayList<>();
         Connection con = DBConnection.getConnection();
@@ -142,12 +141,16 @@ public class DAOBorrow {
         return list;
     }
 
-    public int insert(Connection con, int studentId, int staffId, LocalDate borrowDate, LocalDate dueDate, String status)
-            throws SQLException {
+    public int insert(Connection con, int studentId, int staffId, LocalDate borrowDate,
+            LocalDate dueDate, String status) throws SQLException {
         String sql = "INSERT INTO Borrow(StudentID, StaffID, BorrowDate, DueDate, Status) VALUES(?,?,?,?,?)";
         try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, studentId);
-            ps.setInt(2, staffId);
+            if (staffId > 0) {
+                ps.setInt(2, staffId);
+            } else {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            }
             ps.setDate(3, Date.valueOf(borrowDate));
             ps.setDate(4, Date.valueOf(dueDate));
             ps.setString(5, status);
@@ -224,7 +227,6 @@ public class DAOBorrow {
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
         }
-
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, borrowId);
             ps.setInt(2, studentId);
@@ -241,19 +243,22 @@ public class DAOBorrow {
     }
 
     public List<BorrowRow> getBorrowRowsByStudent(Integer studentId) throws SQLException {
-        String sql = "SELECT b.BorrowID, s.StudentName, st.StaffName, "
+        String sql = "SELECT b.BorrowID, stu.StaffName AS StudentName, "
+                + "ISNULL(approver.StaffName, '—') AS StaffName, "
                 + "CONVERT(varchar(10), b.BorrowDate, 23) AS BorrowDate, "
                 + "CONVERT(varchar(10), b.DueDate, 23) AS DueDate, "
                 + "b.Status, "
                 + "CONVERT(varchar(10), b.ReturnDate, 23) AS ReturnDate, "
-                + "ISNULL(STRING_AGG(CASE WHEN bi.BookID IS NULL THEN NULL ELSE CONCAT(bo.BookName, ' (x', bi.Quantity, ')') END, ', '), '') AS Items "
+                + "ISNULL(STRING_AGG(CASE WHEN bi.BookID IS NULL THEN NULL "
+                + "ELSE CONCAT(bo.BookName, ' (x', bi.Quantity, ')') END, ', '), '') AS Items "
                 + "FROM Borrow b "
-                + "JOIN Student s ON s.StudentID = b.StudentID "
-                + "JOIN Staff st ON st.StaffID = b.StaffID "
+                + "JOIN Staff stu ON stu.StaffID = b.StudentID "
+                + "LEFT JOIN Staff approver ON approver.StaffID = b.StaffID "
                 + "LEFT JOIN BorrowItem bi ON bi.BorrowID = b.BorrowID "
                 + "LEFT JOIN Book bo ON bo.BookID = bi.BookID "
                 + (studentId != null ? "WHERE b.StudentID = ? " : "")
-                + "GROUP BY b.BorrowID, s.StudentName, st.StaffName, b.BorrowDate, b.DueDate, b.Status, b.ReturnDate "
+                + "GROUP BY b.BorrowID, stu.StaffName, approver.StaffName, "
+                + "b.BorrowDate, b.DueDate, b.Status, b.ReturnDate "
                 + "ORDER BY b.BorrowID DESC";
 
         List<BorrowRow> rows = new ArrayList<>();
@@ -268,14 +273,10 @@ public class DAOBorrow {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     rows.add(new BorrowRow(
-                            rs.getInt("BorrowID"),
-                            rs.getString("StudentName"),
-                            rs.getString("StaffName"),
-                            rs.getString("BorrowDate"),
-                            rs.getString("DueDate"),
-                            rs.getString("Status"),
-                            rs.getString("ReturnDate"),
-                            rs.getString("Items")));
+                            rs.getInt("BorrowID"), rs.getString("StudentName"),
+                            rs.getString("StaffName"), rs.getString("BorrowDate"),
+                            rs.getString("DueDate"), rs.getString("Status"),
+                            rs.getString("ReturnDate"), rs.getString("Items")));
                 }
             }
         } finally {
@@ -284,4 +285,106 @@ public class DAOBorrow {
         return rows;
     }
 
+    // ========== NEW METHODS FOR PENDING BORROW FLOW ==========
+    /**
+     * Count borrows by student and specific status.
+     */
+    public int countByStudentAndStatus(int studentId, String status) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Borrow WHERE StudentID = ? AND Status = ?";
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, studentId);
+            ps.setString(2, status);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } finally {
+            con.close();
+        }
+        return 0;
+    }
+
+    /**
+     * Insert a PENDING borrow (no stock deduction yet).
+     */
+    public int insertPending(Connection con, int studentId, int staffId,
+            LocalDate borrowDate, LocalDate dueDate) throws SQLException {
+        return insert(con, studentId, staffId, borrowDate, dueDate, "Pending");
+    }
+
+    /**
+     * Update borrow status (used for approve/reject).
+     */
+    public int updateStatus(Connection con, int borrowId, String newStatus) throws SQLException {
+        String sql = "UPDATE Borrow SET Status = ? WHERE BorrowID = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, newStatus);
+            ps.setInt(2, borrowId);
+            return ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Get all pending borrows for admin view.
+     */
+    public List<BorrowRow> getPendingBorrowRows() throws SQLException {
+        String sql = "SELECT b.BorrowID, stu.StaffName AS StudentName, "
+                + "ISNULL(approver.StaffName, '—') AS StaffName, "
+                + "CONVERT(varchar(10), b.BorrowDate, 23) AS BorrowDate, "
+                + "CONVERT(varchar(10), b.DueDate, 23) AS DueDate, "
+                + "b.Status, "
+                + "CONVERT(varchar(10), b.ReturnDate, 23) AS ReturnDate, "
+                + "ISNULL(STRING_AGG(CASE WHEN bi.BookID IS NULL THEN NULL "
+                + "ELSE CONCAT(bo.BookName, ' (x', bi.Quantity, ')') END, ', '), '') AS Items "
+                + "FROM Borrow b "
+                + "JOIN Staff stu ON stu.StaffID = b.StudentID "
+                + "LEFT JOIN Staff approver ON approver.StaffID = b.StaffID "
+                + "LEFT JOIN BorrowItem bi ON bi.BorrowID = b.BorrowID "
+                + "LEFT JOIN Book bo ON bo.BookID = bi.BookID "
+                + "WHERE b.Status = 'Pending' "
+                + "GROUP BY b.BorrowID, stu.StaffName, approver.StaffName, "
+                + "b.BorrowDate, b.DueDate, b.Status, b.ReturnDate "
+                + "ORDER BY b.BorrowID DESC";
+        List<BorrowRow> rows = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                rows.add(new BorrowRow(
+                        rs.getInt("BorrowID"), rs.getString("StudentName"),
+                        rs.getString("StaffName"), rs.getString("BorrowDate"),
+                        rs.getString("DueDate"), rs.getString("Status"),
+                        rs.getString("ReturnDate"), rs.getString("Items")));
+            }
+        } finally {
+            con.close();
+        }
+        return rows;
+    }
+
+    /**
+     * Count pending borrows (for admin badge/notification).
+     */
+    public int countPending() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Borrow WHERE Status = 'Pending'";
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } finally {
+            con.close();
+        }
+        return 0;
+    }
 }
