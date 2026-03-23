@@ -143,14 +143,14 @@ public class DAOBorrow {
 
     public int insert(Connection con, int studentId, int staffId, LocalDate borrowDate,
             LocalDate dueDate, String status) throws SQLException {
+        if (staffId <= 0) {
+            throw new SQLException("StaffID khong hop le khi tao phieu muon.");
+        }
+
         String sql = "INSERT INTO Borrow(StudentID, StaffID, BorrowDate, DueDate, Status) VALUES(?,?,?,?,?)";
         try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, studentId);
-            if (staffId > 0) {
-                ps.setInt(2, staffId);
-            } else {
-                ps.setNull(2, java.sql.Types.INTEGER);
-            }
+            ps.setInt(2, staffId);
             ps.setDate(3, Date.valueOf(borrowDate));
             ps.setDate(4, Date.valueOf(dueDate));
             ps.setString(5, status);
@@ -244,7 +244,8 @@ public class DAOBorrow {
 
     public List<BorrowRow> getBorrowRowsByStudent(Integer studentId) throws SQLException {
         String sql = "SELECT b.BorrowID, stu.StaffName AS StudentName, "
-                + "ISNULL(approver.StaffName, '—') AS StaffName, "
+                + "CASE WHEN b.Status = 'Pending' THEN 'Chua xu ly' "
+                + "ELSE ISNULL(approver.StaffName, '-') END AS StaffName, "
                 + "CONVERT(varchar(10), b.BorrowDate, 23) AS BorrowDate, "
                 + "CONVERT(varchar(10), b.DueDate, 23) AS DueDate, "
                 + "b.Status, "
@@ -285,10 +286,6 @@ public class DAOBorrow {
         return rows;
     }
 
-    // ========== NEW METHODS FOR PENDING BORROW FLOW ==========
-    /**
-     * Count borrows by student and specific status.
-     */
     public int countByStudentAndStatus(int studentId, String status) throws SQLException {
         String sql = "SELECT COUNT(*) FROM Borrow WHERE StudentID = ? AND Status = ?";
         Connection con = DBConnection.getConnection();
@@ -309,32 +306,24 @@ public class DAOBorrow {
         return 0;
     }
 
-    /**
-     * Insert a PENDING borrow (no stock deduction yet).
-     */
     public int insertPending(Connection con, int studentId, int staffId,
             LocalDate borrowDate, LocalDate dueDate) throws SQLException {
         return insert(con, studentId, staffId, borrowDate, dueDate, "Pending");
     }
 
-    /**
-     * Update borrow status (used for approve/reject).
-     */
-    public int updateStatus(Connection con, int borrowId, String newStatus) throws SQLException {
-        String sql = "UPDATE Borrow SET Status = ? WHERE BorrowID = ?";
+    public int updateStatus(Connection con, int borrowId, String newStatus, int staffId) throws SQLException {
+        String sql = "UPDATE Borrow SET Status = ?, StaffID = ? WHERE BorrowID = ?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, newStatus);
-            ps.setInt(2, borrowId);
+            ps.setInt(2, staffId);
+            ps.setInt(3, borrowId);
             return ps.executeUpdate();
         }
     }
 
-    /**
-     * Get all pending borrows for admin view.
-     */
     public List<BorrowRow> getPendingBorrowRows() throws SQLException {
         String sql = "SELECT b.BorrowID, stu.StaffName AS StudentName, "
-                + "ISNULL(approver.StaffName, '—') AS StaffName, "
+                + "'Chua xu ly' AS StaffName, "
                 + "CONVERT(varchar(10), b.BorrowDate, 23) AS BorrowDate, "
                 + "CONVERT(varchar(10), b.DueDate, 23) AS DueDate, "
                 + "b.Status, "
@@ -369,9 +358,6 @@ public class DAOBorrow {
         return rows;
     }
 
-    /**
-     * Count pending borrows (for admin badge/notification).
-     */
     public int countPending() throws SQLException {
         String sql = "SELECT COUNT(*) FROM Borrow WHERE Status = 'Pending'";
         Connection con = DBConnection.getConnection();

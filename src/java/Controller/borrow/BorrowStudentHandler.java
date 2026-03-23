@@ -263,7 +263,7 @@ public class BorrowStudentHandler {
         try {
             int size = cart.size();
             int borrowId = transactionService.createPendingBorrow(
-                    studentId, 0, cart, borrowDate, dueDate);
+                    studentId, staff.getStaffID(), cart, borrowDate, dueDate);
             helper.clearBorrowCart(req);
             NotificationBroadcaster.notifyAdminNewBorrow(borrowId, staff.getStaffName(), size);
             helper.redirectToHome(req, resp, "msg",

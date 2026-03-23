@@ -51,6 +51,9 @@ public class BorrowTransactionService {
         if (bookIds == null || bookIds.isEmpty()) {
             throw new SQLException("Gio muon trong, khong co sach de muon.");
         }
+        if (staffId <= 0) {
+            throw new SQLException("Khong xac dinh duoc tai khoan gui yeu cau muon.");
+        }
 
         Connection con = DBConnection.getConnection();
         if (con == null) {
@@ -69,7 +72,7 @@ public class BorrowTransactionService {
             }
 
             // Create borrow record with Pending status
-            int borrowId = daoBorrow.insertPending(con, studentId, 0, borrowDate, dueDate);
+            int borrowId = daoBorrow.insertPending(con, studentId, staffId, borrowDate, dueDate);
 
             // Insert each book as a BorrowItem (qty=1 per book)
             for (int bookId : bookIds) {
@@ -97,6 +100,9 @@ public class BorrowTransactionService {
      * decrease Available.
      */
     public void approveBorrow(int borrowId, int approverStaffId) throws SQLException {
+        if (approverStaffId <= 0) {
+            throw new SQLException("Khong xac dinh duoc nhan vien duyet phieu muon.");
+        }
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
@@ -127,7 +133,9 @@ public class BorrowTransactionService {
             }
 
             // Update status to Borrowing
-            daoBorrow.updateStatus(con, borrowId, "Borrowing");
+            if (daoBorrow.updateStatus(con, borrowId, "Borrowing", approverStaffId) == 0) {
+                throw new SQLException("Khong the cap nhat trang thai phieu muon.");
+            }
 
             // Auto fulfill hold nếu student có hold cho sách này
             DAOBookHold daoBookHold = new DAOBookHold();
@@ -146,15 +154,6 @@ public class BorrowTransactionService {
                 }
             }
 
-            if (approverStaffId > 0) {
-                String sqlStaff = "UPDATE Borrow SET StaffID = ? WHERE BorrowID = ? AND StaffID IS NULL";
-                try (PreparedStatement ps2 = con.prepareStatement(sqlStaff)) {
-                    ps2.setInt(1, approverStaffId);
-                    ps2.setInt(2, borrowId);
-                    ps2.executeUpdate();
-                }
-            }
-
             con.commit();
         } catch (SQLException e) {
             con.rollback();
@@ -169,7 +168,10 @@ public class BorrowTransactionService {
      * ADMIN: Reject a pending borrow request. No stock changes needed since we
      * never reserved.
      */
-    public void rejectBorrow(int borrowId) throws SQLException {
+    public void rejectBorrow(int borrowId, int reviewerStaffId) throws SQLException {
+        if (reviewerStaffId <= 0) {
+            throw new SQLException("Khong xac dinh duoc nhan vien xu ly phieu muon.");
+        }
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");
@@ -183,7 +185,9 @@ public class BorrowTransactionService {
                 throw new SQLException("Phieu muon nay khong con o trang thai Pending (hien tai: " + status + ").");
             }
 
-            daoBorrow.updateStatus(con, borrowId, "Rejected");
+            if (daoBorrow.updateStatus(con, borrowId, "Rejected", reviewerStaffId) == 0) {
+                throw new SQLException("Khong the cap nhat trang thai phieu muon.");
+            }
 
             con.commit();
         } catch (SQLException e) {

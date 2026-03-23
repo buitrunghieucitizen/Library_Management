@@ -151,7 +151,11 @@ public class BorrowAdminHandler {
 
         try {
             Staff adminStaff = RoleUtils.getLoggedStaff(req);
-            transactionService.approveBorrow(borrowId, adminStaff != null ? adminStaff.getStaffID() : 0);
+            if (adminStaff == null) {
+                resp.sendRedirect(req.getContextPath() + "/LoginURL");
+                return;
+            }
+            transactionService.approveBorrow(borrowId, adminStaff.getStaffID());
 
             // WebSocket thông báo student
             if (borrow != null) {
@@ -192,7 +196,12 @@ public class BorrowAdminHandler {
         Borrow borrow = daoBorrow.getById(borrowId);
 
         try {
-            transactionService.rejectBorrow(borrowId);
+            Staff adminStaff = RoleUtils.getLoggedStaff(req);
+            if (adminStaff == null) {
+                resp.sendRedirect(req.getContextPath() + "/LoginURL");
+                return;
+            }
+            transactionService.rejectBorrow(borrowId, adminStaff.getStaffID());
 
             // WebSocket thông báo student
             if (borrow != null) {

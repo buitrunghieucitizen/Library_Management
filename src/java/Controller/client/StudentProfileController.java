@@ -1,9 +1,15 @@
 package Controller.client;
 
+import Controller.borrow.BorrowHelper;
+import Controller.borrow.BorrowValidator;
+import Entities.Book;
 import Entities.Staff;
 import Entities.Student;
+import Model.DAOBook;
+import Model.DAOBorrow;
 import Model.DAOStaff;
 import Model.DAOStudent;
+import Model.DAOFine;
 import Utils.PasswordResetUtils;
 import Utils.RoleUtils;
 import Utils.StudentContextUtils;
@@ -17,7 +23,10 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @WebServlet(name = "StudentProfileController", urlPatterns = {"/profile"})
 public class StudentProfileController extends HttpServlet {
@@ -27,6 +36,9 @@ public class StudentProfileController extends HttpServlet {
 
     private final DAOStudent daoStudent = new DAOStudent();
     private final DAOStaff daoStaff = new DAOStaff();
+    private final DAOBook daoBook = new DAOBook();
+    private final BorrowHelper borrowHelper = new BorrowHelper(daoStudent);
+    private final BorrowValidator borrowValidator = new BorrowValidator(new DAOBorrow(), new DAOFine());
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -208,6 +220,31 @@ public class StudentProfileController extends HttpServlet {
         request.setAttribute("profileSupport", profileSupport);
         request.setAttribute("profileAccountStatusLabel", resolveAccountStatus(profileStudent));
         request.setAttribute("profileCreatedAtLabel", resolveCreatedAt(profileStudent));
+        attachStudentHeaderContext(request, profileStudent);
+    }
+
+    private void attachStudentHeaderContext(HttpServletRequest request, Student profileStudent) throws SQLException {
+        List<Integer> borrowCartIds = borrowHelper.getOrCreateBorrowCart(request);
+        Map<Integer, Book> borrowCartBookMap = new HashMap<>();
+        for (Integer cartBookId : borrowCartIds) {
+            if (cartBookId == null) {
+                continue;
+            }
+            Book cartBook = daoBook.getById(cartBookId);
+            if (cartBook != null) {
+                borrowCartBookMap.put(cartBookId, cartBook);
+            }
+        }
+
+        request.setAttribute("borrowCart", borrowHelper.getBorrowCartBooks(request, borrowCartBookMap));
+        request.setAttribute("borrowCartSize", borrowHelper.getBorrowCartSize(request));
+        request.setAttribute("borrowCartIds", borrowCartIds);
+        request.setAttribute("maxCartSize", BorrowValidator.MAX_CART_SIZE);
+
+        if (profileStudent != null) {
+            request.setAttribute("studentId", profileStudent.getStudentID());
+            request.setAttribute("eligibility", borrowValidator.getEligibility(profileStudent.getStudentID()));
+        }
     }
 
     private void forwardWithErrors(HttpServletRequest request, HttpServletResponse response,

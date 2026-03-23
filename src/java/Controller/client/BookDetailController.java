@@ -10,7 +10,9 @@ import Entities.Staff;
 import Model.DAOAuthor;
 import Model.DAOBook;
 import Model.DAOBookFile;
+import Model.DAOBorrow;
 import Model.DAOCategory;
+import Model.DAOFine;
 import Model.DAOPublisher;
 import Model.DAOStudent;
 import Utils.RoleUtils;
@@ -43,6 +45,7 @@ public class BookDetailController extends HttpServlet {
     private final DAOPublisher daoPublisher = new DAOPublisher();
     private final DAOAuthor daoAuthor = new DAOAuthor();
     private final DAOBookFile daoBookFile = new DAOBookFile();
+    private final BorrowValidator borrowValidator = new BorrowValidator(new DAOBorrow(), new DAOFine());
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -91,12 +94,26 @@ public class BookDetailController extends HttpServlet {
                 Integer studentId = borrowHelper.resolveStudentIdForStaff(staff);
                 if (studentId != null) {
                     request.setAttribute("studentId", studentId);
+                    request.setAttribute("eligibility", borrowValidator.getEligibility(studentId));
                 }
+                List<Integer> borrowCartIds = borrowHelper.getOrCreateBorrowCart(request);
+                Map<Integer, Book> cartBookMap = new HashMap<>();
+                cartBookMap.put(book.getBookID(), book);
+                for (Integer cartBookId : borrowCartIds) {
+                    if (cartBookId == null || cartBookMap.containsKey(cartBookId)) {
+                        continue;
+                    }
+                    Book cartBook = daoBook.getById(cartBookId);
+                    if (cartBook != null) {
+                        cartBookMap.put(cartBookId, cartBook);
+                    }
+                }
+
                 // Cart data cho header
-                request.setAttribute("borrowCart", borrowHelper.getBorrowCartBooks(request, java.util.Map.of()));
+                request.setAttribute("borrowCart", borrowHelper.getBorrowCartBooks(request, cartBookMap));
                 request.setAttribute("borrowCartSize", borrowHelper.getBorrowCartSize(request));
                 request.setAttribute("maxCartSize", BorrowValidator.MAX_CART_SIZE);
-                request.setAttribute("borrowCartIds", borrowHelper.getOrCreateBorrowCart(request));
+                request.setAttribute("borrowCartIds", borrowCartIds);
             }
             request.setAttribute("bookFieldSupport", fieldSupport);
             request.setAttribute("availabilityStatusKey", resolveAvailabilityStatusKey(book));
