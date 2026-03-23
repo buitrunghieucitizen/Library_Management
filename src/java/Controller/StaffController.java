@@ -6,7 +6,10 @@ import Entities.StaffRole;
 import Model.DAORole;
 import Model.DAOStaff;
 import Model.DAOStaffRole;
+import Utils.PaginationUtils;
 import Utils.RoleUtils;
+import ViewModel.PageSlice;
+import ViewModel.StaffListRow;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -25,6 +28,7 @@ import java.util.Set;
 public class StaffController extends HttpServlet {
 
     private static final String STAFFS_PATH = "/admin/staffs";
+    private static final int PAGE_SIZE = 10;
 
     private final DAOStaff daoStaff = new DAOStaff();
     private final DAOStaffRole daoStaffRole = new DAOStaffRole();
@@ -95,6 +99,7 @@ public class StaffController extends HttpServlet {
     }
 
     private void showList(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
+        int page = PaginationUtils.parsePage(req.getParameter("page"), 1);
         List<Staff> staffs = daoStaff.getAll();
         List<Role> roles = daoRole.getAll();
         List<StaffListRow> rows = new ArrayList<>();
@@ -104,7 +109,11 @@ public class StaffController extends HttpServlet {
             rows.add(new StaffListRow(staff, joinRoleNames(staffRoles, roles)));
         }
 
-        req.setAttribute("staffRows", rows);
+        PageSlice<StaffListRow> pageSlice = PaginationUtils.paginate(rows, page, PAGE_SIZE);
+        req.setAttribute("staffRows", pageSlice.getItems());
+        req.setAttribute("currentPage", pageSlice.getPage());
+        req.setAttribute("totalPages", pageSlice.getTotalPages());
+        req.setAttribute("totalItems", pageSlice.getTotalItems());
         req.getRequestDispatcher("/WEB-INF/views/staff/list.jsp").forward(req, resp);
     }
 
@@ -245,24 +254,6 @@ public class StaffController extends HttpServlet {
             return "No role";
         }
         return String.join(", ", names);
-    }
-
-    public static class StaffListRow {
-        private final Staff staff;
-        private final String roleNames;
-
-        public StaffListRow(Staff staff, String roleNames) {
-            this.staff = staff;
-            this.roleNames = roleNames;
-        }
-
-        public Staff getStaff() {
-            return staff;
-        }
-
-        public String getRoleNames() {
-            return roleNames;
-        }
     }
 }
 

@@ -1,4 +1,5 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -7,7 +8,10 @@
     
 </head>
 <body>
-    <div class="navbar"><h1>Quản lý thư viện</h1><a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a><a href="${pageContext.request.contextPath}/admin/students">Sinh viên</a></div>
+    <c:set var="activeTab" value="students" />
+    <%@ include file="../admin/_header.jsp" %>
+
+
     <div class="container"><div class="card">
         <h2>Sửa sinh viên</h2>
         <form method="POST" action="${pageContext.request.contextPath}/admin/students?action=edit">

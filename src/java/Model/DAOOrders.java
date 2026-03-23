@@ -1,6 +1,7 @@
 package Model;
 
 import Entities.Orders;
+import ViewModel.OrderRow;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -152,49 +153,14 @@ public class DAOOrders {
     }
 
     public List<OrderRow> getOrderRows() throws SQLException {
-        String sql = "SELECT o.OrderID, s.StudentName, "
-                // 1. Đã cập nhật thêm trạng thái Sẵn sàng và Hàng chờ
-                + "CASE WHEN o.Status IN ('Pending', N'Sẵn sàng', N'Hàng chờ') THEN N'Chưa xử lý' ELSE st.StaffName END AS StaffName, "
-                + "CONVERT(varchar(10), o.OrderDate, 23) AS OrderDate, "
-                + "o.TotalAmount, o.Status, "
-                + "ISNULL(STRING_AGG(CONCAT(b.BookName, ' (x', od.Quantity, ', ', CONVERT(varchar(20), od.UnitPrice), ')'), ', '), '') AS Items "
-                + "FROM Orders o "
-                + "JOIN Student s ON s.StudentID = o.StudentID "
-                // 2. ĐÃ SỬA THÀNH LEFT JOIN ĐỂ KHÔNG BỊ MẤT ĐƠN HÀNG
-                + "LEFT JOIN Staff st ON st.StaffID = o.StaffID "
-                + "LEFT JOIN OrderDetail od ON od.OrderID = o.OrderID "
-                + "LEFT JOIN Book b ON b.BookID = od.BookID "
-                + "GROUP BY o.OrderID, s.StudentName, st.StaffName, o.OrderDate, o.TotalAmount, o.Status "
-                + "ORDER BY o.OrderID DESC";
-
-        List<OrderRow> rows = new ArrayList<>();
-        Connection con = DBConnection.getConnection();
-        if (con == null) {
-            throw new SQLException("Cannot connect to database!");
-        }
-
-        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                rows.add(new OrderRow(
-                        rs.getInt("OrderID"),
-                        rs.getString("StudentName"),
-                        rs.getString("StaffName"),
-                        rs.getString("OrderDate"),
-                        rs.getDouble("TotalAmount"),
-                        rs.getString("Status"),
-                        rs.getString("Items")));
-            }
-        } finally {
-            con.close();
-        }
-
-        return rows;
+        return getOrderRows(null, null, null);
     }
 
-    // 1. Hàm lấy danh sách đơn mua của riêng 1 sinh viên
-    public List<OrderRow> getOrderRowsByStudent(int studentId) throws SQLException {
-        String sql = "SELECT o.OrderID, s.StudentName, "
-                + "CASE WHEN o.Status IN ('Pending', N'Hàng chờ', N'Sẵn sàng') THEN N'Chưa xử lý' ELSE st.StaffName END AS StaffName, "
+    public List<OrderRow> getOrderRows(Integer studentId, String keyword, String status) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+                "SELECT o.OrderID, s.StudentName, "
+                + "CASE WHEN o.Status IN ('Pending', N'Sẵn sàng', N'Hàng chờ') "
+                + "THEN N'Chua xu ly' ELSE st.StaffName END AS StaffName, "
                 + "CONVERT(varchar(10), o.OrderDate, 23) AS OrderDate, "
                 + "o.TotalAmount, o.Status, "
                 + "ISNULL(STRING_AGG(CONCAT(b.BookName, ' (x', od.Quantity, ', ', CONVERT(varchar(20), od.UnitPrice), ')'), ', '), '') AS Items "
@@ -203,9 +169,39 @@ public class DAOOrders {
                 + "LEFT JOIN Staff st ON st.StaffID = o.StaffID "
                 + "LEFT JOIN OrderDetail od ON od.OrderID = o.OrderID "
                 + "LEFT JOIN Book b ON b.BookID = od.BookID "
-                + "WHERE o.StudentID = ? "
-                + "GROUP BY o.OrderID, s.StudentName, st.StaffName, o.OrderDate, o.TotalAmount, o.Status "
-                + "ORDER BY o.OrderID DESC";
+                + "WHERE 1=1 ");
+
+        List<Object> params = new ArrayList<>();
+
+        if (studentId != null) {
+            sql.append("AND o.StudentID = ? ");
+            params.add(studentId);
+        }
+
+        String normalizedStatus = status == null ? "" : status.trim();
+        if (!normalizedStatus.isEmpty() && !"ALL".equalsIgnoreCase(normalizedStatus)) {
+            sql.append("AND o.Status = ? ");
+            params.add(normalizedStatus);
+        }
+
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        if (!normalizedKeyword.isEmpty()) {
+            sql.append("AND (CAST(o.OrderID AS varchar(20)) LIKE ? "
+                    + "OR s.StudentName LIKE ? "
+                    + "OR EXISTS ("
+                    + "    SELECT 1 "
+                    + "    FROM OrderDetail od2 "
+                    + "    JOIN Book b2 ON b2.BookID = od2.BookID "
+                    + "    WHERE od2.OrderID = o.OrderID AND b2.BookName LIKE ?"
+                    + ")) ");
+            String likeValue = "%" + normalizedKeyword + "%";
+            params.add(likeValue);
+            params.add(likeValue);
+            params.add(likeValue);
+        }
+
+        sql.append("GROUP BY o.OrderID, s.StudentName, st.StaffName, o.OrderDate, o.TotalAmount, o.Status ")
+                .append("ORDER BY o.OrderID DESC");
 
         List<OrderRow> rows = new ArrayList<>();
         Connection con = DBConnection.getConnection();
@@ -213,8 +209,10 @@ public class DAOOrders {
             throw new SQLException("Cannot connect to database!");
         }
 
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, studentId);
+        try (PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     rows.add(new OrderRow(
@@ -224,85 +222,38 @@ public class DAOOrders {
                             rs.getString("OrderDate"),
                             rs.getDouble("TotalAmount"),
                             rs.getString("Status"),
-                            rs.getString("Items")
-                    ));
+                            rs.getString("Items")));
                 }
             }
         } finally {
             con.close();
         }
+
         return rows;
     }
 
-    // 2. Hàm tạo đơn hàng với Trạng thái tùy chỉnh
+    public List<OrderRow> getOrderRowsByStudent(int studentId) throws SQLException {
+        return getOrderRows(studentId, null, null);
+    }
+
     public int insertOrderCustomStatus(Connection con, int studentId, int staffId, double totalAmount, String status) throws SQLException {
         String sql = "INSERT INTO Orders(StudentID, StaffID, OrderDate, TotalAmount, Status) VALUES(?,?,GETDATE(),?,?)";
         try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, studentId);
             ps.setInt(2, staffId);
             ps.setDouble(3, totalAmount);
-            ps.setString(4, status); // Chèn N'Sẵn sàng' hoặc N'Hàng chờ'
+            ps.setString(4, status);
 
             int affected = ps.executeUpdate();
             if (affected == 0) {
-                throw new SQLException("Không thể tạo đơn hàng.");
+                throw new SQLException("Khong the tao don hang.");
             }
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
-                    return keys.getInt(1); // Trả về OrderID vừa được IDENTITY(1,1) sinh ra
+                    return keys.getInt(1);
                 }
             }
         }
-        throw new SQLException("Không lấy được OrderID mới.");
-    }
-
-    public static class OrderRow {
-
-        private final int orderID;
-        private final String studentName;
-        private final String staffName;
-        private final String orderDate;
-        private final double totalAmount;
-        private final String status;
-        private final String items;
-
-        public OrderRow(int orderID, String studentName, String staffName, String orderDate,
-                double totalAmount, String status, String items) {
-            this.orderID = orderID;
-            this.studentName = studentName;
-            this.staffName = staffName;
-            this.orderDate = orderDate;
-            this.totalAmount = totalAmount;
-            this.status = status;
-            this.items = items;
-        }
-
-        public int getOrderID() {
-            return orderID;
-        }
-
-        public String getStudentName() {
-            return studentName;
-        }
-
-        public String getStaffName() {
-            return staffName;
-        }
-
-        public String getOrderDate() {
-            return orderDate;
-        }
-
-        public double getTotalAmount() {
-            return totalAmount;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public String getItems() {
-            return items;
-        }
+        throw new SQLException("Khong lay duoc OrderID moi.");
     }
 }

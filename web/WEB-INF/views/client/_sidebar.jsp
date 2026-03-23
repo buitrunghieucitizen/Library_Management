@@ -1,37 +1,48 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%
-    String currentPath = request.getRequestURI();
-%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<c:set var="currentUri" value="${pageContext.request.requestURI}" />
+<c:url var="homeUrl" value="/home" />
+<c:url var="booksUrl" value="/books" />
+<c:url var="borrowsUrl" value="/borrows">
+    <c:param name="action" value="list" />
+</c:url>
+<c:url var="dashboardUrl" value="/index.jsp" />
+<c:url var="logoutUrl" value="/logout" />
+
 <aside class="sidebar-left">
-    <div class="section-title">Cổng</div>
+    <div class="section-title">Cong</div>
+
     <div class="nav-item">
-        <a href="<%=request.getContextPath()%>/home" class="<%= currentPath.contains("/home") ? "active" : "" %>">
-            Trang sinh viên
+        <a href="${homeUrl}" class="${fn:contains(currentUri, '/home') ? 'active' : ''}">
+            Trang sinh vien
         </a>
     </div>
+
     <div class="nav-item">
-        <a href="<%=request.getContextPath()%>/books">
-            Danh mục sách
+        <a href="${booksUrl}" class="${fn:contains(currentUri, '/books') ? 'active' : ''}">
+            Danh muc sach
         </a>
     </div>
+
     <div class="nav-item">
-        <a href="<%=request.getContextPath()%>/borrows?action=list">
-            Trung tâm mượn trả
+        <a href="${borrowsUrl}" class="${fn:contains(currentUri, '/borrows') ? 'active' : ''}">
+            Trung tam muon tra
         </a>
     </div>
 
     <div class="divider"></div>
-    <div class="section-title">Tài khoản</div>
+    <div class="section-title">Tai khoan</div>
+
     <div class="nav-item">
-        <a href="<%=request.getContextPath()%>/index.jsp">
-            Bảng điều khiển
+        <a href="${dashboardUrl}" class="${fn:contains(currentUri, '/index.jsp') ? 'active' : ''}">
+            Bang dieu khien
         </a>
     </div>
+
     <div class="nav-item">
-        <a href="<%=request.getContextPath()%>/logout">
-            Đăng xuất
+        <a href="${logoutUrl}">
+            Dang xuat
         </a>
     </div>
 </aside>
-
-

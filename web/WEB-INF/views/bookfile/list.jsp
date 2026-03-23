@@ -6,23 +6,10 @@
     <meta charset="UTF-8">
     <title>Quản lý tệp sách</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-    
 </head>
 <body>
-    <div class="navbar">
-        <h1>Quản lý thư viện</h1>
-        <a href="${pageContext.request.contextPath}/index.jsp">Trang chủ</a>
-        <a href="${pageContext.request.contextPath}/admin/borrows?action=list">Mượn trả</a>
-        <a href="${pageContext.request.contextPath}/admin/orders">Đơn hàng</a>
-        <a href="${pageContext.request.contextPath}/admin/bookfiles">Tệp sách</a>
-        <c:if test="${isAdmin}">
-            <a href="${pageContext.request.contextPath}/admin/staffs?action=list">Nhân viên</a>
-        </c:if>
-        <div class="nav-right">
-            <span>${sessionScope.staff.staffName}</span>
-            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
-        </div>
-    </div>
+    <c:set var="activeTab" value="bookfiles" />
+    <%@ include file="../admin/_header.jsp" %>
 
     <div class="container">
         <div class="panel">
@@ -35,6 +22,7 @@
             <c:if test="${not empty param.error}">
                 <div class="error mb-3">${param.error}</div>
             </c:if>
+            <div class="note">Tổng bản ghi: ${totalItems}</div>
 
             <table>
                 <thead>
@@ -78,9 +66,35 @@
                     </c:if>
                 </tbody>
             </table>
+
+            <c:if test="${totalPages > 1}">
+                <div class="pagination">
+                    <c:if test="${currentPage > 1}">
+                        <c:url var="prevUrl" value="/admin/bookfiles">
+                            <c:param name="action" value="list"/>
+                            <c:param name="page" value="${currentPage - 1}"/>
+                        </c:url>
+                        <a class="page-link" href="${prevUrl}">Trang trước</a>
+                    </c:if>
+
+                    <c:forEach begin="1" end="${totalPages}" var="p">
+                        <c:url var="pageUrl" value="/admin/bookfiles">
+                            <c:param name="action" value="list"/>
+                            <c:param name="page" value="${p}"/>
+                        </c:url>
+                        <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageUrl}">${p}</a>
+                    </c:forEach>
+
+                    <c:if test="${currentPage < totalPages}">
+                        <c:url var="nextUrl" value="/admin/bookfiles">
+                            <c:param name="action" value="list"/>
+                            <c:param name="page" value="${currentPage + 1}"/>
+                        </c:url>
+                        <a class="page-link" href="${nextUrl}">Trang sau</a>
+                    </c:if>
+                </div>
+            </c:if>
         </div>
     </div>
 </body>
 </html>
-
-

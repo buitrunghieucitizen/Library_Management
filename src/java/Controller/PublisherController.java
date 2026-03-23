@@ -2,6 +2,8 @@ package Controller;
 
 import Model.DAOPublisher;
 import Entities.Publisher;
+import ViewModel.PageSlice;
+import Utils.PaginationUtils;
 import Utils.RoleUtils;
 
 import jakarta.servlet.ServletException;
@@ -18,6 +20,7 @@ import java.util.List;
 public class PublisherController extends HttpServlet {
 
     private static final String PUBLISHERS_PATH = "/admin/publishers";
+    private static final int PAGE_SIZE = 10;
 
     private final DAOPublisher dao = new DAOPublisher();
 
@@ -52,8 +55,13 @@ public class PublisherController extends HttpServlet {
                 }
                 case "list":
                 default: {
+                    int page = PaginationUtils.parsePage(req.getParameter("page"), 1);
                     List<Publisher> list = dao.getAll();
-                    req.setAttribute("publishers", list);
+                    PageSlice<Publisher> pageSlice = PaginationUtils.paginate(list, page, PAGE_SIZE);
+                    req.setAttribute("publishers", pageSlice.getItems());
+                    req.setAttribute("currentPage", pageSlice.getPage());
+                    req.setAttribute("totalPages", pageSlice.getTotalPages());
+                    req.setAttribute("totalItems", pageSlice.getTotalItems());
                     req.getRequestDispatcher("/WEB-INF/views/publisher/list.jsp").forward(req, resp);
                     break;
                 }

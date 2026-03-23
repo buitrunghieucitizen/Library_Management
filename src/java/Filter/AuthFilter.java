@@ -26,6 +26,12 @@ public class AuthFilter implements Filter {
             "/login.jsp",
             "/register",
             "/register.jsp",
+            "/forgot-password",
+            "/forgot-password.jsp",
+            "/verify-otp",
+            "/verify-otp.jsp",
+            "/reset-password",
+            "/reset-password.jsp",
             "/index.html"
     );
 

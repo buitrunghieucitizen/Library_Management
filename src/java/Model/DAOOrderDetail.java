@@ -104,17 +104,17 @@ public class DAOOrderDetail {
         }
     }
 
-    public List<OrderItemRow> getOrderItemsWithBookName(Connection con, int orderId) throws SQLException {
+    public List<ViewModel.OrderItemRow> getOrderItemsWithBookName(Connection con, int orderId) throws SQLException {
         String sql = "SELECT od.BookID, od.Quantity, od.UnitPrice, b.BookName "
                 + "FROM OrderDetail od "
                 + "JOIN Book b ON b.BookID = od.BookID "
                 + "WHERE od.OrderID = ?";
-        List<OrderItemRow> items = new ArrayList<>();
+        List<ViewModel.OrderItemRow> items = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, orderId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    items.add(new OrderItemRow(
+                    items.add(new ViewModel.OrderItemRow(
                             rs.getInt("BookID"),
                             rs.getString("BookName"),
                             rs.getInt("Quantity"),
@@ -125,33 +125,16 @@ public class DAOOrderDetail {
         return items;
     }
 
-    public static class OrderItemRow {
-        private final int bookID;
-        private final String bookName;
-        private final int quantity;
-        private final double unitPrice;
-
-        public OrderItemRow(int bookID, String bookName, int quantity, double unitPrice) {
-            this.bookID = bookID;
-            this.bookName = bookName;
-            this.quantity = quantity;
-            this.unitPrice = unitPrice;
+    public List<ViewModel.OrderItemRow> getOrderItemsWithBookName(int orderId) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
         }
-
-        public int getBookID() {
-            return bookID;
-        }
-
-        public String getBookName() {
-            return bookName;
-        }
-
-        public int getQuantity() {
-            return quantity;
-        }
-
-        public double getUnitPrice() {
-            return unitPrice;
+        try {
+            return getOrderItemsWithBookName(con, orderId);
+        } finally {
+            con.close();
         }
     }
+
 }
