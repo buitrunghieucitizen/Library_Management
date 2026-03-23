@@ -3560,3 +3560,426 @@ tr:hover td { background: #f8fbff; }
     .checkout-layout { grid-template-columns: 1fr; }
     .checkout-summary { position: static; }
 }
+
+/* Student UI refresh: keep scoped to student pages and shared client layout */
+.student-top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1200;
+  backdrop-filter: blur(20px);
+  background:
+    linear-gradient(135deg, rgba(15, 39, 72, 0.94), rgba(37, 99, 235, 0.88));
+  border-bottom: 1px solid rgba(191, 219, 254, 0.18);
+}
+
+.top-nav-shell {
+  width: min(1360px, calc(100% - 32px));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.brand-overline {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+.student-body .student-layout {
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 0;
+  min-height: calc(100vh - 74px);
+}
+
+.student-sidebar {
+  position: sticky;
+  top: 86px;
+  align-self: start;
+  min-height: calc(100vh - 110px);
+  margin: 18px 0 18px 18px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.08);
+}
+
+.student-sidebar .nav-item {
+  margin-bottom: 6px;
+}
+
+.student-sidebar .nav-item a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  border-radius: 16px;
+  padding: 12px 14px;
+  color: #0f172a;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.student-sidebar .nav-item a:hover,
+.student-sidebar .nav-item a.active {
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.9), rgba(239, 246, 255, 0.95));
+  border-color: rgba(147, 197, 253, 0.7);
+  color: #1d4ed8;
+  box-shadow: 0 12px 28px rgba(59, 130, 246, 0.12);
+}
+
+.student-sidebar .nav-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(219, 234, 254, 0.75);
+  color: #1d4ed8;
+  flex-shrink: 0;
+}
+
+.student-sidebar-card {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(15, 39, 72, 0.96), rgba(37, 99, 235, 0.92));
+  color: #dbeafe;
+  box-shadow: 0 24px 50px rgba(15, 23, 42, 0.22);
+}
+
+.student-sidebar-card strong {
+  color: #fff;
+}
+
+.student-sidebar-card span {
+  color: rgba(219, 234, 254, 0.9);
+}
+
+.student-content {
+  padding: 22px 22px 40px;
+}
+
+.student-body .search-form,
+.student-body .table-card,
+.student-body .card-soft,
+.student-body .hold-card,
+.student-body .meta-card,
+.student-body .sidebar-right {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.06);
+}
+
+.student-body .search-form {
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+}
+
+.student-body .search-form::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, #0f2748, #2563eb, #38bdf8);
+}
+
+.section-header {
+  align-items: end;
+}
+
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(191, 219, 254, 0.9);
+  background: rgba(239, 246, 255, 0.92);
+  color: #1d4ed8;
+}
+
+.section-link:hover {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.book-grid {
+  gap: 18px;
+}
+
+.book-card {
+  border-radius: 22px;
+  border-color: rgba(148, 163, 184, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
+}
+
+.book-card:hover {
+  box-shadow: 0 28px 56px rgba(15, 23, 42, 0.12);
+}
+
+.book-meta {
+  display: grid;
+  gap: 8px;
+}
+
+.book-title {
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.borrow-action-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.borrow-action-note.success {
+  color: #166534;
+}
+
+.detail-page-hero {
+  margin-bottom: 18px;
+}
+
+.detail-layout-grid {
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);
+  align-items: start;
+}
+
+.detail-visual-column {
+  display: grid;
+  gap: 14px;
+}
+
+.detail-book-cover {
+  min-height: 420px;
+  border-radius: 28px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.22);
+}
+
+.detail-book-cover span {
+  position: relative;
+  z-index: 1;
+  font-size: 88px;
+  letter-spacing: -0.04em;
+}
+
+.detail-book-cover::after {
+  content: "";
+  position: absolute;
+  inset: auto -8% -16% auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(191, 219, 254, 0.4), transparent 70%);
+}
+
+.detail-status-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.detail-actions-row {
+  margin-top: 4px;
+}
+
+.detail-actions-row .btn,
+.detail-actions-row .student-chip {
+  min-height: 44px;
+  border-radius: 14px;
+}
+
+.detail-description-card {
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+}
+
+.detail-description-card .section-header-inline {
+  margin-bottom: 12px;
+}
+
+.detail-description {
+  margin: 0;
+}
+
+.detail-side-stack {
+  gap: 18px;
+}
+
+.detail-info-card {
+  padding: 20px;
+}
+
+.book-file-card {
+  border-radius: 22px;
+  border-color: rgba(148, 163, 184, 0.18);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
+}
+
+.book-file-actions .btn {
+  min-height: 42px;
+  border-radius: 14px;
+}
+
+.related-books-panel {
+  border-radius: 28px;
+}
+
+.related-book-card {
+  border-radius: 24px;
+  min-height: 148px;
+}
+
+.related-book-copy .pill {
+  width: fit-content;
+}
+
+.student-footer {
+  margin-top: 32px;
+  padding: 24px 18px;
+  background:
+    linear-gradient(135deg, rgba(15, 39, 72, 0.98), rgba(29, 78, 216, 0.94));
+  border-top: none;
+  color: #dbeafe;
+}
+
+.student-footer-shell {
+  width: min(1360px, calc(100% - 16px));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.student-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.student-footer-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.student-footer-copy {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}
+
+.student-footer-copy strong {
+  color: #fff;
+  font-size: 15px;
+}
+
+.student-footer-copy span {
+  max-width: 560px;
+  font-size: 13px;
+  color: rgba(219, 234, 254, 0.82);
+}
+
+.student-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.student-footer-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: #eff6ff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(191, 219, 254, 0.18);
+}
+
+.student-footer-links a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+@media (max-width: 1200px) {
+  .student-body .student-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .student-sidebar {
+    position: fixed;
+    top: 78px;
+    bottom: 18px;
+    left: 18px;
+    right: auto;
+    width: min(320px, calc(100vw - 36px));
+    margin: 0;
+    z-index: 1250;
+  }
+
+  .detail-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .student-content {
+    padding: 16px 16px 28px;
+  }
+
+  .detail-book-cover {
+    min-height: 320px;
+  }
+
+  .student-footer-shell,
+  .student-footer-brand {
+    align-items: flex-start;
+  }
+
+  .student-footer-shell {
+    flex-direction: column;
+  }
+
+  .student-footer-links {
+    width: 100%;
+  }
+}

@@ -44,6 +44,7 @@
             <div class="field">
                 <label for="imageUrl">Link ảnh bìa</label>
                 <input id="imageUrl" type="text" name="imageUrl" placeholder="https://... hoặc /assets/...">
+                <p class="note">Để trống nếu muốn hệ thống tự tìm ảnh bìa từ OpenLibrary.</p>
             </div>
 
             <div class="field">

@@ -3,174 +3,348 @@
 <%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <!DOCTYPE html>
 <html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${book.bookName} — Thư viện</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
-    </head>
-    <body class="bg-body-tertiary">
-        <%@ include file="../_header.jsp" %>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${book.bookName} - Thư viện</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css?v=20260323-student-refresh">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="student-body">
+    <%@ include file="../_header.jsp" %>
 
-        <c:url var="homeUrl" value="/home" />
-        <c:url var="borrowCenterUrl" value="/borrows"><c:param name="action" value="list"/></c:url>
+    <c:url var="homeUrl" value="/home" />
+    <c:url var="borrowCenterUrl" value="/borrows">
+        <c:param name="action" value="list" />
+    </c:url>
 
-            <div class="d-flex" style="min-height:calc(100vh - 56px);">
-            <%@ include file="../_sidebar.jsp" %>
+    <c:set var="inCart" value="false" />
+    <c:forEach var="cartId" items="${borrowCartIds}">
+        <c:if test="${cartId eq book.bookID}">
+            <c:set var="inCart" value="true" />
+        </c:if>
+    </c:forEach>
 
-            <main class="flex-grow-1 p-3 p-md-4" style="max-width:960px;">
-                <a href="${homeUrl}" class="text-decoration-none fw-semibold mb-3 d-inline-block" style="font-size:14px;">&larr; Quay về trang sinh viên</a>
+    <div class="layout student-layout layout-two-column">
+        <%@ include file="../_sidebar.jsp" %>
 
-                <div class="bg-white border rounded-4 p-4">
-                    <div class="row g-4">
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center justify-content-center text-white fw-bold rounded-3"
-                                 style="aspect-ratio:3/4;background:linear-gradient(135deg,#1a2744,#2a5298);font-size:4rem;overflow:hidden;">
-                                <c:choose>
-                                    <c:when test="${not empty book.imageUrl}">
-                                        <img src="${book.imageUrl}" alt="${book.bookName}" class="w-100 h-100" style="object-fit:cover;" loading="lazy">
-                                    </c:when>
-                                    <c:otherwise>${not empty book.bookName ? fn:toUpperCase(fn:substring(book.bookName, 0, 1)) : '?'}</c:otherwise>
-                                </c:choose>
-                            </div>
+        <main class="content student-content content-wide">
+            <a href="${homeUrl}" class="back-link">Quay về trang sinh viên</a>
+
+            <c:if test="${not empty param.msg}">
+                <div class="msg"><c:out value="${param.msg}" /></div>
+            </c:if>
+            <c:if test="${not empty param.error}">
+                <div class="error-box"><c:out value="${param.error}" /></div>
+            </c:if>
+
+            <section class="page-hero detail-page-hero">
+                <div class="student-hero-copy">
+                    <span class="page-hero-kicker">Book Detail</span>
+                    <h1><c:out value="${book.bookName}" /></h1>
+                    <p><c:out value="${authorsText}" /></p>
+                    <div class="student-hero-badges">
+                        <span class="student-chip ${availabilityStatusKey eq 'out' ? 'warning' : 'success'}">
+                            <c:out value="${availabilityStatusLabel}" />
+                        </span>
+                        <span class="student-chip soft">
+                            <c:out value="${empty category ? 'Chưa phân loại' : category.categoryName}" />
+                        </span>
+                        <span class="student-chip neutral">
+                            <c:out value="${empty publisher ? 'Chưa có NXB' : publisher.publisherName}" />
+                        </span>
+                        <span class="student-chip soft">${book.available}/${book.quantity} khả dụng</span>
+                    </div>
+                </div>
+                <div class="page-hero-actions">
+                    <a href="${borrowCenterUrl}" class="hero-action primary">Mở trung tâm mượn trả</a>
+                    <a href="${homeUrl}" class="hero-action secondary">Tiếp tục khám phá</a>
+                </div>
+            </section>
+
+            <c:if test="${not bookFieldSupport.descriptionSupported or not bookFieldSupport.shelfLocationSupported or not bookFieldSupport.imageUrlSupported}">
+                <div class="student-inline-alert">
+                    Một số trường mở rộng của sách chưa được bật đầy đủ trong cơ sở dữ liệu hiện tại. Giao diện vẫn hiển thị các dữ liệu đang có.
+                </div>
+            </c:if>
+
+            <section class="student-section-grid detail-layout-grid">
+                <article class="card-soft detail-card-extended">
+                    <div class="detail-visual-column">
+                        <div class="book-cover detail-book-cover">
+                            <c:choose>
+                                <c:when test="${not empty book.imageUrl}">
+                                    <img src="${book.imageUrl}" alt="${book.bookName}" loading="lazy" decoding="async">
+                                </c:when>
+                                <c:otherwise>
+                                    <span>
+                                        <c:choose>
+                                            <c:when test="${not empty book.bookName}">
+                                                ${fn:toUpperCase(fn:substring(book.bookName, 0, 1))}
+                                            </c:when>
+                                            <c:otherwise>?</c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
 
-                        <div class="col-md-8">
-                            <h1 class="h3 fw-bold mb-1">${book.bookName}</h1>
-                            <p class="text-primary fw-semibold mb-3">${authorsText}</p>
-
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <div class="border rounded-3 p-3">
-                                        <div class="text-uppercase text-muted fw-bold mb-1" style="font-size:11px;letter-spacing:.05em;">Thể loại</div>
-                                        <div class="fw-semibold" style="font-size:14px;">${empty category ? '-' : category.categoryName}</div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="border rounded-3 p-3">
-                                        <div class="text-uppercase text-muted fw-bold mb-1" style="font-size:11px;letter-spacing:.05em;">Nhà xuất bản</div>
-                                        <div class="fw-semibold" style="font-size:14px;">${empty publisher ? '-' : publisher.publisherName}</div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="border rounded-3 p-3">
-                                        <div class="text-uppercase text-muted fw-bold mb-1" style="font-size:11px;letter-spacing:.05em;">Số lượng</div>
-                                        <div class="fw-semibold" style="font-size:14px;">${book.quantity} cuốn</div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="border rounded-3 p-3">
-                                        <div class="text-uppercase text-muted fw-bold mb-1" style="font-size:11px;letter-spacing:.05em;">Có sẵn</div>
-                                        <div class="fw-semibold" style="font-size:14px;">${book.available} cuốn</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <span class="badge ${book.available gt 0 ? 'text-bg-success' : 'text-bg-danger'} mb-3" style="font-size:12px;">
-                                <c:choose>
-                                    <c:when test="${book.available gt 0}">Có thể mượn</c:when>
-                                    <c:otherwise>Tạm hết sách</c:otherwise>
-                                </c:choose>
+                        <div class="detail-status-stack">
+                            <span class="pill ${availabilityStatusKey}">
+                                <c:out value="${availabilityStatusLabel}" />
                             </span>
+                            <span class="student-chip soft">File số ${bookFileCount}</span>
+                            <span class="student-chip neutral">Mã sách #${book.bookID}</span>
+                        </div>
+                    </div>
 
-                            <div class="d-flex flex-wrap gap-2 mb-3">
-                                <c:choose>
-                                    <%-- Book available: show borrow + buy buttons --%>
-                                    <c:when test="${book.available gt 0}">
-                                        <form method="post" action="${pageContext.request.contextPath}/borrows" class="m-0">
-                                            <input type="hidden" name="action" value="addToCart">
-                                            <input type="hidden" name="bookID" value="${book.bookID}">
-                                            <button class="btn btn-primary d-flex align-items-center gap-2" type="submit">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                                                </svg>
-                                                Thêm vào giỏ mượn
-                                            </button>
-                                        </form>
-                                    </c:when>
-
-                                    <%-- Book OUT OF STOCK: show hold button --%>
-                                    <c:otherwise>
-                                        <form method="post" action="${pageContext.request.contextPath}/borrows" class="m-0">
-                                            <input type="hidden" name="action" value="placeHold">
-                                            <input type="hidden" name="bookID" value="${book.bookID}">
-                                            <button class="btn btn-warning d-flex align-items-center gap-2 text-white" type="submit">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                                                </svg>
-                                                Đặt giữ chỗ — Nhận email khi có sách
-                                            </button>
-                                        </form>
-                                    </c:otherwise>
-                                </c:choose>
-
-                                <form method="post" action="${pageContext.request.contextPath}/borrows" class="m-0">
-                                    <input type="hidden" name="action" value="addBuyList">
-                                    <input type="hidden" name="bookID" value="${book.bookID}">
-                                    <button class="btn btn-outline-secondary" type="submit">Thêm vào danh sách mua</button>
-                                </form>
-
-                                <a class="btn btn-outline-secondary" href="${borrowCenterUrl}">Trung tâm mượn trả</a>
-                            </div>
-
-                            <div class="bg-body-tertiary rounded-3 p-3" style="font-size:14px;line-height:1.7;color:#64748b;">
-                                <c:choose>
-                                    <c:when test="${book.available gt 0}">
-                                        Sách sẽ được thêm vào giỏ mượn (tối đa 3 quyển). Sau khi chọn xong, gửi yêu cầu mượn
-                                        và chờ admin duyệt.
-                                    </c:when>
-                                    <c:otherwise>
-                                        Sách hiện đã hết. Bạn có thể <strong>đặt giữ chỗ</strong> — khi có người trả sách,
-                                        hệ thống sẽ gửi email thông báo cho bạn. Bạn có <strong>24 giờ</strong> để đến mượn,
-                                        sau đó quyền ưu tiên sẽ chuyển cho người tiếp theo.
-                                    </c:otherwise>
-                                </c:choose>
+                    <div class="detail-main-copy">
+                        <div class="section-header-inline">
+                            <div>
+                                <h2>Tổng quan đầu sách</h2>
+                                <div class="note">Kiểm tra tồn kho, vị trí, file số và thao tác mượn ngay trong cùng một màn hình.</div>
                             </div>
                         </div>
+
+                        <div class="detail-meta-grid meta-grid">
+                            <div class="meta-card">
+                                <span>Thể loại</span>
+                                <strong><c:out value="${empty category ? 'Chưa cập nhật' : category.categoryName}" /></strong>
+                            </div>
+                            <div class="meta-card">
+                                <span>Nhà xuất bản</span>
+                                <strong><c:out value="${empty publisher ? 'Chưa cập nhật' : publisher.publisherName}" /></strong>
+                            </div>
+                            <div class="meta-card">
+                                <span>Kho hiện tại</span>
+                                <strong>${book.available} / ${book.quantity}</strong>
+                            </div>
+                            <div class="meta-card">
+                                <span>Vị trí kệ</span>
+                                <strong><c:out value="${bookLocationText}" /></strong>
+                            </div>
+                            <div class="meta-card">
+                                <span>Dữ liệu mô tả</span>
+                                <strong><c:out value="${bookHasManualDescription ? 'Mô tả gốc' : 'Tạo từ metadata'}" /></strong>
+                            </div>
+                            <div class="meta-card">
+                                <span>Tài nguyên số</span>
+                                <strong>${bookFileCount} tệp khả dụng</strong>
+                            </div>
+                        </div>
+
+                        <div class="detail-callout ${availabilityStatusKey}">
+                            <c:out value="${availabilityStatusNote}" />
+                        </div>
+
+                        <div class="detail-actions-row action-row">
+                            <c:choose>
+                                <c:when test="${inCart}">
+                                    <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form">
+                                        <input type="hidden" name="action" value="removeFromCart">
+                                        <input type="hidden" name="bookID" value="${book.bookID}">
+                                        <button type="submit" class="btn btn-success">Đã có trong giỏ mượn</button>
+                                    </form>
+                                </c:when>
+                                <c:when test="${book.available gt 0 and borrowCartSize lt maxCartSize}">
+                                    <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form">
+                                        <input type="hidden" name="action" value="addToCart">
+                                        <input type="hidden" name="bookID" value="${book.bookID}">
+                                        <button type="submit" class="btn btn-primary">Thêm vào giỏ mượn</button>
+                                    </form>
+                                </c:when>
+                                <c:when test="${book.available le 0}">
+                                    <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form">
+                                        <input type="hidden" name="action" value="placeHold">
+                                        <input type="hidden" name="bookID" value="${book.bookID}">
+                                        <button type="submit" class="btn btn-warning">Đặt giữ chỗ</button>
+                                    </form>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="student-chip warning">Giỏ mượn đã đầy</span>
+                                </c:otherwise>
+                            </c:choose>
+
+                            <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form">
+                                <input type="hidden" name="action" value="addBuyList">
+                                <input type="hidden" name="bookID" value="${book.bookID}">
+                                <button type="submit" class="btn btn-secondary">Thêm vào danh sách mua</button>
+                            </form>
+
+                            <a href="${borrowCenterUrl}" class="btn btn-ghost">Mở trung tâm mượn trả</a>
+                        </div>
+
+                        <article class="detail-description-card">
+                            <div class="section-header-inline">
+                                <div>
+                                    <h3>Mô tả sách</h3>
+                                    <div class="note">
+                                        <c:out value="${bookHasManualDescription ? 'Nội dung do thư viện cập nhật cho đầu sách này.' : 'Nội dung đang được tổng hợp tự động từ metadata hiện có.'}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="detail-description"><c:out value="${bookDescriptionText}" /></p>
+                        </article>
                     </div>
-                    <p class="detail-description"><c:out value="${bookDescriptionText}" /></p>
                 </article>
 
-                <article class="card-soft detail-info-card">
-                    <div class="section-header-inline">
-                        <div>
-                            <h2>Truy cập nhanh</h2>
-                            <div class="note">Mở nhanh các thao tác thường dùng khi bạn đang xem chi tiết sách.</div>
+                <div class="panel-stack detail-side-stack">
+                    <article class="card-soft detail-info-card">
+                        <div class="section-header-inline">
+                            <div>
+                                <h2>Thông tin nhanh</h2>
+                                <div class="note">Các thông số quan trọng để bạn quyết định mượn, đặt giữ chỗ hoặc đọc file số.</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="summary-list">
-                        <div class="summary-row">
-                            <span>Tình trạng kho</span>
-                            <strong><c:out value="${availabilityStatusLabel}" /></strong>
+
+                        <div class="summary-list">
+                            <div class="summary-row">
+                                <span>Tình trạng kho</span>
+                                <strong><c:out value="${availabilityStatusLabel}" /></strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Bản sẵn sàng</span>
+                                <strong>${book.available}</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Tổng số bản</span>
+                                <strong>${book.quantity}</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>File số</span>
+                                <strong>${bookFileCount}</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Vị trí kệ</span>
+                                <strong><c:out value="${bookLocationProvided ? bookLocationText : 'Chưa cập nhật'}" /></strong>
+                            </div>
                         </div>
-                        <div class="summary-row">
-                            <span>File số khả dụng</span>
-                            <strong>${bookFileCount}</strong>
+                    </article>
+
+                    <article class="card-soft detail-info-card" id="book-files">
+                        <div class="section-header-inline">
+                            <div>
+                                <h2>Tài nguyên số</h2>
+                                <div class="note">Mở nhanh các file đi kèm đầu sách nếu thư viện đã phát hành bản số.</div>
+                            </div>
+                            <div class="student-head-badges">
+                                <span class="student-chip neutral">${bookFileCount} tệp</span>
+                            </div>
                         </div>
-                        <div class="summary-row">
-                            <span>Vị trí kệ</span>
-                            <strong><c:out value="${bookLocationText}" /></strong>
-                        </div>
-                    </div>
-                </article>
+
+                        <c:choose>
+                            <c:when test="${empty bookFiles}">
+                                <div class="book-file-empty">Hiện chưa có file số khả dụng cho đầu sách này.</div>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="book-file-grid">
+                                    <c:forEach var="bookFile" items="${bookFiles}">
+                                        <c:url var="bookFileUrl" value="/home/book/file">
+                                            <c:param name="id" value="${bookFile.bookFileID}" />
+                                        </c:url>
+
+                                        <article class="book-file-card">
+                                            <div class="book-file-head">
+                                                <div>
+                                                    <h3><c:out value="${bookFile.fileName}" /></h3>
+                                                    <p>
+                                                        <c:out value="${empty bookFile.fileType ? 'Không rõ định dạng' : bookFile.fileType}" />
+                                                        <c:if test="${not empty bookFileSizeLabels[bookFile.bookFileID]}">
+                                                            • ${bookFileSizeLabels[bookFile.bookFileID]}
+                                                        </c:if>
+                                                    </p>
+                                                </div>
+                                                <span class="student-chip soft">#${bookFile.bookFileID}</span>
+                                            </div>
+
+                                            <div class="book-file-meta">
+                                                <c:choose>
+                                                    <c:when test="${not empty bookFile.uploadAt}">
+                                                        Cập nhật lần cuối: <c:out value="${bookFile.uploadAt}" />
+                                                    </c:when>
+                                                    <c:otherwise>Chưa có thông tin ngày tải lên.</c:otherwise>
+                                                </c:choose>
+                                            </div>
+
+                                            <div class="book-file-actions">
+                                                <a href="${bookFileUrl}" class="btn btn-primary">Mở tài liệu</a>
+                                            </div>
+                                        </article>
+                                    </c:forEach>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </article>
+                </div>
             </section>
 
             <section class="card-soft related-books-panel">
                 <div class="section-header-inline student-section-head">
                     <div>
                         <h2>Sách liên quan</h2>
-                        <div class="note">Gợi ý theo cùng thể loại hoặc cùng nhà xuất bản để bạn chuyển tiếp nhanh.</div>
+                        <div class="note">Gợi ý theo cùng thể loại hoặc cùng nhà xuất bản để bạn tiếp tục khám phá nhanh hơn.</div>
                     </div>
                     <div class="student-head-badges">
                         <span class="student-chip neutral">${relatedBookCount} gợi ý</span>
                     </div>
                 </div>
-            </main>
-        </div>
 
-        <%@ include file="../_footer.jsp" %>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
+                <c:choose>
+                    <c:when test="${empty relatedBooks}">
+                        <div class="empty-box">Hiện chưa có gợi ý liên quan cho đầu sách này.</div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="related-book-grid">
+                            <c:forEach var="relatedBook" items="${relatedBooks}">
+                                <c:url var="relatedBookUrl" value="/home/book">
+                                    <c:param name="id" value="${relatedBook.bookID}" />
+                                </c:url>
+
+                                <a href="${relatedBookUrl}" class="related-book-card">
+                                    <div class="related-book-cover">
+                                        <c:choose>
+                                            <c:when test="${not empty relatedBook.imageUrl}">
+                                                <img src="${relatedBook.imageUrl}" alt="${relatedBook.bookName}" loading="lazy" decoding="async">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span>
+                                                    <c:choose>
+                                                        <c:when test="${not empty relatedBook.bookName}">
+                                                            ${fn:toUpperCase(fn:substring(relatedBook.bookName, 0, 1))}
+                                                        </c:when>
+                                                        <c:otherwise>?</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+
+                                    <div class="related-book-copy">
+                                        <h3><c:out value="${relatedBook.bookName}" /></h3>
+                                        <p>${relatedBook.available} khả dụng • ${relatedBook.quantity} tổng</p>
+                                        <c:choose>
+                                            <c:when test="${relatedBook.available le 0}">
+                                                <span class="pill out">Hết sách</span>
+                                            </c:when>
+                                            <c:when test="${relatedBook.available le 2 or (relatedBook.quantity gt 0 and relatedBook.available * 100 le relatedBook.quantity * 20)}">
+                                                <span class="pill low">Sắp hết</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="pill ok">Còn sách</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </a>
+                            </c:forEach>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+            </section>
+        </main>
+    </div>
+
+    <%@ include file="../_footer.jsp" %>
+</body>
 </html>

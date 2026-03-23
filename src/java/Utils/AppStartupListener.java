@@ -4,6 +4,7 @@ import Model.DBConnection;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,12 +21,14 @@ public class AppStartupListener implements ServletContextListener {
             = "ALTER TABLE [dbo].[Borrow] WITH CHECK ADD CONSTRAINT [CK_Borrow_Status] "
             + "CHECK (([Status]='Rejected' OR [Status]='Returned' OR [Status]='Overdue' "
             + "OR [Status]='Borrowing' OR [Status]='Pending'))";
+    private static final int MAX_BOOK_COVER_BACKFILL = 25;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         String realPath = sce.getServletContext().getRealPath("/");
         EnvLoader.setWebappPath(realPath);
         EnvLoader.load();
+        backfillMissingBookImageUrls();
         repairLegacyBorrowStatusConstraint();
         System.out.println("[App] .env loaded. Google configured: " + GoogleOAuthConfig.isConfigured()
                 + ", Email configured: " + EmailConfig.isConfigured());
@@ -92,12 +95,101 @@ public class AppStartupListener implements ServletContextListener {
         }
     }
 
+    private void backfillMissingBookImageUrls() {
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            System.err.println("[App] Skip OpenLibrary cover sync: no database connection.");
+            return;
+        }
+
+        try {
+            if (!bookImageUrlColumnExists(con)) {
+                return;
+            }
+
+            List<BookCoverSeed> books = loadBooksMissingImageUrls(con);
+            if (books.isEmpty()) {
+                return;
+            }
+
+            int updatedCount = 0;
+            for (BookCoverSeed book : books) {
+                try {
+                    String imageUrl = OpenLibraryCoverService.findCoverUrl(book.bookName, book.primaryAuthor);
+                    if (isBlank(imageUrl)) {
+                        continue;
+                    }
+                    updatedCount += updateBookImageUrlIfBlank(con, book.bookId, imageUrl);
+                } catch (IOException e) {
+                    System.err.println("[App] OpenLibrary lookup failed for \"" + book.bookName + "\": " + e.getMessage());
+                }
+            }
+
+            if (updatedCount > 0) {
+                System.out.println("[App] Backfilled " + updatedCount + " missing book cover URLs from OpenLibrary.");
+            }
+        } catch (SQLException e) {
+            System.err.println("[App] Failed to backfill missing book cover URLs.");
+            e.printStackTrace();
+        } finally {
+            try {
+                con.close();
+            } catch (SQLException closeEx) {
+                closeEx.printStackTrace();
+            }
+        }
+    }
+
     private boolean borrowStatusColumnExists(Connection con) throws SQLException {
         String sql = "SELECT 1 "
                 + "FROM INFORMATION_SCHEMA.COLUMNS "
                 + "WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'Borrow' AND COLUMN_NAME = 'Status'";
         try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             return rs.next();
+        }
+    }
+
+    private boolean bookImageUrlColumnExists(Connection con) throws SQLException {
+        String sql = "SELECT 1 "
+                + "FROM INFORMATION_SCHEMA.COLUMNS "
+                + "WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'Book' AND COLUMN_NAME = 'ImageUrl'";
+        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            return rs.next();
+        }
+    }
+
+    private List<BookCoverSeed> loadBooksMissingImageUrls(Connection con) throws SQLException {
+        String sql = "SELECT TOP " + MAX_BOOK_COVER_BACKFILL + " "
+                + "b.BookID, b.BookName, "
+                + "(SELECT TOP 1 a.AuthorName "
+                + " FROM [dbo].[BookAuthor] ba "
+                + " JOIN [dbo].[Author] a ON a.AuthorID = ba.AuthorID "
+                + " WHERE ba.BookID = b.BookID "
+                + " ORDER BY a.AuthorName) AS PrimaryAuthor "
+                + "FROM [dbo].[Book] b "
+                + "WHERE b.ImageUrl IS NULL OR LTRIM(RTRIM(b.ImageUrl)) = '' "
+                + "ORDER BY b.BookID";
+
+        List<BookCoverSeed> books = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                books.add(new BookCoverSeed(
+                        rs.getInt("BookID"),
+                        rs.getString("BookName"),
+                        rs.getString("PrimaryAuthor")));
+            }
+        }
+        return books;
+    }
+
+    private int updateBookImageUrlIfBlank(Connection con, int bookId, String imageUrl) throws SQLException {
+        String sql = "UPDATE [dbo].[Book] "
+                + "SET ImageUrl = ? "
+                + "WHERE BookID = ? AND (ImageUrl IS NULL OR LTRIM(RTRIM(ImageUrl)) = '')";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, imageUrl);
+            ps.setInt(2, bookId);
+            return ps.executeUpdate();
         }
     }
 
@@ -141,9 +233,26 @@ public class AppStartupListener implements ServletContextListener {
         return identifier == null ? "" : identifier.replace("]", "]]");
     }
 
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
     private static final class ConstraintState {
 
         private boolean hasExpectedConstraint;
         private final List<String> constraintsToDrop = new ArrayList<>();
+    }
+
+    private static final class BookCoverSeed {
+
+        private final int bookId;
+        private final String bookName;
+        private final String primaryAuthor;
+
+        private BookCoverSeed(int bookId, String bookName, String primaryAuthor) {
+            this.bookId = bookId;
+            this.bookName = bookName;
+            this.primaryAuthor = primaryAuthor;
+        }
     }
 }

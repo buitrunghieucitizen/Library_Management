@@ -6,6 +6,7 @@ import Model.DAOBook;
 import Model.DAOBookPrice;
 import Model.DAOPrice;
 import Model.DBConnection;
+import Utils.OpenLibraryCoverService;
 import Utils.RoleUtils;
 import Utils.PaginationUtils;
 import ViewModel.CurrentPriceInfo;
@@ -163,6 +164,9 @@ public class BookController extends HttpServlet {
         String description = trimToNull(req.getParameter("description"));
         String shelfLocation = trimToNull(req.getParameter("shelfLocation"));
         String imageUrl = trimToNull(req.getParameter("imageUrl"));
+        if (imageUrl == null) {
+            imageUrl = resolveOpenLibraryImageUrl(name);
+        }
 
         Book book = new Book(name, quantity, available, categoryID, publisherID,
                 description, shelfLocation, imageUrl);
@@ -305,5 +309,17 @@ public class BookController extends HttpServlet {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String resolveOpenLibraryImageUrl(String bookName) {
+        if (trimToNull(bookName) == null) {
+            return null;
+        }
+        try {
+            return OpenLibraryCoverService.findCoverUrl(bookName, null);
+        } catch (IOException e) {
+            System.err.println("[Book] Skip OpenLibrary cover lookup for \"" + bookName + "\": " + e.getMessage());
+            return null;
+        }
     }
 }
