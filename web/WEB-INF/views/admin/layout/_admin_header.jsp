@@ -131,6 +131,7 @@
                 <div class="topbar-actions">
                     <a class="topbar-button secondary" href="${ctx}/admin/books?action=list">Kho sách</a>
                     <a class="topbar-button secondary" href="${ctx}/admin/borrows?action=list">Mượn trả</a>
+                    <a class="topbar-button secondary" href="${ctx}/chatbot">Trợ lý AI</a>
                     <a class="topbar-button primary" href="${ctx}/admin/orders?action=list">Đơn cần xử lý</a>
                     <div class="topbar-user">
                         <span class="topbar-user-avatar"><c:out value="${operatorBadge}" /></span>

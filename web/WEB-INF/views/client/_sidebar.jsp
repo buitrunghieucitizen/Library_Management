@@ -8,6 +8,7 @@
 <c:url var="borrowsUrl" value="/borrows">
     <c:param name="action" value="list" />
 </c:url>
+<c:url var="chatbotUrl" value="/chatbot" />
 <c:url var="dashboardUrl" value="/index.jsp" />
 <c:url var="logoutUrl" value="/logout" />
 <c:set var="viewerName" value="${empty requestScope.studentDisplayName ? (empty sessionScope.staff.staffName ? 'Sinh viên thư viện' : sessionScope.staff.staffName) : requestScope.studentDisplayName}" />
@@ -50,6 +51,15 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             </span>
             <span>Mua sách</span>
+        </a>
+    </div>
+
+    <div class="nav-item">
+        <a href="${chatbotUrl}" class="${fn:contains(currentUri, '/chatbot') ? 'active' : ''}">
+            <span class="nav-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M8 10h8"></path><path d="M8 7h6"></path></svg>
+            </span>
+            <span>Trợ lý AI</span>
         </a>
     </div>
 

@@ -161,6 +161,7 @@ public class AuthFilter implements Filter {
                 || path.equals("/books")
                 || path.equals("/borrows")
                 || path.equals("/buy")
+                || path.equals("/chatbot")
                 || path.equals("/index.jsp")
                 || path.equals("/")
                 || path.equals("/logout");

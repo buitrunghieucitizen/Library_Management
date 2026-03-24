@@ -112,6 +112,15 @@
                 </div>
             </section>
 
+            <section class="portal-assistant-band mb-4">
+                <div class="portal-assistant-copy">
+                    <span class="portal-assistant-kicker">Groq AI</span>
+                    <h2 class="h5 fw-bold mb-1">Trợ lý AI cho Library Manager</h2>
+                    <p class="mb-0">Hỏi nhanh về quy trình mượn trả, cách dùng hệ thống, thao tác quản trị hoặc các câu hỏi ngắn bằng tiếng Việt.</p>
+                </div>
+                <a class="portal-assistant-link" href="${pageContext.request.contextPath}/chatbot">Mở chatbot</a>
+            </section>
+
             <div class="row g-3">
                 <c:choose>
                     <c:when test="${isAdmin}">
