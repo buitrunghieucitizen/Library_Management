@@ -1,3 +1,4 @@
+<%@ page pageEncoding="UTF-8" %>
 <div class="container borrow-admin-page" id="borrowAdminPage" data-context-path="${pageContext.request.contextPath}">
     <c:if test="${not empty param.msg}">
         <div class="msg"><c:out value="${param.msg}" /></div>

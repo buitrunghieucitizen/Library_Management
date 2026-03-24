@@ -94,6 +94,44 @@ public class DAOFine {
     }
 
     /**
+     * Get all paid fines for dashboard revenue reporting.
+     */
+    public List<Fine> getPaidFines() throws SQLException {
+        if (!checkTableExists()) {
+            return new ArrayList<>();
+        }
+
+        String sql = "SELECT f.FineID, f.BorrowID, f.Amount, f.Reason, "
+                + "CONVERT(varchar(10), f.CreatedDate, 23) AS CreatedDate, "
+                + "CONVERT(varchar(10), f.PaidDate, 23) AS PaidDate, f.Status "
+                + "FROM Fine f "
+                + "WHERE f.Status = 'Paid' AND f.PaidDate IS NOT NULL "
+                + "ORDER BY f.PaidDate DESC, f.FineID DESC";
+        List<Fine> list = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Fine(
+                        rs.getInt("FineID"),
+                        rs.getInt("BorrowID"),
+                        rs.getDouble("Amount"),
+                        rs.getString("Reason"),
+                        rs.getString("CreatedDate"),
+                        rs.getString("PaidDate"),
+                        rs.getString("Status")));
+            }
+        } finally {
+            con.close();
+        }
+
+        return list;
+    }
+
+    /**
      * Insert a new fine (used within a transaction).
      */
     public int insert(Connection con, int borrowId, double amount, String reason) throws SQLException {

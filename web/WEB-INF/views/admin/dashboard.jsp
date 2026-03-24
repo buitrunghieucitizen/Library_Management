@@ -132,25 +132,69 @@
                     </article>
                 </section>
 
+                <section class="dashboard-chart-row">
+                    <section class="dashboard-card dashboard-card-chart">
+                        <div class="dashboard-card-head dashboard-card-head-spread">
+                            <div>
+                                <span class="card-kicker">Thống kê Giao dịch</span>
+                                <h3>Mượn và Mua</h3>
+                            </div>
+                            <select class="chart-filter" id="borrowBuyChartFilter" aria-label="Phạm vi thời gian biểu đồ">
+                                <option value="year" selected>Năm nay</option>
+                                <option value="month">Tháng này</option>
+                                <option value="week">Tuần này</option>
+                            </select>
+                        </div>
+                        <div class="chart-panel-body">
+                            <div id="borrowBuyChart"></div>
+                            <script id="borrowBuyChartData" type="application/json"><c:out value="${borrowBuyChartJson}" escapeXml="false" /></script>
+                        </div>
+                    </section>
+
+                    <section class="dashboard-card dashboard-card-chart">
+                        <div class="dashboard-card-head dashboard-card-head-spread">
+                            <div>
+                                <span class="card-kicker">Doanh Thu</span>
+                                <h3>Biến động doanh thu</h3>
+                            </div>
+                            <select class="chart-filter" id="revenueChartFilter" aria-label="Phạm vi thời gian biểu đồ doanh thu">
+                                <option value="year" selected>Năm nay</option>
+                                <option value="month">Tháng này</option>
+                                <option value="week">Tuần này</option>
+                            </select>
+                        </div>
+                        <div class="revenue-summary-strip">
+                            <article class="revenue-summary-card">
+                                <span>Tổng thu</span>
+                                <strong id="revenueSummaryTotal">0 ₫</strong>
+                                <p>Tiền đã ghi nhận theo phạm vi đang chọn</p>
+                            </article>
+                            <article class="revenue-summary-card">
+                                <span>Từ mua sách</span>
+                                <strong id="revenueSummaryOrder">0 ₫</strong>
+                                <p>Đơn mua đã hoàn tất hoặc đã giao</p>
+                            </article>
+                            <article class="revenue-summary-card">
+                                <span>Từ phí/phạt mượn</span>
+                                <strong id="revenueSummaryBorrow">0 ₫</strong>
+                                <p>Khoản thu phát sinh từ luồng mượn trả</p>
+                            </article>
+                            <article class="revenue-summary-card">
+                                <span>Đơn / phiếu đã thu</span>
+                                <strong id="revenueSummaryCollected">0 đơn / 0 phí</strong>
+                                <p>Số bản ghi góp vào tổng doanh thu</p>
+                            </article>
+                        </div>
+                        <div class="chart-panel-body">
+                            <div id="revenueChart"></div>
+                            <script id="revenueChartData" type="application/json"><c:out value="${revenueChartJson}" escapeXml="false" /></script>
+                        </div>
+                    </section>
+                </section>
+
                 <section class="dashboard-grid">
                     <div class="dashboard-column">
-                        <section class="dashboard-card">
-                            <div class="dashboard-card-head dashboard-card-head-spread">
-                                <div>
-                                    <span class="card-kicker">Thống kê Giao dịch</span>
-                                    <h3>Mượn và Mua</h3>
-                                </div>
-                                <select class="chart-filter" id="borrowBuyChartFilter" aria-label="Phạm vi thời gian biểu đồ">
-                                    <option value="year" selected>Năm nay</option>
-                                    <option value="month">Tháng này</option>
-                                    <option value="week">Tuần này</option>
-                                </select>
-                            </div>
-                            <div class="chart-panel-body">
-                                <div id="borrowBuyChart"></div>
-                                <script id="borrowBuyChartData" type="application/json"><c:out value="${borrowBuyChartJson}" escapeXml="false" /></script>
-                            </div>
-                        </section>
+                        <%-- placeholder to keep column structure, first real card below --%>
 
                         <section class="dashboard-card">
                             <div class="dashboard-card-head">
@@ -448,5 +492,222 @@
                         </section>
                     </div>
                 </section>
-            </main>
+<script>
+(function () {
+    function safeJson(id) {
+        try {
+            var el = document.getElementById(id);
+            return el ? JSON.parse(el.textContent.trim() || "{}") : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    var revenueRawData = safeJson("revenueChartData");
+
+    if (!revenueRawData || (!revenueRawData.ranges && !revenueRawData.year)) {
+        revenueRawData = {
+            defaultRange: "year",
+            ranges: {
+                year: {
+                    categories: ["Th.1", "Th.2", "Th.3", "Th.4", "Th.5", "Th.6", "Th.7", "Th.8", "Th.9", "Th.10", "Th.11", "Th.12"],
+                    totalData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    orderData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    borrowData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    orderCountData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    borrowCountData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    summary: { totalRevenue: 0, orderRevenue: 0, borrowRevenue: 0, collectedOrders: 0, paidFines: 0 }
+                },
+                month: {
+                    categories: ["1", "2", "3", "4", "5", "6", "7"],
+                    totalData: [0, 0, 0, 0, 0, 0, 0],
+                    orderData: [0, 0, 0, 0, 0, 0, 0],
+                    borrowData: [0, 0, 0, 0, 0, 0, 0],
+                    orderCountData: [0, 0, 0, 0, 0, 0, 0],
+                    borrowCountData: [0, 0, 0, 0, 0, 0, 0],
+                    summary: { totalRevenue: 0, orderRevenue: 0, borrowRevenue: 0, collectedOrders: 0, paidFines: 0 }
+                },
+                week: {
+                    categories: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"],
+                    totalData: [0, 0, 0, 0, 0, 0, 0],
+                    orderData: [0, 0, 0, 0, 0, 0, 0],
+                    borrowData: [0, 0, 0, 0, 0, 0, 0],
+                    orderCountData: [0, 0, 0, 0, 0, 0, 0],
+                    borrowCountData: [0, 0, 0, 0, 0, 0, 0],
+                    summary: { totalRevenue: 0, orderRevenue: 0, borrowRevenue: 0, collectedOrders: 0, paidFines: 0 }
+                }
+            }
+        };
+    }
+
+    function formatCompactVnd(val) {
+        var numeric = Number(val) || 0;
+        var absolute = Math.abs(numeric);
+
+        if (absolute >= 1000000000) {
+            return (numeric / 1000000000).toFixed(1).replace(/\.0$/, "") + "B";
+        }
+        if (absolute >= 1000000) {
+            return (numeric / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+        }
+        if (absolute >= 1000) {
+            return (numeric / 1000).toFixed(0) + "K";
+        }
+        return numeric.toLocaleString("vi-VN");
+    }
+
+    function formatVnd(val) {
+        return (Number(val) || 0).toLocaleString("vi-VN") + " ₫";
+    }
+
+    function formatCount(val) {
+        return (Number(val) || 0).toLocaleString("vi-VN");
+    }
+
+    function setText(id, value) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.textContent = value;
+        }
+    }
+
+    function normalizeRange(rangeKey) {
+        var range = revenueRawData.ranges ? revenueRawData.ranges[rangeKey] : revenueRawData[rangeKey];
+        if (!range) {
+            return null;
+        }
+
+        if (range.series) {
+            return range;
+        }
+
+        return {
+            categories: range.categories || [],
+            series: [
+                { name: "Tổng doanh thu", data: range.totalData || [] },
+                { name: "Mua sách", data: range.orderData || [] },
+                { name: "Phí/phạt mượn", data: range.borrowData || [] }
+            ],
+            orderCountData: range.orderCountData || [],
+            borrowCountData: range.borrowCountData || [],
+            summary: range.summary || {}
+        };
+    }
+
+    function updateSummary(range) {
+        var summary = range && range.summary ? range.summary : {};
+        setText("revenueSummaryTotal", formatVnd(summary.totalRevenue));
+        setText("revenueSummaryOrder", formatVnd(summary.orderRevenue));
+        setText("revenueSummaryBorrow", formatVnd(summary.borrowRevenue));
+        setText(
+            "revenueSummaryCollected",
+            formatCount(summary.collectedOrders) + " đơn / " + formatCount(summary.paidFines) + " phí"
+        );
+    }
+
+    function buildTooltip(range, pointIndex) {
+        var orderCount = range.orderCountData && range.orderCountData[pointIndex] ? range.orderCountData[pointIndex] : 0;
+        var borrowCount = range.borrowCountData && range.borrowCountData[pointIndex] ? range.borrowCountData[pointIndex] : 0;
+        var category = range.categories && range.categories[pointIndex] ? range.categories[pointIndex] : "";
+        var meta = formatCount(orderCount) + " đơn đã thu";
+
+        if (borrowCount > 0) {
+            meta += " • " + formatCount(borrowCount) + " phí/phạt đã thu";
+        }
+
+        return [
+            '<div class="revenue-tooltip">',
+            '<div class="revenue-tooltip-title">' + category + '</div>',
+            '<div class="revenue-tooltip-row"><span>Tổng thu</span><strong>' + formatVnd(range.series[0].data[pointIndex]) + '</strong></div>',
+            '<div class="revenue-tooltip-row"><span>Mua sách</span><strong>' + formatVnd(range.series[1].data[pointIndex]) + '</strong></div>',
+            '<div class="revenue-tooltip-row"><span>Phí/phạt mượn</span><strong>' + formatVnd(range.series[2].data[pointIndex]) + '</strong></div>',
+            '<div class="revenue-tooltip-meta">' + meta + '</div>',
+            '</div>'
+        ].join('');
+    }
+
+    function buildRevenueChart(rangeKey) {
+        var range = normalizeRange(rangeKey) || normalizeRange("year");
+        if (!range) {
+            return;
+        }
+
+        if (window._revenueChartInst) {
+            window._revenueChartInst.destroy();
+        }
+
+        updateSummary(range);
+
+        var opts = {
+            chart: {
+                type: "line",
+                height: 350,
+                toolbar: { show: false },
+                zoom: { enabled: false },
+                fontFamily: "inherit"
+            },
+            series: range.series,
+            xaxis: {
+                categories: range.categories,
+                labels: {
+                    style: { fontSize: "11px" },
+                    rotate: range.categories.length > 12 ? -45 : 0,
+                    hideOverlappingLabels: true,
+                    trim: false
+                },
+                axisBorder: { show: false },
+                axisTicks: { show: false }
+            },
+            yaxis: {
+                labels: {
+                    formatter: formatCompactVnd,
+                    style: { fontSize: "11px" }
+                },
+                title: {
+                    text: "Doanh thu (VNĐ)",
+                    style: { fontWeight: 500 }
+                }
+            },
+            stroke: { curve: "smooth", width: [3, 3, 2] },
+            markers: { size: [4, 4, 3], hover: { size: 6 } },
+            colors: ["#0f62fe", "#16a34a", "#f59e0b"],
+            legend: {
+                position: "top",
+                horizontalAlign: "right",
+                fontSize: "12px",
+                markers: { width: 10, height: 10, radius: 3 }
+            },
+            tooltip: {
+                shared: true,
+                intersect: false,
+                custom: function (ctx) {
+                    return buildTooltip(range, ctx.dataPointIndex);
+                }
+            },
+            grid: { borderColor: "#e2e8f0", strokeDashArray: 4, xaxis: { lines: { show: false } } },
+            dataLabels: { enabled: false }
+        };
+
+        window._revenueChartInst = new ApexCharts(document.getElementById("revenueChart"), opts);
+        window._revenueChartInst.render();
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        if (typeof ApexCharts === "undefined" || !document.getElementById("revenueChart")) {
+            return;
+        }
+
+        var defaultRange = revenueRawData.defaultRange || "year";
+        buildRevenueChart(defaultRange);
+
+        var filter = document.getElementById("revenueChartFilter");
+        if (filter) {
+            filter.value = defaultRange;
+            filter.addEventListener("change", function () {
+                buildRevenueChart(this.value);
+            });
+        }
+    });
+})();
+</script>
 <%@ include file="layout/_admin_footer.jsp" %>

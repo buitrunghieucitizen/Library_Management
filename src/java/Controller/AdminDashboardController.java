@@ -3,11 +3,13 @@ package Controller;
 import Entities.Book;
 import Entities.Borrow;
 import Entities.BorrowItem;
+import Entities.Fine;
 import Entities.OrderDetail;
 import Entities.Orders;
 import Model.DAOBook;
 import Model.DAOBorrow;
 import Model.DAOBorrowItem;
+import Model.DAOFine;
 import Model.DAOOrderDetail;
 import Model.DAOOrders;
 import Model.DAOStaff;
@@ -50,6 +52,7 @@ public class AdminDashboardController extends HttpServlet {
     private final DAOStaff daoStaff = new DAOStaff();
     private final DAOBorrow daoBorrow = new DAOBorrow();
     private final DAOBorrowItem daoBorrowItem = new DAOBorrowItem();
+    private final DAOFine daoFine = new DAOFine();
     private final DAOOrders daoOrders = new DAOOrders();
     private final DAOOrderDetail daoOrderDetail = new DAOOrderDetail();
 
@@ -85,6 +88,7 @@ public class AdminDashboardController extends HttpServlet {
         List<BorrowItem> borrowItems = daoBorrowItem.getAll();
         List<Orders> orders = daoOrders.getAll();
         List<OrderDetail> orderDetails = daoOrderDetail.getAll();
+        List<Fine> paidFines = daoFine.getPaidFines();
         List<BorrowRow> borrowRows = daoBorrow.getBorrowRows();
         List<OrderRow> orderRows = daoOrders.getOrderRows();
 
@@ -131,6 +135,7 @@ public class AdminDashboardController extends HttpServlet {
         request.setAttribute("lowStockBooks", selectLowStockBooks(books, LOW_STOCK_THRESHOLD, RECENT_ITEMS_LIMIT));
         request.setAttribute("borrowBuyChartJson",
                 buildBorrowBuyChartJson(borrows, borrowItems, orders, orderDetails));
+        request.setAttribute("revenueChartJson", buildRevenueChartJson(orders, paidFines));
 
         if (isAdminDashboard) {
             int totalStaff = daoStaff.getAll().size();
@@ -298,6 +303,60 @@ public class AdminDashboardController extends HttpServlet {
         return json.toString();
     }
 
+    private String buildRevenueChartJson(List<Orders> orders, List<Fine> paidFines) {
+        LocalDate today = LocalDate.now();
+        YearMonth currentMonth = YearMonth.from(today);
+        LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekEnd = weekStart.plusDays(6);
+
+        RevenueSeries yearlySeries = new RevenueSeries(12);
+        RevenueSeries monthlySeries = new RevenueSeries(currentMonth.lengthOfMonth());
+        RevenueSeries weeklySeries = new RevenueSeries(7);
+
+        for (Orders order : orders) {
+            if (!isCollectedOrderStatus(order.getStatus())) {
+                continue;
+            }
+
+            LocalDate orderDate = parseDate(order.getOrderDate());
+            if (orderDate == null) {
+                continue;
+            }
+
+            collectRevenueRangeData(orderDate, Math.max(0d, order.getTotalAmount()), true,
+                    today, currentMonth, weekStart, weekEnd, yearlySeries, monthlySeries, weeklySeries);
+        }
+
+        for (Fine fine : paidFines) {
+            LocalDate paidDate = parseDate(fine.getPaidDate());
+            if (paidDate == null) {
+                continue;
+            }
+
+            collectRevenueRangeData(paidDate, Math.max(0d, fine.getAmount()), false,
+                    today, currentMonth, weekStart, weekEnd, yearlySeries, monthlySeries, weeklySeries);
+        }
+
+        StringBuilder json = new StringBuilder(2048);
+        json.append('{');
+        json.append("\"defaultRange\":\"year\",");
+        json.append("\"seriesNames\":{");
+        json.append("\"total\":\"Tổng doanh thu\",");
+        json.append("\"order\":\"Mua sách\",");
+        json.append("\"borrow\":\"Phí/phạt mượn\"");
+        json.append("},");
+        json.append("\"unitLabel\":\"VNĐ\",");
+        json.append("\"yAxisTitle\":\"Doanh thu (VNĐ)\",");
+        json.append("\"ranges\":{");
+        appendRevenueRangeJson(json, "year", "Năm nay", buildYearCategories(), yearlySeries);
+        json.append(',');
+        appendRevenueRangeJson(json, "month", "Tháng này", buildMonthCategories(currentMonth), monthlySeries);
+        json.append(',');
+        appendRevenueRangeJson(json, "week", "Tuần này", buildWeekCategories(), weeklySeries);
+        json.append("}}");
+        return json.toString();
+    }
+
     private Map<Integer, Integer> aggregateBorrowQuantities(List<BorrowItem> borrowItems) {
         Map<Integer, Integer> quantities = new HashMap<>();
         if (borrowItems == null) {
@@ -334,6 +393,22 @@ public class AdminDashboardController extends HttpServlet {
 
         if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
             weeklyData[date.getDayOfWeek().getValue() - 1] += quantity;
+        }
+    }
+
+    private void collectRevenueRangeData(LocalDate date, double amount, boolean isOrder,
+            LocalDate today, YearMonth currentMonth, LocalDate weekStart, LocalDate weekEnd,
+            RevenueSeries yearlySeries, RevenueSeries monthlySeries, RevenueSeries weeklySeries) {
+        if (date.getYear() == today.getYear()) {
+            yearlySeries.add(date.getMonthValue() - 1, amount, isOrder);
+        }
+
+        if (YearMonth.from(date).equals(currentMonth)) {
+            monthlySeries.add(date.getDayOfMonth() - 1, amount, isOrder);
+        }
+
+        if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
+            weeklySeries.add(date.getDayOfWeek().getValue() - 1, amount, isOrder);
         }
     }
 
@@ -377,6 +452,10 @@ public class AdminDashboardController extends HttpServlet {
         return new String[]{"T2", "T3", "T4", "T5", "T6", "T7", "CN"};
     }
 
+    private boolean isCollectedOrderStatus(String status) {
+        return matchesStatus(status, "Approved", STATUS_ORDER_DELIVERED);
+    }
+
     private void appendRangeJson(StringBuilder json, String key, String label, String[] categories,
             int[] borrowData, int[] orderData) {
         json.append('"').append(jsonEscape(key)).append("\":{");
@@ -389,6 +468,37 @@ public class AdminDashboardController extends HttpServlet {
         json.append(',');
         json.append("\"orderData\":");
         appendJsonIntArray(json, orderData);
+        json.append('}');
+    }
+
+    private void appendRevenueRangeJson(StringBuilder json, String key, String label, String[] categories,
+            RevenueSeries series) {
+        json.append('"').append(jsonEscape(key)).append("\":{");
+        json.append("\"label\":\"").append(jsonEscape(label)).append("\",");
+        json.append("\"categories\":");
+        appendJsonStringArray(json, categories);
+        json.append(',');
+        json.append("\"summary\":{");
+        json.append("\"totalRevenue\":").append(formatJsonNumber(series.getTotalRevenue())).append(',');
+        json.append("\"orderRevenue\":").append(formatJsonNumber(series.getOrderRevenue())).append(',');
+        json.append("\"borrowRevenue\":").append(formatJsonNumber(series.getBorrowRevenue())).append(',');
+        json.append("\"collectedOrders\":").append(series.getCollectedOrderCount()).append(',');
+        json.append("\"paidFines\":").append(series.getPaidFineCount());
+        json.append("},");
+        json.append("\"totalData\":");
+        appendJsonDoubleArray(json, series.totalData);
+        json.append(',');
+        json.append("\"orderData\":");
+        appendJsonDoubleArray(json, series.orderData);
+        json.append(',');
+        json.append("\"borrowData\":");
+        appendJsonDoubleArray(json, series.borrowData);
+        json.append(',');
+        json.append("\"orderCountData\":");
+        appendJsonIntArray(json, series.orderCountData);
+        json.append(',');
+        json.append("\"borrowCountData\":");
+        appendJsonIntArray(json, series.borrowCountData);
         json.append('}');
     }
 
@@ -412,6 +522,30 @@ public class AdminDashboardController extends HttpServlet {
             json.append(values[i]);
         }
         json.append(']');
+    }
+
+    private void appendJsonDoubleArray(StringBuilder json, double[] values) {
+        json.append('[');
+        for (int i = 0; i < values.length; i++) {
+            if (i > 0) {
+                json.append(',');
+            }
+            json.append(formatJsonNumber(values[i]));
+        }
+        json.append(']');
+    }
+
+    private String formatJsonNumber(double value) {
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
+            return "0";
+        }
+
+        long roundedValue = Math.round(value);
+        if (Math.abs(value - roundedValue) < 0.000001d) {
+            return Long.toString(roundedValue);
+        }
+
+        return Double.toString(value);
     }
 
     private String jsonEscape(String value) {
@@ -454,5 +588,74 @@ public class AdminDashboardController extends HttpServlet {
             }
         }
         return escaped.toString();
+    }
+
+    private static final class RevenueSeries {
+
+        private final double[] totalData;
+        private final double[] orderData;
+        private final double[] borrowData;
+        private final int[] orderCountData;
+        private final int[] borrowCountData;
+
+        private RevenueSeries(int size) {
+            this.totalData = new double[size];
+            this.orderData = new double[size];
+            this.borrowData = new double[size];
+            this.orderCountData = new int[size];
+            this.borrowCountData = new int[size];
+        }
+
+        private void add(int index, double amount, boolean isOrder) {
+            if (index < 0 || index >= totalData.length) {
+                return;
+            }
+
+            totalData[index] += amount;
+            if (isOrder) {
+                orderData[index] += amount;
+                orderCountData[index]++;
+                return;
+            }
+
+            borrowData[index] += amount;
+            borrowCountData[index]++;
+        }
+
+        private double getTotalRevenue() {
+            return sum(totalData);
+        }
+
+        private double getOrderRevenue() {
+            return sum(orderData);
+        }
+
+        private double getBorrowRevenue() {
+            return sum(borrowData);
+        }
+
+        private int getCollectedOrderCount() {
+            return sum(orderCountData);
+        }
+
+        private int getPaidFineCount() {
+            return sum(borrowCountData);
+        }
+
+        private double sum(double[] values) {
+            double total = 0;
+            for (double value : values) {
+                total += value;
+            }
+            return total;
+        }
+
+        private int sum(int[] values) {
+            int total = 0;
+            for (int value : values) {
+                total += value;
+            }
+            return total;
+        }
     }
 }
