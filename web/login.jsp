@@ -69,7 +69,7 @@
 
                 <div class="card-shell auth-card login-panel">
                     <div class="login-panel-copy">
-                        <span class="login-panel-kicker">Sign In</span>
+                        <span class="login-panel-kicker">Đăng nhập</span>
                         <h2 id="auth-title" class="fw-bold">Đăng nhập</h2>
                         <p class="text-muted mb-0">Dùng tên đăng nhập hoặc email đã đăng ký để tiếp tục vào hệ thống.</p>
                     </div>

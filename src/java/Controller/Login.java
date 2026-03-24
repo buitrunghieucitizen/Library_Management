@@ -224,7 +224,7 @@ public class Login extends HttpServlet {
 
         Integer inferredRole = preferStudentRole ? resolveStudentRoleId() : inferRole(staff);
         if (inferredRole == null) {
-            throw new SQLException("Khong tim thay role mac dinh phu hop trong bang Role.");
+            throw new SQLException("Không tìm thấy role mặc định phù hợp trong bảng Role.");
         }
 
         daoStaffRole.insert(new StaffRole(staff.getStaffID(), inferredRole));

@@ -92,7 +92,7 @@ public class BorrowHelper {
     public int parsePositiveInt(String raw, String fieldName) {
         int value = Integer.parseInt(raw);
         if (value <= 0) {
-            throw new IllegalArgumentException(fieldName + " phai > 0");
+            throw new IllegalArgumentException(fieldName + " phải lớn hơn 0.");
         }
         return value;
     }
@@ -144,14 +144,14 @@ public class BorrowHelper {
 
     public BorrowRenewalDecision evaluateRenewal(Borrow borrow, LocalDate today) {
         if (borrow == null) {
-            return BorrowRenewalDecision.ineligible("Khong tim thay phieu muon.");
+            return BorrowRenewalDecision.ineligible("Không tìm thấy phiếu mượn.");
         }
         return evaluateRenewal(borrow.getBorrowDate(), borrow.getDueDate(), borrow.getStatus(), today);
     }
 
     public BorrowRenewalDecision evaluateRenewal(BorrowRow row, LocalDate today) {
         if (row == null) {
-            return BorrowRenewalDecision.ineligible("Khong tim thay phieu muon.");
+            return BorrowRenewalDecision.ineligible("Không tìm thấy phiếu mượn.");
         }
         return evaluateRenewal(row.getBorrowDate(), row.getDueDate(), row.getStatus(), today);
     }
@@ -161,31 +161,31 @@ public class BorrowHelper {
         LocalDate dueDate = parseIsoDate(dueDateRaw);
 
         if (borrowDate == null || dueDate == null) {
-            return BorrowRenewalDecision.ineligible("Khong the doc ngay muon hoac han tra.");
+            return BorrowRenewalDecision.ineligible("Không thể đọc ngày mượn hoặc hạn trả.");
         }
 
         if (!"Borrowing".equalsIgnoreCase(trim(status))) {
             if ("Overdue".equalsIgnoreCase(trim(status)) || today.isAfter(dueDate)) {
-                return BorrowRenewalDecision.ineligible("Phieu da qua han nen khong the gia han online.");
+                return BorrowRenewalDecision.ineligible("Phiếu đã quá hạn nên không thể gia hạn trực tuyến.");
             }
             if ("Returned".equalsIgnoreCase(trim(status))) {
-                return BorrowRenewalDecision.ineligible("Phieu da hoan tat nen khong the gia han.");
+                return BorrowRenewalDecision.ineligible("Phiếu đã hoàn tất nên không thể gia hạn.");
             }
-            return BorrowRenewalDecision.ineligible("Chi phieu dang muon moi duoc gia han.");
+            return BorrowRenewalDecision.ineligible("Chỉ phiếu đang mượn mới được gia hạn.");
         }
 
         if (today.isAfter(dueDate)) {
-            return BorrowRenewalDecision.ineligible("Phieu da qua han nen khong the gia han online.");
+            return BorrowRenewalDecision.ineligible("Phiếu đã quá hạn nên không thể gia hạn trực tuyến.");
         }
 
         if (dueDate.isAfter(today.plusDays(STUDENT_RENEWAL_WINDOW_DAYS))) {
             return BorrowRenewalDecision.ineligible(
-                    "Chi co the gia han trong " + STUDENT_RENEWAL_WINDOW_DAYS + " ngay cuoi truoc han tra.");
+                    "Chỉ có thể gia hạn trong " + STUDENT_RENEWAL_WINDOW_DAYS + " ngày cuối trước hạn trả.");
         }
 
         LocalDate maxDueDate = borrowDate.plusDays(MAX_STUDENT_BORROW_DAYS);
         if (!dueDate.isBefore(maxDueDate)) {
-            return BorrowRenewalDecision.ineligible("Phieu nay da dung het luot gia han.");
+            return BorrowRenewalDecision.ineligible("Phiếu này đã dùng hết lượt gia hạn.");
         }
 
         LocalDate nextDueDate = dueDate.plusDays(STUDENT_RENEWAL_DAYS);
@@ -194,11 +194,11 @@ public class BorrowHelper {
         }
 
         if (!nextDueDate.isAfter(dueDate)) {
-            return BorrowRenewalDecision.ineligible("Khong con ngay gia han hop le cho phieu nay.");
+            return BorrowRenewalDecision.ineligible("Không còn ngày gia hạn hợp lệ cho phiếu này.");
         }
 
         return BorrowRenewalDecision.eligible(nextDueDate,
-                "Gia han them " + STUDENT_RENEWAL_DAYS + " ngay den " + nextDueDate + ".");
+                "Gia hạn thêm " + STUDENT_RENEWAL_DAYS + " ngày đến " + nextDueDate + ".");
     }
 
     private LocalDate parseIsoDate(String raw) {
@@ -261,11 +261,11 @@ public class BorrowHelper {
     public String addToBorrowCart(HttpServletRequest req, int bookId) {
         List<Integer> cart = getOrCreateBorrowCart(req);
         if (cart.size() >= BorrowValidator.MAX_CART_SIZE) {
-            return "Gio muon da day (" + BorrowValidator.MAX_CART_SIZE + " quyen). "
-                    + "Gui yeu cau muon hoac xoa bot sach.";
+            return "Giỏ mượn đã đầy (" + BorrowValidator.MAX_CART_SIZE + " quyển). "
+                    + "Vui lòng gửi yêu cầu mượn hoặc xóa bớt sách.";
         }
         if (cart.contains(bookId)) {
-            return "Sach nay da co trong gio muon.";
+            return "Sách này đã có trong giỏ mượn.";
         }
         cart.add(bookId);
         return null; // success
@@ -341,7 +341,7 @@ public class BorrowHelper {
             int bookId = entry.getKey();
             int quantity = entry.getValue() == null || entry.getValue() <= 0 ? 1 : entry.getValue();
             Book book = bookById.get(bookId);
-            String bookName = book == null ? ("Book #" + bookId) : book.getBookName();
+            String bookName = book == null ? ("Sách #" + bookId) : book.getBookName();
             int available = book == null ? 0 : book.getAvailable();
             BookPriceRow priceRow = priceByBookId.get(bookId);
             double unitPrice = priceRow == null ? 0 : priceRow.getAmount();

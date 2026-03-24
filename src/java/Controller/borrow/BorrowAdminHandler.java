@@ -88,7 +88,7 @@ public class BorrowAdminHandler {
     public void showCreate(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, ServletException, IOException {
         if (!helper.isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
-            helper.redirectWithMessage(req, resp, "error", "Học sinh không được tạo phiếu mượn theo form quản trị.");
+            helper.redirectWithMessage(req, resp, "error", "Sinh viên không được tạo phiếu mượn theo biểu mẫu quản trị.");
             return;
         }
         loadCreateData(req);
@@ -98,7 +98,7 @@ public class BorrowAdminHandler {
     public void createBorrow(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, ServletException, IOException {
         if (!helper.isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
-            helper.redirectWithMessage(req, resp, "error", "Học sinh không được tạo phiếu mượn.");
+            helper.redirectWithMessage(req, resp, "error", "Sinh viên không được tạo phiếu mượn.");
             return;
         }
 
@@ -221,7 +221,7 @@ public class BorrowAdminHandler {
     public void returnBorrow(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, IOException {
         if (!helper.isAdminSection(req) || RoleUtils.isStudentOnly(req)) {
-            helper.redirectWithMessage(req, resp, "error", "Học sinh không được xác nhận trả sách.");
+            helper.redirectWithMessage(req, resp, "error", "Sinh viên không được xác nhận trả sách.");
             return;
         }
 
@@ -254,7 +254,7 @@ public class BorrowAdminHandler {
         // === TRANSACTION: chỉ update DB, không gọi method nào mở connection khác ===
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {

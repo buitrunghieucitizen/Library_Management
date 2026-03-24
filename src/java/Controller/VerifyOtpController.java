@@ -44,7 +44,7 @@ public class VerifyOtpController extends HttpServlet {
         Long expiresAt = (Long) session.getAttribute(ForgotPasswordController.RESET_OTP_EXPIRES_AT);
         if (expiresAt == null || System.currentTimeMillis() > expiresAt) {
             ForgotPasswordController.clearResetState(session);
-            request.setAttribute("error", "OTP da het han. Vui long gui lai OTP moi.");
+            request.setAttribute("error", "OTP đã hết hạn. Vui lòng gửi lại OTP mới.");
             request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
             return;
         }
@@ -55,7 +55,7 @@ public class VerifyOtpController extends HttpServlet {
         }
         if (attempts >= MAX_ATTEMPTS) {
             ForgotPasswordController.clearResetState(session);
-            request.setAttribute("error", "Ban da nhap sai qua so lan cho phep. Vui long gui lai OTP moi.");
+            request.setAttribute("error", "Bạn đã nhập sai quá số lần cho phép. Vui lòng gửi lại OTP mới.");
             request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
             return;
         }
@@ -66,11 +66,11 @@ public class VerifyOtpController extends HttpServlet {
             session.setAttribute(ForgotPasswordController.RESET_OTP_ATTEMPTS, attempts);
             if (attempts >= MAX_ATTEMPTS) {
                 ForgotPasswordController.clearResetState(session);
-                request.setAttribute("error", "Ban da nhap sai qua so lan cho phep. Vui long gui lai OTP moi.");
+                request.setAttribute("error", "Bạn đã nhập sai quá số lần cho phép. Vui lòng gửi lại OTP mới.");
                 request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
                 return;
             }
-            request.setAttribute("error", "OTP khong dung. Ban con " + (MAX_ATTEMPTS - attempts) + " lan thu.");
+            request.setAttribute("error", "OTP không đúng. Bạn còn " + (MAX_ATTEMPTS - attempts) + " lần thử.");
             request.getRequestDispatcher("/verify-otp.jsp").forward(request, response);
             return;
         }

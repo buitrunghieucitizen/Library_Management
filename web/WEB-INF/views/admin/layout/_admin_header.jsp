@@ -9,6 +9,9 @@
     </title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/book-theme.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-dashboard.css">
+    <c:if test="${not empty pageStylesheet}">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/${pageStylesheet}">
+    </c:if>
 </head>
 <body class="dashboard-body">
     <c:set var="ctx" value="${pageContext.request.contextPath}" />

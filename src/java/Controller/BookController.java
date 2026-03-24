@@ -18,12 +18,14 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
-@WebServlet(name = "BookController", urlPatterns = {"/books", "/admin/books"})
+@WebServlet(name = "BookController", urlPatterns = { "/books", "/admin/books" })
 public class BookController extends HttpServlet {
 
     private static final String PUBLIC_BOOKS_PATH = "/books";
@@ -42,7 +44,8 @@ public class BookController extends HttpServlet {
         }
 
         if (isAdminSection(req) && !canAccessAdminSection(req)) {
-            resp.sendRedirect(req.getContextPath() + PUBLIC_BOOKS_PATH + "?action=list&error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
+            resp.sendRedirect(req.getContextPath() + PUBLIC_BOOKS_PATH
+                    + "?action=list&error=" + encodeQueryValue("Truy cập bị từ chối."));
             return;
         }
 
@@ -57,7 +60,9 @@ public class BookController extends HttpServlet {
                 case "edit":
                 case "delete":
                     if (!isAdminSection(req) || !isAdmin(req)) {
-                        resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list&error=Permission Denied");
+                        resp.sendRedirect(
+                                req.getContextPath() + getListPath(req) + "?action=list&error="
+                                + encodeQueryValue("Bạn không có quyền thực hiện thao tác này."));
                         return;
                     }
                     if ("create".equals(action)) {
@@ -99,20 +104,23 @@ public class BookController extends HttpServlet {
         }
 
         if (!isAdminSection(req) || !isAdmin(req)) {
-            resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list&error=Permission Denied");
+            resp.sendRedirect(req.getContextPath() + getListPath(req) + "?action=list&error="
+                    + encodeQueryValue("Bạn không có quyền thực hiện thao tác này."));
             return;
         }
 
         try {
             if ("create".equals(action)) {
                 createBookWithPrice(req);
-                resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH + "?action=list&msg=Them%20sach%20va%20gia%20thanh%20cong");
+                resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH
+                        + "?action=list&msg=" + encodeQueryValue("Thêm sách và giá thành công."));
                 return;
             }
 
             if ("edit".equals(action)) {
                 updateBookWithPrice(req);
-                resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH + "?action=list&msg=Cap%20nhat%20sach%20va%20gia%20thanh%20cong");
+                resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH
+                        + "?action=list&msg=" + encodeQueryValue("Cập nhật sách và giá thành công."));
                 return;
             }
 
@@ -122,11 +130,13 @@ public class BookController extends HttpServlet {
         }
     }
 
-    private void showEdit(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
+    private void showEdit(HttpServletRequest req, HttpServletResponse resp)
+            throws SQLException, ServletException, IOException {
         int id = Integer.parseInt(req.getParameter("id"));
         Book book = daoBook.getById(id);
         if (book == null) {
-            resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH + "?action=list&error=Khong%20tim%20thay%20sach");
+            resp.sendRedirect(req.getContextPath() + ADMIN_BOOKS_PATH + "?action=list&error="
+                    + encodeQueryValue("Không tìm thấy sách."));
             return;
         }
 
@@ -189,23 +199,23 @@ public class BookController extends HttpServlet {
 
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
             con.setAutoCommit(false);
 
             if (daoBook.insert(con, book) == 0) {
-                throw new SQLException("Khong the tao sach.");
+                throw new SQLException("Không thể tạo sách.");
             }
 
             Price price = priceInput.toEntity();
             if (daoPrice.insert(con, price) == 0) {
-                throw new SQLException("Khong the tao gia sach.");
+                throw new SQLException("Không thể tạo giá sách.");
             }
 
             if (daoBookPrice.insertCurrent(con, book.getBookID(), price.getPriceID(), LocalDate.now()) == 0) {
-                throw new SQLException("Khong the gan gia cho sach.");
+                throw new SQLException("Không thể gắn giá cho sách.");
             }
 
             con.commit();
@@ -224,31 +234,31 @@ public class BookController extends HttpServlet {
 
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
             con.setAutoCommit(false);
 
             if (daoBook.update(con, book) == 0) {
-                throw new SQLException("Cap nhat sach that bai.");
+                throw new SQLException("Cập nhật sách thất bại.");
             }
 
             CurrentPriceInfo currentPrice = daoBookPrice.getCurrentPriceInfo(con, book.getBookID());
             if (currentPrice == null) {
                 Price price = priceInput.toEntity();
                 if (daoPrice.insert(con, price) == 0) {
-                    throw new SQLException("Khong the tao gia sach.");
+                    throw new SQLException("Không thể tạo giá sách.");
                 }
                 if (daoBookPrice.insertCurrent(con, book.getBookID(), price.getPriceID(), LocalDate.now()) == 0) {
-                    throw new SQLException("Khong the gan gia cho sach.");
+                    throw new SQLException("Không thể gắn giá cho sách.");
                 }
             } else if (isPriceChanged(currentPrice, priceInput)) {
                 if (LocalDate.now().equals(currentPrice.getStartDate())) {
                     Price price = new Price(currentPrice.getPriceID(), priceInput.getAmount(),
                             priceInput.getCurrency(), priceInput.getNote());
                     if (daoPrice.update(con, price) == 0) {
-                        throw new SQLException("Cap nhat gia sach that bai.");
+                        throw new SQLException("Cập nhật giá sách thất bại.");
                     }
                 } else {
                     daoBookPrice.closeCurrent(
@@ -260,10 +270,10 @@ public class BookController extends HttpServlet {
 
                     Price price = priceInput.toEntity();
                     if (daoPrice.insert(con, price) == 0) {
-                        throw new SQLException("Khong the tao gia sach.");
+                        throw new SQLException("Không thể tạo giá sách.");
                     }
                     if (daoBookPrice.insertCurrent(con, book.getBookID(), price.getPriceID(), LocalDate.now()) == 0) {
-                        throw new SQLException("Khong the gan gia cho sach.");
+                        throw new SQLException("Không thể gắn giá cho sách.");
                     }
                 }
             }
@@ -321,5 +331,9 @@ public class BookController extends HttpServlet {
             System.err.println("[Book] Skip OpenLibrary cover lookup for \"" + bookName + "\": " + e.getMessage());
             return null;
         }
+    }
+
+    private String encodeQueryValue(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }

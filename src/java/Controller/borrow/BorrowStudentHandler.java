@@ -76,7 +76,7 @@ public class BorrowStudentHandler {
 
         Integer studentId = helper.resolveStudentIdForStaff(staff);
         if (studentId == null) {
-            req.setAttribute("mappingError", "Khong xac dinh duoc tai khoan sinh vien cho user hien tai.");
+            req.setAttribute("mappingError", "Không xác định được tài khoản sinh viên cho người dùng hiện tại.");
             req.setAttribute("availableBooks", Collections.emptyList());
             req.setAttribute("bookPrices", Collections.emptyList());
             req.setAttribute("borrows", Collections.emptyList());
@@ -383,7 +383,7 @@ public class BorrowStudentHandler {
     // ========== CHECKOUT (giữ nguyên) ==========
     public void showCheckout(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, ServletException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản học sinh mới được checkout.")) {
+        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản sinh viên mới được thanh toán.")) {
             return;
         }
         Staff staff = requireLoggedStaff(req, resp);
@@ -424,7 +424,7 @@ public class BorrowStudentHandler {
 
     public void showCheckoutSuccess(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, ServletException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản học sinh mới được xem kết quả.")) {
+        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản sinh viên mới được xem kết quả.")) {
             return;
         }
         Staff staff = requireLoggedStaff(req, resp);
@@ -472,7 +472,7 @@ public class BorrowStudentHandler {
 
     // ========== BUY LIST (giữ nguyên) ==========
     public void buyBookAsStudent(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản học sinh mới được mua sách.")) {
+        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản sinh viên mới được mua sách.")) {
             return;
         }
         Staff staff = requireLoggedStaff(req, resp);
@@ -500,7 +500,7 @@ public class BorrowStudentHandler {
     }
 
     public void addToBuyList(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản học sinh mới được thêm vào danh sách mua.")) {
+        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản sinh viên mới được thêm vào danh sách mua.")) {
             return;
         }
         int bookId;
@@ -512,7 +512,7 @@ public class BorrowStudentHandler {
         }
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
         try {
             int available = daoBook.getAvailable(con, bookId);
@@ -539,7 +539,7 @@ public class BorrowStudentHandler {
     }
 
     public void removeFromBuyList(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản học sinh.")) {
+        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản sinh viên.")) {
             return;
         }
         int bookId;
@@ -559,7 +559,7 @@ public class BorrowStudentHandler {
 
     public void updateBuyListQuantity(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chi tai khoan hoc sinh moi duoc sua danh sach mua.")) {
+        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản sinh viên mới được sửa danh sách mua.")) {
             return;
         }
         int bookId, quantity;
@@ -577,7 +577,7 @@ public class BorrowStudentHandler {
         }
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
         try {
             int available = daoBook.getAvailable(con, bookId);
@@ -593,7 +593,7 @@ public class BorrowStudentHandler {
     }
 
     public void orderOneFromBuyList(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản học sinh.")) {
+        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản sinh viên.")) {
             return;
         }
         Staff staff = requireLoggedStaff(req, resp);
@@ -628,7 +628,7 @@ public class BorrowStudentHandler {
     }
 
     public void orderAllFromBuyList(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản học sinh.")) {
+        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản sinh viên.")) {
             return;
         }
         Staff staff = requireLoggedStaff(req, resp);
@@ -666,7 +666,7 @@ public class BorrowStudentHandler {
 
     public void requestReturnAsStudent(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chi tai khoan hoc sinh moi duoc gui yeu cau tra.")) {
+        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản sinh viên mới được gửi yêu cầu trả.")) {
             return;
         }
         Staff staff = requireLoggedStaff(req, resp);
@@ -682,22 +682,22 @@ public class BorrowStudentHandler {
         try {
             borrowId = helper.parsePositiveInt(req.getParameter("borrowID"), "BorrowID");
         } catch (Exception e) {
-            helper.redirectWithMessageAndAnchor(req, resp, "error", "BorrowID khong hop le.", "borrow-panel");
+            helper.redirectWithMessageAndAnchor(req, resp, "error", "Mã phiếu mượn không hợp lệ.", "borrow-panel");
             return;
         }
         if (!daoBorrow.existsOwnedByStudentAndNotReturned(borrowId, studentId)) {
-            helper.redirectWithMessageAndAnchor(req, resp, "error", "Khong tim thay phieu muon hop le de yeu cau tra.",
+            helper.redirectWithMessageAndAnchor(req, resp, "error", "Không tìm thấy phiếu mượn hợp lệ để gửi yêu cầu trả.",
                     "borrow-panel");
             return;
         }
 
         helper.redirectWithMessageAndAnchor(req, resp, "msg",
-                "Da gui yeu cau tra sach. Vui long cho staff/admin xac nhan.", "borrow-panel");
+                "Đã gửi yêu cầu trả sách. Vui lòng chờ nhân viên hoặc quản trị viên xác nhận.", "borrow-panel");
     }
 
     public void renewBorrowAsStudent(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, IOException {
-        if (!ensureStudentOnly(req, resp, "Chi tai khoan hoc sinh moi duoc gia han online.")) {
+        if (!ensureStudentOnly(req, resp, "Chỉ tài khoản sinh viên mới được gia hạn trực tuyến.")) {
             return;
         }
 
@@ -709,7 +709,7 @@ public class BorrowStudentHandler {
         Integer studentId = helper.resolveStudentIdForStaff(staff);
         if (studentId == null) {
             helper.redirectWithMessageAndAnchor(req, resp, "error",
-                    "Khong xac dinh duoc ma sinh vien cho tai khoan hien tai.", "borrow-panel");
+                    "Không xác định được mã sinh viên cho tài khoản hiện tại.", "borrow-panel");
             return;
         }
 
@@ -717,14 +717,14 @@ public class BorrowStudentHandler {
         try {
             borrowId = helper.parsePositiveInt(req.getParameter("borrowID"), "BorrowID");
         } catch (Exception e) {
-            helper.redirectWithMessageAndAnchor(req, resp, "error", "BorrowID khong hop le.", "borrow-panel");
+            helper.redirectWithMessageAndAnchor(req, resp, "error", "Mã phiếu mượn không hợp lệ.", "borrow-panel");
             return;
         }
 
         try {
             BorrowRenewalDecision decision = transactionService.renewBorrowTransaction(borrowId, studentId);
             helper.redirectWithMessageAndAnchor(req, resp, "msg",
-                    "Da gia han phieu #" + borrowId + " den " + decision.getNextDueDateLabel() + ".", "borrow-panel");
+                    "Đã gia hạn phiếu #" + borrowId + " đến " + decision.getNextDueDateLabel() + ".", "borrow-panel");
         } catch (SQLException e) {
             helper.redirectWithMessageAndAnchor(req, resp, "error", e.getMessage(), "borrow-panel");
         }

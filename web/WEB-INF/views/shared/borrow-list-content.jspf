@@ -1,0 +1,231 @@
+<div class="container borrow-admin-page" id="borrowAdminPage" data-context-path="${pageContext.request.contextPath}">
+    <c:if test="${not empty param.msg}">
+        <div class="msg"><c:out value="${param.msg}" /></div>
+    </c:if>
+    <c:if test="${not empty param.error}">
+        <div class="error"><c:out value="${param.error}" /></div>
+    </c:if>
+
+    <div class="borrow-page-toolbar">
+        <div class="borrow-page-toolbar-copy">
+            <div class="note borrow-page-note">${totalItems} bản ghi tổng cộng</div>
+        </div>
+        <a class="btn btn-primary btn-inline-sm" href="${pageContext.request.contextPath}/admin/borrows?action=create">+ Tạo phiếu mượn</a>
+    </div>
+
+    <div class="borrow-tabs" id="borrowTabs">
+        <button class="borrow-tab active" data-tab="tab-pending" type="button">
+            Chờ duyệt
+            <span class="tab-badge danger${pendingCount gt 0 ? '' : ' is-hidden'}" id="pendingTabBadge">${pendingCount}</span>
+        </button>
+        <button class="borrow-tab" data-tab="tab-all" type="button">Tất cả phiếu mượn</button>
+        <button class="borrow-tab" data-tab="tab-holds" type="button">
+            Giữ chỗ
+            <c:if test="${not empty activeHolds}">
+                <span class="tab-badge warning">${fn:length(activeHolds)}</span>
+            </c:if>
+        </button>
+    </div>
+
+    <div class="tab-pane active" id="tab-pending">
+        <c:choose>
+            <c:when test="${empty pendingBorrows}">
+                <div class="empty-state borrow-empty-state">Không có yêu cầu mượn nào đang chờ duyệt.</div>
+            </c:when>
+            <c:otherwise>
+                <div class="pending-grid">
+                    <c:forEach var="pb" items="${pendingBorrows}">
+                        <article class="pending-card">
+                            <div class="pending-card-head">
+                                <div class="pending-card-head-left">
+                                    <span class="status pending">Chờ duyệt</span>
+                                    <span class="pending-card-id">#${pb.borrowID}</span>
+                                </div>
+                                <span class="pending-card-date"><c:out value="${pb.borrowDate}" /></span>
+                            </div>
+
+                            <div class="pending-card-student">
+                                <div class="pending-card-name"><c:out value="${pb.studentName}" /></div>
+                                <div class="pending-card-staff">Nhân viên: <c:out value="${pb.staffName}" /></div>
+                            </div>
+
+                            <div class="pending-card-books">
+                                <div class="pending-card-books-label">Sách mượn</div>
+                                <div class="pending-card-books-value"><c:out value="${pb.items}" /></div>
+                            </div>
+
+                            <div class="pending-card-due">
+                                <span class="pending-card-due-label">Hạn trả</span>
+                                <strong><c:out value="${pb.dueDate}" /></strong>
+                            </div>
+
+                            <div class="pending-card-actions">
+                                <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="pending-card-action-form"
+                                      onsubmit="return confirm('Duyệt phiếu mượn #${pb.borrowID}?');">
+                                    <input type="hidden" name="action" value="approve">
+                                    <input type="hidden" name="borrowID" value="${pb.borrowID}">
+                                    <button class="action-btn approve" type="submit">Duyệt</button>
+                                </form>
+                                <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="pending-card-action-form"
+                                      onsubmit="return confirm('Từ chối phiếu mượn #${pb.borrowID}?');">
+                                    <input type="hidden" name="action" value="reject">
+                                    <input type="hidden" name="borrowID" value="${pb.borrowID}">
+                                    <button class="action-btn reject" type="submit">Từ chối</button>
+                                </form>
+                            </div>
+                        </article>
+                    </c:forEach>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </div>
+
+    <div class="tab-pane" id="tab-all">
+        <div class="borrow-table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Sinh viên</th>
+                        <th>Nhân viên</th>
+                        <th>Ngày mượn</th>
+                        <th>Hạn trả</th>
+                        <th>Ngày trả</th>
+                        <th>Trạng thái</th>
+                        <th>Sách</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach var="b" items="${borrows}">
+                        <tr>
+                            <td>${b.borrowID}</td>
+                            <td><c:out value="${b.studentName}" /></td>
+                            <td><c:out value="${b.staffName}" /></td>
+                            <td><c:out value="${b.borrowDate}" /></td>
+                            <td><c:out value="${b.dueDate}" /></td>
+                            <td><c:out value="${b.returnDate}" default="-" /></td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${b.status eq 'Pending'}"><span class="status pending">Chờ duyệt</span></c:when>
+                                    <c:when test="${b.status eq 'Borrowing'}"><span class="status borrowing">Đang mượn</span></c:when>
+                                    <c:when test="${b.status eq 'Returned'}"><span class="status returned">Đã trả</span></c:when>
+                                    <c:when test="${b.status eq 'Overdue'}"><span class="status overdue">Quá hạn</span></c:when>
+                                    <c:when test="${b.status eq 'Rejected'}"><span class="status rejected">Đã từ chối</span></c:when>
+                                    <c:otherwise><span class="status"><c:out value="${b.status}" /></span></c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td><c:out value="${b.items}" /></td>
+                            <td>
+                                <c:if test="${b.status eq 'Pending'}">
+                                    <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="inline-form"
+                                          onsubmit="return confirm('Duyệt phiếu #${b.borrowID}?');">
+                                        <input type="hidden" name="action" value="approve">
+                                        <input type="hidden" name="borrowID" value="${b.borrowID}">
+                                        <button class="action-btn approve" type="submit">Duyệt</button>
+                                    </form>
+                                    <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="inline-form"
+                                          onsubmit="return confirm('Từ chối phiếu #${b.borrowID}?');">
+                                        <input type="hidden" name="action" value="reject">
+                                        <input type="hidden" name="borrowID" value="${b.borrowID}">
+                                        <button class="action-btn reject" type="submit">Từ chối</button>
+                                    </form>
+                                </c:if>
+                                <c:if test="${b.status eq 'Borrowing' || b.status eq 'Overdue'}">
+                                    <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="inline-form"
+                                          onsubmit="return confirm('Xác nhận trả sách phiếu #${b.borrowID}?');">
+                                        <input type="hidden" name="action" value="return">
+                                        <input type="hidden" name="borrowID" value="${b.borrowID}">
+                                        <button class="action-btn return-btn" type="submit">Xác nhận trả</button>
+                                    </form>
+                                </c:if>
+                                <c:if test="${b.status eq 'Returned' || b.status eq 'Rejected'}">
+                                    <span class="borrow-action-empty">-</span>
+                                </c:if>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                    <c:if test="${empty borrows}">
+                        <tr>
+                            <td colspan="9" class="empty-row">Chưa có phiếu mượn nào.</td>
+                        </tr>
+                    </c:if>
+                </tbody>
+            </table>
+        </div>
+
+        <c:if test="${totalPages > 1}">
+            <div class="pagination">
+                <c:if test="${currentPage > 1}">
+                    <c:url var="prevUrl" value="/admin/borrows">
+                        <c:param name="action" value="list" />
+                        <c:param name="page" value="${currentPage - 1}" />
+                    </c:url>
+                    <a class="page-link" href="${prevUrl}">Trang trước</a>
+                </c:if>
+                <c:forEach begin="1" end="${totalPages}" var="p">
+                    <c:url var="pageUrl" value="/admin/borrows">
+                        <c:param name="action" value="list" />
+                        <c:param name="page" value="${p}" />
+                    </c:url>
+                    <a class="page-link ${p eq currentPage ? 'active' : ''}" href="${pageUrl}">${p}</a>
+                </c:forEach>
+                <c:if test="${currentPage < totalPages}">
+                    <c:url var="nextUrl" value="/admin/borrows">
+                        <c:param name="action" value="list" />
+                        <c:param name="page" value="${currentPage + 1}" />
+                    </c:url>
+                    <a class="page-link" href="${nextUrl}">Trang sau</a>
+                </c:if>
+            </div>
+        </c:if>
+    </div>
+
+    <div class="tab-pane" id="tab-holds">
+        <c:choose>
+            <c:when test="${empty activeHolds}">
+                <div class="empty-state borrow-empty-state">Không có yêu cầu giữ chỗ nào đang hoạt động.</div>
+            </c:when>
+            <c:otherwise>
+                <div class="borrow-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Sinh viên</th>
+                                <th>Email</th>
+                                <th>Sách</th>
+                                <th>Ngày đặt</th>
+                                <th>Trạng thái</th>
+                                <th>Thông báo lúc</th>
+                                <th>Hết hạn</th>
+                                <th>Có sẵn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="h" items="${activeHolds}">
+                                <tr>
+                                    <td>${h.holdID}</td>
+                                    <td><c:out value="${h.studentName}" /></td>
+                                    <td><c:out value="${h.studentEmail}" /></td>
+                                    <td><c:out value="${h.bookName}" /></td>
+                                    <td><c:out value="${h.holdDate}" /></td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${h.status eq 'Waiting'}"><span class="status waiting">Đang chờ</span></c:when>
+                                            <c:when test="${h.status eq 'Notified'}"><span class="status notified">Đã thông báo</span></c:when>
+                                            <c:otherwise><span class="status"><c:out value="${h.status}" /></span></c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td><c:out value="${h.notifiedDate}" default="-" /></td>
+                                    <td><c:out value="${h.expireDate}" default="-" /></td>
+                                    <td><span class="hold-available ${h.bookAvailable gt 0 ? 'yes' : 'no'}">${h.bookAvailable}</span></td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </div>
+</div>

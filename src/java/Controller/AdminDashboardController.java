@@ -59,21 +59,21 @@ public class AdminDashboardController extends HttpServlet {
         boolean isAdminDashboard = RoleUtils.isAdmin(request);
 
         request.setAttribute("isAdminDashboard", isAdminDashboard);
-        request.setAttribute("dashboardLabel", isAdminDashboard ? "ADMIN CONTROL CENTER" : "STAFF OPERATIONS");
-        request.setAttribute("dashboardTitle", isAdminDashboard ? "Admin Dashboard" : "Staff Dashboard");
+        request.setAttribute("dashboardLabel", isAdminDashboard ? "BẢNG ĐIỀU KHIỂN" : "TRUNG TÂM VẬN HÀNH");
+        request.setAttribute("dashboardTitle", isAdminDashboard ? "Bảng điều khiển quản trị" : "Bảng điều khiển nhân viên");
         request.setAttribute("dashboardIntro", isAdminDashboard
-                ? "Tong quan he thong thu vien de theo doi kho sach, nguoi dung va giao dich quan trong."
-                : "Tong quan van hanh de theo doi muon tra, xu ly don va tinh trang kho sach.");
+                ? "Tổng quan hệ thống thư viện để theo dõi kho sách, người dùng và giao dịch quan trọng."
+                : "Tổng quan vận hành để theo dõi mượn trả, xử lý đơn và tình trạng kho sách.");
         request.setAttribute("dashboardRoleLabel", isAdminDashboard
-                ? "Toan quyen quan tri"
-                : "Dieu phoi van hanh");
+                ? "Toàn quyền quản trị"
+                : "Điều phối vận hành");
         request.setAttribute("managedAreas", isAdminDashboard ? 9 : 5);
         request.setAttribute("todayLabel", LocalDate.now().format(DATE_FORMATTER));
 
         try {
             populateStats(request, isAdminDashboard);
         } catch (SQLException e) {
-            request.setAttribute("dashboardLoadError", "Khong tai duoc du lieu dashboard: " + e.getMessage());
+            request.setAttribute("dashboardLoadError", "Không tải được dữ liệu bảng điều khiển: " + e.getMessage());
         }
 
         request.getRequestDispatcher("/WEB-INF/views/admin/dashboard.jsp").forward(request, response);

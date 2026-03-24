@@ -100,7 +100,7 @@ public class BorrowValidator {
      */
     public String validateCartAdd(int currentCartSize) {
         if (currentCartSize >= MAX_CART_SIZE) {
-            return "Gio muon toi da " + MAX_CART_SIZE + " quyen. Vui long gui yeu cau hoac xoa bot.";
+            return "Giỏ mượn tối đa " + MAX_CART_SIZE + " quyển. Vui lòng gửi yêu cầu hoặc xóa bớt.";
         }
         return null;
     }
@@ -146,7 +146,7 @@ public class BorrowValidator {
                 + "AND b.BorrowDate >= DATEADD(DAY, 1-DATEPART(WEEKDAY, GETDATE()), CAST(GETDATE() AS DATE))";
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, studentId);

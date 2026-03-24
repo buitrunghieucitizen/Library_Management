@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import javax.mail.MessagingException;
 
-@WebServlet(name = "ForgotPasswordController", urlPatterns = {"/forgot-password"})
+@WebServlet(name = "ForgotPasswordController", urlPatterns = { "/forgot-password" })
 public class ForgotPasswordController extends HttpServlet {
 
     static final String RESET_USERNAME = "resetUsername";
@@ -41,18 +41,18 @@ public class ForgotPasswordController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         if (!EmailConfig.isConfigured()) {
-            forwardWithError(request, response, "", "He thong chua cau hinh email (MAIL_USERNAME/MAIL_PASSWORD).");
+            forwardWithError(request, response, "", "Hệ thống chưa cấu hình email (MAIL_USERNAME/MAIL_PASSWORD).");
             return;
         }
 
         String emailInput = trim(request.getParameter("email"));
         if (emailInput.isEmpty()) {
-            forwardWithError(request, response, "", "Vui long nhap email.");
+            forwardWithError(request, response, "", "Vui lòng nhập email.");
             return;
         }
 
         if (!PasswordResetUtils.isEmail(emailInput)) {
-            forwardWithError(request, response, emailInput, "Email khong hop le.");
+            forwardWithError(request, response, emailInput, "Email không hợp lệ.");
             return;
         }
 
@@ -63,12 +63,12 @@ public class ForgotPasswordController extends HttpServlet {
                 staff = daoStaff.getByUsername(emailInput);
             }
         } catch (SQLException ex) {
-            forwardWithError(request, response, emailInput, "Loi he thong: " + ex.getMessage());
+            forwardWithError(request, response, emailInput, "Lỗi hệ thống: " + ex.getMessage());
             return;
         }
 
         if (staff == null) {
-            forwardWithError(request, response, emailInput, "Khong tim thay tai khoan voi email nay.");
+            forwardWithError(request, response, emailInput, "Không tìm thấy tài khoản với email này.");
             return;
         }
 
@@ -78,7 +78,7 @@ public class ForgotPasswordController extends HttpServlet {
         }
 
         if (!PasswordResetUtils.isEmail(recoveryEmail)) {
-            forwardWithError(request, response, emailInput, "Tai khoan nay chua co email de nhan OTP.");
+            forwardWithError(request, response, emailInput, "Tài khoản này chưa có email để nhận OTP.");
             return;
         }
 
@@ -96,11 +96,11 @@ public class ForgotPasswordController extends HttpServlet {
             emailService.sendOtpEmail(recoveryEmail, otp);
         } catch (MessagingException ex) {
             clearResetState(session);
-            forwardWithError(request, response, emailInput, "Gui email OTP that bai. Vui long thu lai sau.");
+            forwardWithError(request, response, emailInput, "Gửi email OTP thất bại. Vui lòng thử lại sau.");
             return;
         }
 
-        request.setAttribute("message", "OTP da duoc gui den email dang ky.");
+        request.setAttribute("message", "OTP đã được gửi đến email đăng ký.");
         request.setAttribute("username", staff.getUsername());
         request.getRequestDispatcher("/verify-otp.jsp").forward(request, response);
     }

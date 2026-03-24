@@ -49,15 +49,15 @@ public class BorrowTransactionService {
     public int createPendingBorrow(int studentId, int staffId, List<Integer> bookIds,
             LocalDate borrowDate, LocalDate dueDate) throws SQLException {
         if (bookIds == null || bookIds.isEmpty()) {
-            throw new SQLException("Gio muon trong, khong co sach de muon.");
+            throw new SQLException("Giỏ mượn đang trống, không có sách để mượn.");
         }
         if (staffId <= 0) {
-            throw new SQLException("Khong xac dinh duoc tai khoan gui yeu cau muon.");
+            throw new SQLException("Không xác định được tài khoản gửi yêu cầu mượn.");
         }
 
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -67,7 +67,7 @@ public class BorrowTransactionService {
             for (int bookId : bookIds) {
                 int available = daoBook.getAvailable(con, bookId);
                 if (available <= 0) {
-                    throw new SQLException("Sach ID=" + bookId + " da het. Vui long xoa khoi gio muon.");
+                    throw new SQLException("Sách có mã #" + bookId + " đã hết. Vui lòng xóa khỏi giỏ mượn.");
                 }
             }
 
@@ -78,7 +78,7 @@ public class BorrowTransactionService {
             for (int bookId : bookIds) {
                 int affected = daoBorrowItem.insert(con, new BorrowItem(borrowId, bookId, 1));
                 if (affected == 0) {
-                    throw new SQLException("Khong the them sach ID=" + bookId + " vao phieu muon.");
+                    throw new SQLException("Không thể thêm sách có mã #" + bookId + " vào phiếu mượn.");
                 }
             }
 
@@ -101,11 +101,11 @@ public class BorrowTransactionService {
      */
     public void approveBorrow(int borrowId, int approverStaffId) throws SQLException {
         if (approverStaffId <= 0) {
-            throw new SQLException("Khong xac dinh duoc nhan vien duyet phieu muon.");
+            throw new SQLException("Không xác định được nhân viên duyệt phiếu mượn.");
         }
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -114,27 +114,27 @@ public class BorrowTransactionService {
             // Verify it's still Pending
             String status = daoBorrow.getStatusForUpdate(con, borrowId);
             if (!"Pending".equalsIgnoreCase(status)) {
-                throw new SQLException("Phieu muon nay khong con o trang thai Pending (hien tai: " + status + ").");
+                throw new SQLException("Phiếu mượn này không còn ở trạng thái chờ duyệt (hiện tại: " + status + ").");
             }
 
             // Get all items
             List<BorrowItem> items = daoBorrowItem.getByBorrowId(con, borrowId);
             if (items.isEmpty()) {
-                throw new SQLException("Phieu muon khong co sach.");
+                throw new SQLException("Phiếu mượn không có sách.");
             }
 
             // Decrease available for each book
             for (BorrowItem item : items) {
                 int decreased = daoBook.decreaseAvailable(con, item.getBookID(), item.getQuantity());
                 if (decreased == 0) {
-                    throw new SQLException("Sach ID=" + item.getBookID()
-                            + " khong du so luong de cho muon.");
+                    throw new SQLException("Sách có mã #" + item.getBookID()
+                            + " không đủ số lượng để cho mượn.");
                 }
             }
 
             // Update status to Borrowing
             if (daoBorrow.updateStatus(con, borrowId, "Borrowing", approverStaffId) == 0) {
-                throw new SQLException("Khong the cap nhat trang thai phieu muon.");
+                throw new SQLException("Không thể cập nhật trạng thái phiếu mượn.");
             }
 
             // Auto fulfill hold nếu student có hold cho sách này
@@ -170,11 +170,11 @@ public class BorrowTransactionService {
      */
     public void rejectBorrow(int borrowId, int reviewerStaffId) throws SQLException {
         if (reviewerStaffId <= 0) {
-            throw new SQLException("Khong xac dinh duoc nhan vien xu ly phieu muon.");
+            throw new SQLException("Không xác định được nhân viên xử lý phiếu mượn.");
         }
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -182,11 +182,11 @@ public class BorrowTransactionService {
 
             String status = daoBorrow.getStatusForUpdate(con, borrowId);
             if (!"Pending".equalsIgnoreCase(status)) {
-                throw new SQLException("Phieu muon nay khong con o trang thai Pending (hien tai: " + status + ").");
+                throw new SQLException("Phiếu mượn này không còn ở trạng thái chờ duyệt (hiện tại: " + status + ").");
             }
 
             if (daoBorrow.updateStatus(con, borrowId, "Rejected", reviewerStaffId) == 0) {
-                throw new SQLException("Khong the cap nhat trang thai phieu muon.");
+                throw new SQLException("Không thể cập nhật trạng thái phiếu mượn.");
             }
 
             con.commit();
@@ -207,7 +207,7 @@ public class BorrowTransactionService {
             LocalDate borrowDate, LocalDate dueDate) throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -215,18 +215,18 @@ public class BorrowTransactionService {
 
             int available = daoBook.getAvailable(con, bookId);
             if (available < quantity) {
-                throw new SQLException("So luong sach con lai khong du. Con lai: " + available);
+                throw new SQLException("Số lượng sách còn lại không đủ. Còn lại: " + available + ".");
             }
 
             int borrowId = daoBorrow.insert(con, studentId, staffId, borrowDate, dueDate, "Borrowing");
             int borrowItemAffected = daoBorrowItem.insert(con, new BorrowItem(borrowId, bookId, quantity));
             if (borrowItemAffected == 0) {
-                throw new SQLException("Khong the tao chi tiet muon.");
+                throw new SQLException("Không thể tạo chi tiết mượn.");
             }
 
             int decreaseAffected = daoBook.decreaseAvailable(con, bookId, quantity);
             if (decreaseAffected == 0) {
-                throw new SQLException("Khong du so luong sach de muon.");
+                throw new SQLException("Không đủ số lượng sách để mượn.");
             }
 
             con.commit();
@@ -245,12 +245,12 @@ public class BorrowTransactionService {
     public int createPendingOrder(int studentId, int staffId,
             List<PurchaseRequestItem> items) throws SQLException {
         if (items == null || items.isEmpty()) {
-            throw new SQLException("Don mua khong co sach.");
+            throw new SQLException("Đơn mua không có sách.");
         }
 
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -260,11 +260,11 @@ public class BorrowTransactionService {
             for (PurchaseRequestItem item : items) {
                 int available = daoBook.getAvailable(con, item.getBookID());
                 if (available < item.getQuantity()) {
-                    throw new SQLException("Khong du ton kho cho sach id=" + item.getBookID());
+                    throw new SQLException("Không đủ tồn kho cho sách có mã #" + item.getBookID() + ".");
                 }
                 double currentPrice = daoBookPrice.getCurrentSellingPrice(con, item.getBookID());
                 if (currentPrice <= 0) {
-                    throw new SQLException("Sach id=" + item.getBookID() + " chua co gia ban hop le.");
+                    throw new SQLException("Sách có mã #" + item.getBookID() + " chưa có giá bán hợp lệ.");
                 }
                 item.setUnitPrice(currentPrice);
                 totalAmount += currentPrice * item.getQuantity();
@@ -275,7 +275,7 @@ public class BorrowTransactionService {
                 int affected = daoOrderDetail.insert(con,
                         new OrderDetail(orderId, item.getBookID(), item.getQuantity(), item.getUnitPrice()));
                 if (affected == 0) {
-                    throw new SQLException("Khong the tao chi tiet don hang cho sach id=" + item.getBookID());
+                    throw new SQLException("Không thể tạo chi tiết đơn hàng cho sách có mã #" + item.getBookID() + ".");
                 }
             }
 
@@ -293,7 +293,7 @@ public class BorrowTransactionService {
     public BorrowRenewalDecision renewBorrowTransaction(int borrowId, int studentId) throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -301,7 +301,7 @@ public class BorrowTransactionService {
 
             Borrow borrow = daoBorrow.getOwnedByStudentForUpdate(con, borrowId, studentId);
             if (borrow == null) {
-                throw new SQLException("Khong tim thay phieu muon hop le de gia han.");
+                throw new SQLException("Không tìm thấy phiếu mượn hợp lệ để gia hạn.");
             }
 
             BorrowRenewalDecision decision = helper.evaluateRenewal(borrow);
@@ -310,7 +310,7 @@ public class BorrowTransactionService {
             }
 
             if (daoBorrow.updateDueDate(con, borrowId, decision.getNextDueDate()) == 0) {
-                throw new SQLException("Khong the cap nhat han tra moi.");
+                throw new SQLException("Không thể cập nhật hạn trả mới.");
             }
 
             con.commit();

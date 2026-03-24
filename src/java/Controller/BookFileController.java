@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -30,7 +32,7 @@ public class BookFileController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (!canManageBookFiles(req)) {
-            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
+            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=" + encodeQueryValue("Truy cập bị từ chối."));
             return;
         }
 
@@ -65,7 +67,7 @@ public class BookFileController extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         if (!canManageBookFiles(req)) {
-            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=Truy%20c%E1%BA%ADp%20b%E1%BB%8B%20t%E1%BB%AB%20ch%E1%BB%91i");
+            resp.sendRedirect(req.getContextPath() + "/index.jsp?error=" + encodeQueryValue("Truy cập bị từ chối."));
             return;
         }
 
@@ -109,7 +111,8 @@ public class BookFileController extends HttpServlet {
         int bookFileId = Integer.parseInt(req.getParameter("id"));
         BookFile bookFile = daoBookFile.getById(bookFileId);
         if (bookFile == null) {
-            resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?error=Khong%20tim%20thay%20bookfile");
+            resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?error="
+                    + encodeQueryValue("Không tìm thấy tệp sách."));
             return;
         }
 
@@ -120,19 +123,22 @@ public class BookFileController extends HttpServlet {
     private void createBookFile(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
         BookFile bookFile = readBookFile(req, false);
         daoBookFile.insert(bookFile);
-        resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?msg=Them%20bookfile%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?msg="
+                + encodeQueryValue("Thêm tệp sách thành công."));
     }
 
     private void updateBookFile(HttpServletRequest req, HttpServletResponse resp) throws SQLException, ServletException, IOException {
         BookFile bookFile = readBookFile(req, true);
         daoBookFile.update(bookFile);
-        resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?msg=Cap%20nhat%20bookfile%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?msg="
+                + encodeQueryValue("Cập nhật tệp sách thành công."));
     }
 
     private void deleteBookFile(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
         int bookFileId = Integer.parseInt(req.getParameter("id"));
         daoBookFile.delete(bookFileId);
-        resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?msg=Xoa%20bookfile%20thanh%20cong");
+        resp.sendRedirect(req.getContextPath() + BOOKFILES_PATH + "?msg="
+                + encodeQueryValue("Xóa tệp sách thành công."));
     }
 
     private BookFile readBookFile(HttpServletRequest req, boolean hasId) {
@@ -164,5 +170,9 @@ public class BookFileController extends HttpServlet {
         List<Book> books = daoBook.getAll();
         req.setAttribute("books", books);
         req.setAttribute("bookFile", bookFile);
+    }
+
+    private String encodeQueryValue(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }

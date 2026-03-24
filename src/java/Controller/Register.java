@@ -127,7 +127,7 @@ public class Register extends HttpServlet {
             daoStaff.insert(staff);
             Integer studentRoleId = resolveStudentRoleId();
             if (studentRoleId == null) {
-                throw new SQLException("Khong tim thay role Student trong bang Role.");
+                throw new SQLException("Không tìm thấy vai trò sinh viên trong bảng Role.");
             }
             daoStaffRole.insert(new StaffRole(staff.getStaffID(), studentRoleId));
             daoStudent.ensureMirrorFromStaff(staff);

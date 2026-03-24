@@ -162,7 +162,7 @@ public class BuyController extends HttpServlet {
             throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {

@@ -84,17 +84,17 @@ public class OrdersController extends HttpServlet {
         try {
             orderId = Integer.parseInt(req.getParameter("orderID"));
         } catch (NumberFormatException e) {
-            redirectWithMessage(req, resp, "error", "OrderID khong hop le.");
+            redirectWithMessage(req, resp, "error", "Mã đơn hàng không hợp lệ.");
             return;
         }
 
         try {
             if ("approve".equals(action)) {
                 approveOrder(orderId, staff.getStaffID());
-                redirectWithMessage(req, resp, "msg", "Da duyet don hang.");
+                redirectWithMessage(req, resp, "msg", "Đã duyệt đơn hàng.");
             } else {
                 rejectOrder(orderId, staff.getStaffID());
-                redirectWithMessage(req, resp, "msg", "Da tu choi don hang.");
+                redirectWithMessage(req, resp, "msg", "Đã từ chối đơn hàng.");
             }
         } catch (SQLException e) {
             redirectWithMessage(req, resp, "error", e.getMessage());
@@ -108,7 +108,7 @@ public class OrdersController extends HttpServlet {
     private void approveOrder(int orderId, int staffId) throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -116,26 +116,26 @@ public class OrdersController extends HttpServlet {
 
             String status = daoOrders.getStatusForUpdate(con, orderId);
             if (status == null) {
-                throw new SQLException("Khong tim thay don hang.");
+                throw new SQLException("Không tìm thấy đơn hàng.");
             }
             if (!"Pending".equalsIgnoreCase(status)) {
-                throw new SQLException("Chi co the duyet don Pending.");
+                throw new SQLException("Chỉ có thể duyệt đơn đang chờ xử lý.");
             }
 
             List<OrderItemRow> items = daoOrderDetail.getOrderItemsWithBookName(con, orderId);
             if (items.isEmpty()) {
-                throw new SQLException("Don hang khong co chi tiet sach.");
+                throw new SQLException("Đơn hàng không có chi tiết sách.");
             }
 
             for (OrderItemRow item : items) {
                 int affected = daoBook.decreaseStockAndAvailable(con, item.getBookID(), item.getQuantity());
                 if (affected == 0) {
-                    throw new SQLException("Khong du ton kho de duyet don cho sach id=" + item.getBookID());
+                    throw new SQLException("Không đủ tồn kho để duyệt đơn cho sách có mã #" + item.getBookID() + ".");
                 }
             }
 
             if (daoOrders.updateStatus(con, orderId, "Approved", staffId) == 0) {
-                throw new SQLException("Cap nhat trang thai don hang that bai.");
+                throw new SQLException("Cập nhật trạng thái đơn hàng thất bại.");
             }
             con.commit();
         } catch (SQLException e) {
@@ -150,7 +150,7 @@ public class OrdersController extends HttpServlet {
     private void rejectOrder(int orderId, int staffId) throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Cannot connect to database!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -158,14 +158,14 @@ public class OrdersController extends HttpServlet {
 
             String status = daoOrders.getStatusForUpdate(con, orderId);
             if (status == null) {
-                throw new SQLException("Khong tim thay don hang.");
+                throw new SQLException("Không tìm thấy đơn hàng.");
             }
             if (!"Pending".equalsIgnoreCase(status)) {
-                throw new SQLException("Chi co the tu choi don Pending.");
+                throw new SQLException("Chỉ có thể từ chối đơn đang chờ xử lý.");
             }
 
             if (daoOrders.updateStatus(con, orderId, "Rejected", staffId) == 0) {
-                throw new SQLException("Cap nhat trang thai don hang that bai.");
+                throw new SQLException("Cập nhật trạng thái đơn hàng thất bại.");
             }
             con.commit();
         } catch (SQLException e) {

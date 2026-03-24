@@ -44,7 +44,7 @@ public class StudentBookFileController extends HttpServlet {
             String targetUrl = resolveTargetUrl(bookFile.getFileUrl(), request);
             if (targetUrl == null) {
                 redirectBackToBook(request, response, bookFile.getBookID(), "error",
-                        "Lien ket tep sach khong hop le.");
+                        "Liên kết tệp sách không hợp lệ.");
                 return;
             }
 

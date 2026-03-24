@@ -46,7 +46,7 @@ public class OrderStaffController extends HttpServlet {
                         req.setAttribute("orderItems", items);
                     }
                 } else {
-                    req.setAttribute("error", "Khong tim thay don hang voi ma #" + id);
+                    req.setAttribute("error", "Không tìm thấy đơn hàng với mã #" + id + ".");
                 }
             }
 
@@ -54,7 +54,7 @@ public class OrderStaffController extends HttpServlet {
             req.setAttribute("isAdmin", RoleUtils.isAdmin(req));
             req.getRequestDispatcher("/WEB-INF/views/admin/orders/list.jsp").forward(req, resp);
         } catch (Exception e) {
-            req.setAttribute("error", "Loi: " + e.getMessage());
+            req.setAttribute("error", "Lỗi: " + e.getMessage());
             req.setAttribute("isAdmin", RoleUtils.isAdmin(req));
             req.getRequestDispatcher("/WEB-INF/views/admin/orders/list.jsp").forward(req, resp);
         }
@@ -73,7 +73,7 @@ public class OrderStaffController extends HttpServlet {
         try {
             orderId = Integer.parseInt(req.getParameter("orderID"));
         } catch (NumberFormatException e) {
-            redirectWithMessage(req, resp, "error", "OrderID khong hop le");
+            redirectWithMessage(req, resp, "error", "Mã đơn hàng không hợp lệ.");
             return;
         }
 
@@ -81,22 +81,22 @@ public class OrderStaffController extends HttpServlet {
         try {
             if ("complete".equals(action)) {
                 processOrderComplete(orderId, staff.getStaffID());
-                redirectWithMessage(req, resp, "msg", "Da hoan thanh don hang #" + orderId);
+                redirectWithMessage(req, resp, "msg", "Đã hoàn thành đơn hàng #" + orderId + ".");
             } else if ("cancel".equals(action)) {
                 cancelOrder(orderId, staff.getStaffID());
-                redirectWithMessage(req, resp, "msg", "Da huy don hang #" + orderId);
+                redirectWithMessage(req, resp, "msg", "Đã hủy đơn hàng #" + orderId + ".");
             } else if ("approve".equals(action)) {
                 approveOrder(orderId, staff.getStaffID());
-                redirectWithMessage(req, resp, "msg", "Da duyet don hang #" + orderId);
+                redirectWithMessage(req, resp, "msg", "Đã duyệt đơn hàng #" + orderId + ".");
             } else if ("reject".equals(action)) {
                 rejectOrder(orderId, staff.getStaffID());
-                redirectWithMessage(req, resp, "msg", "Da tu choi don hang #" + orderId);
+                redirectWithMessage(req, resp, "msg", "Đã từ chối đơn hàng #" + orderId + ".");
             } else {
-                redirectWithMessage(req, resp, "error", "Hanh dong khong hop le");
+                redirectWithMessage(req, resp, "error", "Hành động không hợp lệ.");
             }
         } catch (Exception e) {
             if (!resp.isCommitted()) {
-                redirectWithMessage(req, resp, "error", "Loi xu ly don #" + orderId + ": " + e.getMessage());
+                redirectWithMessage(req, resp, "error", "Lỗi xử lý đơn #" + orderId + ": " + e.getMessage());
             }
         }
     }
@@ -104,7 +104,7 @@ public class OrderStaffController extends HttpServlet {
     private void processOrderComplete(int orderId, int staffId) throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Loi ket noi CSDL!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -112,14 +112,14 @@ public class OrderStaffController extends HttpServlet {
 
             String currentStatus = daoOrders.getStatusForUpdate(con, orderId);
             if (currentStatus == null || currentStatus.equals("Đã giao") || currentStatus.equals("Đã hủy")) {
-                throw new SQLException("Don hang nay da duoc xu ly tu truoc!");
+                throw new SQLException("Đơn hàng này đã được xử lý trước đó.");
             }
 
             List<OrderItemRow> items = daoOrderDetail.getOrderItemsWithBookName(con, orderId);
             for (OrderItemRow item : items) {
                 int affected = daoBook.decreaseAvailable(con, item.getBookID(), item.getQuantity());
                 if (affected == 0) {
-                    throw new SQLException("Sach '" + item.getBookName() + "' khong du so luong trong kho de giao!");
+                    throw new SQLException("Sách \"" + item.getBookName() + "\" không đủ số lượng trong kho để giao.");
                 }
             }
 
@@ -137,7 +137,7 @@ public class OrderStaffController extends HttpServlet {
     private void cancelOrder(int orderId, int staffId) throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Loi ket noi CSDL!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -156,7 +156,7 @@ public class OrderStaffController extends HttpServlet {
     private void approveOrder(int orderId, int staffId) throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Loi ket noi CSDL!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -164,26 +164,26 @@ public class OrderStaffController extends HttpServlet {
 
             String status = daoOrders.getStatusForUpdate(con, orderId);
             if (status == null) {
-                throw new SQLException("Khong tim thay don hang.");
+                throw new SQLException("Không tìm thấy đơn hàng.");
             }
             if (!"Pending".equalsIgnoreCase(status)) {
-                throw new SQLException("Chi co the duyet don Pending.");
+                throw new SQLException("Chỉ có thể duyệt đơn đang chờ xử lý.");
             }
 
             List<OrderItemRow> items = daoOrderDetail.getOrderItemsWithBookName(con, orderId);
             if (items.isEmpty()) {
-                throw new SQLException("Don hang khong co chi tiet sach.");
+                throw new SQLException("Đơn hàng không có chi tiết sách.");
             }
 
             for (OrderItemRow item : items) {
                 int affected = daoBook.decreaseStockAndAvailable(con, item.getBookID(), item.getQuantity());
                 if (affected == 0) {
-                    throw new SQLException("Khong du ton kho de duyet don cho sach '" + item.getBookName() + "'");
+                    throw new SQLException("Không đủ tồn kho để duyệt đơn cho sách \"" + item.getBookName() + "\".");
                 }
             }
 
             if (daoOrders.updateStatus(con, orderId, "Approved", staffId) == 0) {
-                throw new SQLException("Cap nhat trang thai don hang that bai.");
+                throw new SQLException("Cập nhật trạng thái đơn hàng thất bại.");
             }
             con.commit();
         } catch (SQLException e) {
@@ -198,7 +198,7 @@ public class OrderStaffController extends HttpServlet {
     private void rejectOrder(int orderId, int staffId) throws SQLException {
         Connection con = DBConnection.getConnection();
         if (con == null) {
-            throw new SQLException("Loi ket noi CSDL!");
+            throw new SQLException("Không thể kết nối đến cơ sở dữ liệu.");
         }
 
         try {
@@ -206,14 +206,14 @@ public class OrderStaffController extends HttpServlet {
 
             String status = daoOrders.getStatusForUpdate(con, orderId);
             if (status == null) {
-                throw new SQLException("Khong tim thay don hang.");
+                throw new SQLException("Không tìm thấy đơn hàng.");
             }
             if (!"Pending".equalsIgnoreCase(status)) {
-                throw new SQLException("Chi co the tu choi don Pending.");
+                throw new SQLException("Chỉ có thể từ chối đơn đang chờ xử lý.");
             }
 
             if (daoOrders.updateStatus(con, orderId, "Rejected", staffId) == 0) {
-                throw new SQLException("Cap nhat trang thai don hang that bai.");
+                throw new SQLException("Cập nhật trạng thái đơn hàng thất bại.");
             }
             con.commit();
         } catch (SQLException e) {

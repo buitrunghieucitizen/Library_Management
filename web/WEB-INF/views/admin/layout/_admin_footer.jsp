@@ -7,6 +7,9 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </c:if>
 <script src="${pageContext.request.contextPath}/assets/js/admin-shared.js"></script>
+<c:if test="${not empty pageScript}">
+    <script src="${pageContext.request.contextPath}/assets/js/${pageScript}"></script>
+</c:if>
 <%-- WebSocket admin notification (global) --%>
 <script>
     (function () {
@@ -23,6 +26,9 @@
             ws.onmessage = function (e) {
                 try {
                     var d = JSON.parse(e.data);
+                    if (d) {
+                        document.dispatchEvent(new CustomEvent('adminNotification', {detail: d}));
+                    }
                     if (d.message) {
                         var c = document.querySelector('.ws-toast-container');
                         if (!c) {

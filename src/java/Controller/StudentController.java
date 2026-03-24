@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -43,7 +45,8 @@ public class StudentController extends HttpServlet {
                 case "delete":
                     if (!isAdmin(req)) {
                         resp.sendRedirect(
-                                req.getContextPath() + STUDENTS_PATH + "?action=list&error=Permission Denied");
+                                req.getContextPath() + STUDENTS_PATH + "?action=list&error="
+                                + encodeQueryValue("Bạn không có quyền thực hiện thao tác này."));
                         return;
                     }
                     if ("create".equals(action)) {
@@ -93,7 +96,8 @@ public class StudentController extends HttpServlet {
             action = "create";
 
         if (!isAdmin(req)) {
-            resp.sendRedirect(req.getContextPath() + STUDENTS_PATH + "?action=list&error=Permission Denied");
+            resp.sendRedirect(req.getContextPath() + STUDENTS_PATH + "?action=list&error="
+                    + encodeQueryValue("Bạn không có quyền thực hiện thao tác này."));
             return;
         }
 
@@ -117,5 +121,9 @@ public class StudentController extends HttpServlet {
         } catch (SQLException e) {
             throw new ServletException(e);
         }
+    }
+
+    private String encodeQueryValue(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }
