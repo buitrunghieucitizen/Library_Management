@@ -113,7 +113,7 @@
                 </article>
                 <article class="student-kpi-card">
                     <span>Mục sẵn checkout</span>
-                    <strong>${readyBuyCount}</strong>
+                    <strong data-buy-ready-count>${readyBuyCount}</strong>
                     <p>${buyListItemCount} mục hiện nằm trong danh sách cần mua.</p>
                 </article>
                 <article class="student-kpi-card">
@@ -139,7 +139,7 @@
             <section class="student-highlight-grid">
                 <article class="student-highlight-card good">
                     <span>Sẵn gửi duyệt</span>
-                    <strong>${readyBuyCount}</strong>
+                    <strong data-buy-ready-count>${readyBuyCount}</strong>
                     <p><c:choose><c:when test="${readyBuyCount gt 0}">Các mục này đã đủ giá và tồn kho để đưa vào checkout ngay.</c:when><c:otherwise>Hiện chưa có mục nào trong danh sách cần mua đủ điều kiện để checkout.</c:otherwise></c:choose></p>
                 </article>
                 <article class="student-highlight-card neutral">
@@ -252,43 +252,43 @@
             </section>
 
             <section class="student-section-grid">
-                <section class="card table-card" id="buy-list-panel">
+                <section class="card table-card" id="buy-list-panel" data-buy-list-panel>
                     <div class="section-header-inline student-section-head">
                         <div>
                             <h2>Danh sách cần mua</h2>
                             <div class="note">Quản lý số lượng, theo dõi điều kiện gửi duyệt và checkout gọn một lần.</div>
                         </div>
                         <div class="student-head-actions">
-                            <span class="student-chip success">${readyBuyCount} sẵn gửi duyệt</span>
-                            <c:if test="${blockedBuyCount gt 0}"><span class="student-chip warning">${blockedBuyCount} cần kiểm tra</span></c:if>
+                            <span class="student-chip success"><span data-buy-ready-count>${readyBuyCount}</span> sẵn gửi duyệt</span>
+                            <span class="student-chip warning" data-buy-blocked-chip style="${blockedBuyCount gt 0 ? '' : 'display:none;'}"><span data-buy-blocked-count>${blockedBuyCount}</span> cần kiểm tra</span>
                             <c:if test="${not empty buyListItems}"><a class="btn btn-approve" href="${checkoutUrl}">Checkout đơn mua</a></c:if>
                         </div>
                     </div>
-                    <c:if test="${blockedBuyCount gt 0}"><div class="student-inline-alert warn">Một số mục chưa thể gửi duyệt do hết hàng hoặc chưa có giá. Kiểm tra cột trạng thái trước khi checkout.</div></c:if>
+                    <div class="student-inline-alert warn" data-buy-blocked-alert style="${blockedBuyCount gt 0 ? '' : 'display:none;'}">Một số mục chưa thể gửi duyệt do hết hàng hoặc chưa có giá. Kiểm tra cột trạng thái trước khi checkout.</div>
                     <div class="table-scroll">
                         <table>
                             <thead><tr><th>Mã sách</th><th>Tên sách</th><th>Số lượng</th><th>Còn lại</th><th>Đơn giá</th><th>Thành tiền</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
                             <tbody>
                                 <c:forEach var="item" items="${buyListItems}">
-                                    <tr>
+                                    <tr data-buy-list-row data-book-id="${item.bookID}" data-unit-price="${item.unitPrice}" data-available="${item.available}">
                                         <td>${item.bookID}</td><td>${item.bookName}</td>
                                         <td>
-                                            <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form inline-edit-form">
+                                            <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form inline-edit-form" data-buy-qty-form>
                                                 <input type="hidden" name="action" value="updateBuyQty"><input type="hidden" name="bookID" value="${item.bookID}">
-                                                <input class="qty-input" type="number" min="1" value="${item.quantity}" name="quantity">
-                                                <button class="btn btn-secondary" type="submit">Cập nhật</button>
+                                                <input class="qty-input" type="number" min="1" value="${item.quantity}" name="quantity" data-buy-qty-input>
+                                                <button class="btn btn-secondary" type="submit" data-buy-save-button>Cập nhật</button>
                                             </form>
                                         </td>
-                                        <td>${item.available}</td>
-                                        <td>${item.unitPrice} <c:out value="${item.currency}" default="" /></td>
-                                        <td>${item.lineTotal}</td>
-                                        <td><c:choose><c:when test="${item.canOrder}"><span class="status-ok">Sẵn gửi duyệt</span></c:when><c:otherwise><span class="status-bad">Cần kiểm tra</span></c:otherwise></c:choose></td>
+                                        <td data-buy-available>${item.available}</td>
+                                        <td><span data-buy-unit-price>${item.unitPrice}</span> <span data-buy-currency><c:out value="${item.currency}" default="" /></span></td>
+                                        <td data-buy-line-total>${item.lineTotal}</td>
+                                        <td><c:choose><c:when test="${item.canOrder}"><span class="status-ok" data-buy-status-label>Sẵn gửi duyệt</span></c:when><c:otherwise><span class="status-bad" data-buy-status-label>Cần kiểm tra</span></c:otherwise></c:choose></td>
                                         <td>
                                             <div class="actions">
-                                                <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form"><input type="hidden" name="action" value="orderBuyItem"><input type="hidden" name="bookID" value="${item.bookID}"><button class="btn btn-approve" type="submit" ${item.canOrder ? '' : 'disabled'}>Gửi duyệt sách này</button></form>
+                                                <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form"><input type="hidden" name="action" value="orderBuyItem"><input type="hidden" name="bookID" value="${item.bookID}"><button class="btn btn-approve" type="submit" data-buy-order-button ${item.canOrder ? '' : 'disabled'}>Gửi duyệt sách này</button></form>
                                                 <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form"><input type="hidden" name="action" value="removeBuyItem"><input type="hidden" name="bookID" value="${item.bookID}"><button class="btn btn-reject" type="submit">Xóa</button></form>
                                             </div>
-                                            <c:if test="${not item.canOrder}"><div class="note">Không thể gửi vì sách hết hàng hoặc chưa có giá.</div></c:if>
+                                            <div class="note" data-buy-status-note style="${item.canOrder ? 'display:none;' : ''}">Không thể gửi vì sách hết hàng hoặc chưa có giá.</div>
                                         </td>
                                     </tr>
                                 </c:forEach>
@@ -296,7 +296,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <c:if test="${not empty buyListItems}"><div class="summary-note">Tổng tạm tính hiện tại là <strong>${buyListTotal}</strong>. Checkout sẽ gửi toàn bộ mục hợp lệ để thư viện xét duyệt.</div></c:if>
+                    <c:if test="${not empty buyListItems}"><div class="summary-note">Tổng tạm tính hiện tại là <strong data-buy-list-total>${buyListTotal}</strong>. Checkout sẽ gửi toàn bộ mục hợp lệ để thư viện xét duyệt.</div></c:if>
                 </section>
 
                 <div class="panel-stack">

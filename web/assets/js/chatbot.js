@@ -14,6 +14,7 @@
     var status = document.getElementById('chatStatus');
     var modelNote = document.getElementById('chatModelNote');
     var promptButtons = document.querySelectorAll('[data-chatbot-prompt]');
+    var backButton = document.querySelector('[data-chatbot-back]');
     var history = [];
     var typingNode = null;
 
@@ -123,12 +124,30 @@
         input.focus();
     }
 
+    function setupBackButton() {
+        if (!backButton) {
+            return;
+        }
+
+        backButton.addEventListener('click', function () {
+            var fallbackUrl = app.getAttribute('data-back-url') || '/';
+
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+
+            window.location.href = fallbackUrl;
+        });
+    }
+
     promptButtons.forEach(function (button) {
         button.addEventListener('click', function () {
             setInputValue(button.getAttribute('data-chatbot-prompt') || '');
         });
     });
 
+    setupBackButton();
     input.addEventListener('input', resizeInput);
     input.addEventListener('keydown', function (event) {
         if (event.key === 'Enter' && !event.shiftKey) {

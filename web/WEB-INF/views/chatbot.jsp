@@ -13,14 +13,23 @@
         <main class="chatbot-shell" id="chatbotApp"
               data-endpoint="${pageContext.request.contextPath}/chatbot"
               data-configured="${chatbotConfigured}"
-              data-model="<c:out value='${chatbotModel}' />">
+              data-model="<c:out value='${chatbotModel}' />"
+              data-back-url="${chatbotBackUrl}">
 
             <section class="chatbot-hero">
                 <div class="chatbot-hero-copy">
-                    <a class="chatbot-back-link" href="${chatbotBackUrl}">
-                        <span>←</span>
-                        <span><c:out value="${chatbotBackLabel}" /></span>
-                    </a>
+                    <button class="chatbot-back-link" type="button" data-chatbot-back>
+                        <span class="chatbot-back-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 12H5"></path>
+                                <path d="m12 19-7-7 7-7"></path>
+                            </svg>
+                        </span>
+                        <span class="chatbot-back-copy">
+                            <strong>Quay lại</strong>
+                            <small><c:out value="${chatbotBackLabel}" /></small>
+                        </span>
+                    </button>
 
                     <div class="chatbot-eyebrow">Groq AI Assistant</div>
                     <h1>Trợ lý AI cho Library Manager</h1>
@@ -79,6 +88,6 @@
             </section>
         </main>
 
-        <script src="${pageContext.request.contextPath}/assets/js/chatbot.js"></script>
+        <script src="${pageContext.request.contextPath}/assets/js/chatbot.js?v=20260325-back-button"></script>
     </body>
 </html>

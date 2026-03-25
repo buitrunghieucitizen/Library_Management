@@ -22,4 +22,4 @@
         </div>
     </div>
 </footer>
-<script src="${pageContext.request.contextPath}/assets/js/student-shared.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/student-shared.js?v=20260325-buylist-realtime"></script>
