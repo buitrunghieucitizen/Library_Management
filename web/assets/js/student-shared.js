@@ -397,10 +397,234 @@
         refreshSummary();
     }
 
+    function setupRealtimeWaitlist() {
+        var panel = document.querySelector("[data-waitlist-panel]");
+        if (!panel) {
+            return;
+        }
+
+        var rows = Array.prototype.slice.call(panel.querySelectorAll("[data-waitlist-row]"));
+        if (!rows.length) {
+            return;
+        }
+
+        var totalTargets = Array.prototype.slice.call(panel.querySelectorAll("[data-waitlist-total]"));
+        var labels = {
+            defaultButton: "C\u1eadp nh\u1eadt",
+            invalidButton: "S\u1ed1 l\u01b0\u1ee3ng ch\u01b0a h\u1ee3p l\u1ec7",
+            savingButton: "\u0110ang l\u01b0u...",
+            savedButton: "\u0110\u00e3 l\u01b0u",
+            errorButton: "L\u1ed7i l\u01b0u"
+        };
+
+        function parseNumber(value, fallback) {
+            var parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : fallback;
+        }
+
+        function normalizeQuantity(value) {
+            var parsed = parseInt(value, 10);
+            if (!Number.isFinite(parsed) || parsed < 1) {
+                return 1;
+            }
+            return parsed;
+        }
+
+        function formatAmount(value) {
+            if (!Number.isFinite(value)) {
+                return "0";
+            }
+
+            var rounded = Math.round(value * 100) / 100;
+            return Number.isInteger(rounded) ? rounded.toFixed(1) : String(rounded);
+        }
+
+        function setButtonState(button, label, disabled, resetDelay) {
+            if (!button) {
+                return;
+            }
+
+            button.textContent = label;
+            button.disabled = !!disabled;
+
+            if (button._waitlistResetTimer) {
+                window.clearTimeout(button._waitlistResetTimer);
+                button._waitlistResetTimer = null;
+            }
+
+            if (resetDelay) {
+                button._waitlistResetTimer = window.setTimeout(function () {
+                    button.textContent = labels.defaultButton;
+                    button.disabled = false;
+                }, resetDelay);
+            }
+        }
+
+        function refreshRow(row) {
+            var input = row.querySelector("[data-waitlist-qty-input]");
+            var lineTotalElement = row.querySelector("[data-waitlist-line-total]");
+            var saveButton = row.querySelector("[data-waitlist-save-button]");
+            var quantity = normalizeQuantity(input ? input.value : 1);
+            var unitPrice = parseNumber(row.getAttribute("data-unit-price"), 0);
+            var lineTotal = unitPrice * quantity;
+
+            if (input) {
+                input.value = quantity;
+            }
+
+            row.dataset.quantity = String(quantity);
+            row.dataset.lineTotal = String(lineTotal);
+
+            if (lineTotalElement) {
+                lineTotalElement.textContent = formatAmount(lineTotal);
+            }
+
+            if (saveButton && !saveButton.dataset.busy) {
+                setButtonState(saveButton, labels.defaultButton, false);
+            }
+
+            return {
+                lineTotal: lineTotal
+            };
+        }
+
+        function refreshSummary() {
+            var totalAmount = 0;
+
+            rows.forEach(function (row) {
+                totalAmount += refreshRow(row).lineTotal;
+            });
+
+            totalTargets.forEach(function (target) {
+                target.textContent = formatAmount(totalAmount);
+            });
+        }
+
+        function clearPendingSync(row) {
+            if (row._waitlistSyncTimer) {
+                window.clearTimeout(row._waitlistSyncTimer);
+                row._waitlistSyncTimer = null;
+            }
+        }
+
+        function syncRow(row, immediate) {
+            var formId = row.getAttribute("data-update-form-id");
+            var form = formId ? document.getElementById(formId) : null;
+            var input = row.querySelector("[data-waitlist-qty-input]");
+            var saveButton = row.querySelector("[data-waitlist-save-button]");
+            var quantity = normalizeQuantity(input ? input.value : 1);
+
+            clearPendingSync(row);
+
+            if (!form || quantity < 1) {
+                if (saveButton) {
+                    setButtonState(saveButton, labels.invalidButton, true);
+                }
+                return;
+            }
+
+            if (row.dataset.lastSyncedQty === String(quantity)) {
+                return;
+            }
+
+            function sendUpdate() {
+                var payload = new URLSearchParams(new FormData(form));
+                var controller = typeof AbortController === "function" ? new AbortController() : null;
+
+                if (row._waitlistController) {
+                    row._waitlistController.abort();
+                }
+                row._waitlistController = controller;
+
+                payload.set("quantity", String(quantity));
+
+                if (saveButton) {
+                    saveButton.dataset.busy = "true";
+                    setButtonState(saveButton, labels.savingButton, true);
+                }
+
+                fetch(form.action, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: payload.toString(),
+                    signal: controller ? controller.signal : undefined
+                })
+                        .then(function (response) {
+                            if (!response.ok) {
+                                throw new Error("sync_failed");
+                            }
+
+                            row.dataset.lastSyncedQty = String(quantity);
+                            if (saveButton) {
+                                setButtonState(saveButton, labels.savedButton, false, 1200);
+                            }
+                        })
+                        .catch(function (error) {
+                            if (error && error.name === "AbortError") {
+                                return;
+                            }
+
+                            if (saveButton) {
+                                setButtonState(saveButton, labels.errorButton, false, 1600);
+                            }
+                        })
+                        .finally(function () {
+                            if (saveButton) {
+                                delete saveButton.dataset.busy;
+                            }
+                        });
+            }
+
+            if (immediate) {
+                sendUpdate();
+            } else {
+                row._waitlistSyncTimer = window.setTimeout(sendUpdate, 450);
+            }
+        }
+
+        rows.forEach(function (row) {
+            var formId = row.getAttribute("data-update-form-id");
+            var form = formId ? document.getElementById(formId) : null;
+            var input = row.querySelector("[data-waitlist-qty-input]");
+
+            refreshRow(row);
+            row.dataset.lastSyncedQty = row.dataset.quantity || "1";
+
+            if (!input || !form) {
+                return;
+            }
+
+            input.addEventListener("input", function () {
+                refreshRow(row);
+                refreshSummary();
+                syncRow(row, false);
+            });
+
+            input.addEventListener("change", function () {
+                refreshRow(row);
+                refreshSummary();
+                syncRow(row, true);
+            });
+
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+                refreshRow(row);
+                refreshSummary();
+                syncRow(row, true);
+            });
+        });
+
+        refreshSummary();
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         setupStudentNavigation();
         setupSelectAll();
         setupStudentCartMenu();
         setupRealtimeBuyList();
+        setupRealtimeWaitlist();
     });
 }());

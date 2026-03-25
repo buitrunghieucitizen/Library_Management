@@ -83,11 +83,17 @@
             </section>
 
             <section class="student-buy-grid">
-                <section class="card table-card">
+                <section class="card table-card" data-waitlist-panel>
                     <div class="section-header-inline">
                         <div><h3>Danh sách sách chọn tạm</h3><div class="note">Chọn các sách cần checkout hoặc xóa từng mục khỏi danh sách chờ.</div></div>
                     </div>
+                    <c:set var="waitlistTotal" value="${0}" />
                     <c:forEach var="item" items="${waitlistItems}">
+                        <c:set var="waitlistTotal" value="${waitlistTotal + item.totalPrice}" />
+                        <form id="updateWaitlist_${item.bookId}" method="POST" action="${pageContext.request.contextPath}/buy">
+                            <input type="hidden" name="action" value="updateWaitlistQty">
+                            <input type="hidden" name="bookID" value="${item.bookId}">
+                        </form>
                         <form id="deleteWaitlist_${item.bookId}" method="POST" action="${pageContext.request.contextPath}/buy">
                             <input type="hidden" name="action" value="removeFromWaitlist">
                             <input type="hidden" name="bookID" value="${item.bookId}">
@@ -100,9 +106,16 @@
                                 <thead><tr><th class="checkbox-cell"><input type="checkbox" data-select-all="buy-selection" title="Chọn tất cả"></th><th>Tên sách</th><th>SL</th><th>Thành tiền</th><th>Xóa</th></tr></thead>
                                 <tbody>
                                     <c:forEach var="item" items="${waitlistItems}">
-                                        <tr>
+                                        <tr data-waitlist-row data-unit-price="${item.unitPrice}" data-update-form-id="updateWaitlist_${item.bookId}">
                                             <td class="checkbox-cell"><input type="checkbox" name="selectedBooks" value="${item.bookId}" data-select-item="buy-selection"></td>
-                                            <td>${item.bookName}</td><td>${item.quantity}</td><td>${item.totalPrice}</td>
+                                            <td>${item.bookName}</td>
+                                            <td>
+                                                <div class="actions">
+                                                    <input class="qty-input qty-input-sm" type="number" name="quantity" value="${item.quantity}" min="1" form="updateWaitlist_${item.bookId}" data-waitlist-qty-input>
+                                                    <button type="submit" form="updateWaitlist_${item.bookId}" class="btn btn-secondary" data-waitlist-save-button>C&#7853;p nh&#7853;t</button>
+                                                </div>
+                                            </td>
+                                            <td data-waitlist-line-total>${item.totalPrice}</td>
                                             <td><button type="submit" form="deleteWaitlist_${item.bookId}" class="link-button link-danger">Xóa</button></td>
                                         </tr>
                                     </c:forEach>
@@ -111,6 +124,7 @@
                             </table>
                         </div>
                         <c:if test="${not empty waitlistItems}">
+                            <p class="summary-note">T&#7893;ng t&#7841;m t&#237;nh hi&#7879;n t&#7841;i: <strong data-waitlist-total>${waitlistTotal}</strong>. Thay &#273;&#7893;i s&#7889; l&#432;&#7907;ng s&#7869; t&#7921; l&#432;u.</p>
                             <div class="actions mt-4"><button class="btn btn-buy" type="submit">Xác nhận đặt các sách đã chọn</button></div>
                         </c:if>
                     </form>

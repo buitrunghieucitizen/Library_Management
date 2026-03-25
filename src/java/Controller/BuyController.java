@@ -97,6 +97,26 @@ public class BuyController extends HttpServlet {
                         + java.net.URLEncoder.encode("Đã xóa sách khỏi danh sách chờ", "UTF-8"));
                 return; // THÊM RETURN ĐỂ CHẶN LỖI 2 LẦN
 
+            } else if ("updateWaitlistQty".equals(action)) {
+                int bookId = Integer.parseInt(req.getParameter("bookID"));
+                int quantity = Integer.parseInt(req.getParameter("quantity"));
+
+                if (quantity < 1) {
+                    respondWithBuyMessage(req, resp, false, "S\u1ed1 l\u01b0\u1ee3ng ph\u1ea3i l\u1edbn h\u01a1n 0.");
+                    return;
+                }
+
+                WaitlistItem item = waitlist.get(bookId);
+                if (item == null) {
+                    respondWithBuyMessage(req, resp, false, "S\u00e1ch kh\u00f4ng c\u00f3 trong danh s\u00e1ch ch\u1edd.");
+                    return;
+                }
+
+                item.setQuantity(quantity);
+                session.setAttribute("waitlist", waitlist);
+                respondWithBuyMessage(req, resp, true, "\u0110\u00e3 c\u1eadp nh\u1eadt s\u1ed1 l\u01b0\u1ee3ng.");
+                return;
+
             } else if ("checkout".equals(action)) {
                 // 1. Lấy mảng các bookID mà sinh viên đã tích chọn
                 String[] selectedBooks = req.getParameterValues("selectedBooks");
@@ -147,6 +167,10 @@ public class BuyController extends HttpServlet {
             }
 
         } catch (Exception e) {
+            if (isAjaxRequest(req) && !resp.isCommitted()) {
+                writeText(resp, HttpServletResponse.SC_BAD_REQUEST, "L\u1ed7i x\u1eed l\u00fd: " + e.getMessage());
+                return;
+            }
             // Check nếu server CHƯA gửi redirect nào thì mới được phép gửi
             if (!resp.isCommitted()) {
                 resp.sendRedirect(req.getContextPath() + "/buy?error="
@@ -200,6 +224,29 @@ public class BuyController extends HttpServlet {
             con.setAutoCommit(true);
             con.close();
         }
+    }
+
+    private void respondWithBuyMessage(HttpServletRequest req, HttpServletResponse resp, boolean success, String message)
+            throws IOException {
+        if (isAjaxRequest(req)) {
+            writeText(resp, success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST, message);
+            return;
+        }
+
+        String key = success ? "msg" : "error";
+        resp.sendRedirect(req.getContextPath() + "/buy?" + key + "="
+                + java.net.URLEncoder.encode(message, "UTF-8"));
+    }
+
+    private boolean isAjaxRequest(HttpServletRequest req) {
+        return "XMLHttpRequest".equalsIgnoreCase(req.getHeader("X-Requested-With"));
+    }
+
+    private void writeText(HttpServletResponse resp, int status, String message) throws IOException {
+        resp.setStatus(status);
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("text/plain;charset=UTF-8");
+        resp.getWriter().write(message == null ? "" : message);
     }
 
     // Copy hàm này từ BorrowController sang để đồng bộ cơ chế ánh xạ Sinh viên
