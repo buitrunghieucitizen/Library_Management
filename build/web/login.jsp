@@ -34,6 +34,17 @@
                             <span class="login-pill">Mượn và mua sách</span>
                             <span class="login-pill">Tài liệu số</span>
                         </div>
+
+                        <div class="login-trust-bar" aria-label="Điểm nổi bật">
+                            <div class="login-trust-item">
+                                <strong>24/7</strong>
+                                <span>Truy cập thư viện ở bất kỳ đâu</span>
+                            </div>
+                            <div class="login-trust-item">
+                                <strong>1 tài khoản</strong>
+                                <span>Dùng chung cho mượn, mua và đọc file sách</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="login-feature-list">
@@ -50,6 +61,31 @@
                             <p>Danh mục sách, hồ sơ sinh viên và trung tâm giao dịch đều dùng chung một tài khoản.</p>
                         </article>
                     </div>
+
+                    <section class="login-preview-panel" aria-label="Những gì bạn sẽ thấy sau khi đăng nhập">
+                        <div class="login-preview-head">
+                            <span class="login-preview-kicker">Sau khi đăng nhập</span>
+                            <strong>Một workspace thư viện rõ ràng hơn cho học tập hằng ngày</strong>
+                        </div>
+
+                        <div class="login-preview-grid">
+                            <article class="login-preview-card">
+                                <span class="login-preview-badge">01</span>
+                                <strong>Theo dõi phiếu mượn</strong>
+                                <p>Xem hạn trả, đặt giữ chỗ và biết ngay khi nào cần xử lý tiếp.</p>
+                            </article>
+                            <article class="login-preview-card">
+                                <span class="login-preview-badge">02</span>
+                                <strong>Mở tài liệu số</strong>
+                                <p>Truy cập nhanh các file sách đã được thư viện kích hoạt cho tài khoản của bạn.</p>
+                            </article>
+                            <article class="login-preview-card">
+                                <span class="login-preview-badge">03</span>
+                                <strong>Trợ lý AI hỗ trợ</strong>
+                                <p>Nhận hướng dẫn nhanh về thao tác mượn trả và sử dụng hệ thống sau khi đăng nhập.</p>
+                            </article>
+                        </div>
+                    </section>
 
                     <div class="login-stat-row" aria-label="Tóm tắt lợi ích">
                         <div class="login-stat">
@@ -72,6 +108,11 @@
                         <span class="login-panel-kicker">Đăng nhập</span>
                         <h2 id="auth-title" class="fw-bold">Đăng nhập</h2>
                         <p class="text-muted mb-0">Dùng tên đăng nhập hoặc email đã đăng ký để tiếp tục vào hệ thống.</p>
+                        <div class="login-panel-chip-row" aria-label="Tùy chọn truy cập">
+                            <span class="login-panel-chip">Đăng nhập nhanh</span>
+                            <span class="login-panel-chip">Google nếu đã liên kết</span>
+                            <span class="login-panel-chip">Khôi phục bằng OTP</span>
+                        </div>
                     </div>
 
                     <c:if test="${param.registered eq '1'}">
@@ -115,6 +156,11 @@
                             Đăng nhập bằng Google
                         </a>
                     </c:if>
+
+                    <div class="login-assist-note">
+                        <strong>Sau khi vào hệ thống</strong>
+                        <p>Bạn có thể tiếp tục với kho sách số, trung tâm mượn trả và trợ lý AI trong cùng một trải nghiệm thống nhất.</p>
+                    </div>
 
                     <div class="text-center auth-foot login-foot">
                         <span class="text-muted">Chưa có tài khoản sinh viên?</span>
