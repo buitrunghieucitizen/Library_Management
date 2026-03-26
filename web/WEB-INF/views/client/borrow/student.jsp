@@ -52,6 +52,7 @@
 
     <c:set var="borrowingCount" value="0" />
     <c:set var="overdueCount" value="0" />
+    <c:set var="returnRequestedCount" value="0" />
     <c:set var="returnedCount" value="0" />
     <c:forEach var="borrow" items="${borrows}">
         <c:choose>
@@ -61,12 +62,15 @@
             <c:when test="${borrow.status eq 'Overdue'}">
                 <c:set var="overdueCount" value="${overdueCount + 1}" />
             </c:when>
+            <c:when test="${borrow.status eq 'ReturnRequested'}">
+                <c:set var="returnRequestedCount" value="${returnRequestedCount + 1}" />
+            </c:when>
             <c:when test="${borrow.status eq 'Returned'}">
                 <c:set var="returnedCount" value="${returnedCount + 1}" />
             </c:when>
         </c:choose>
     </c:forEach>
-    <c:set var="activeBorrowCount" value="${borrowingCount + overdueCount}" />
+    <c:set var="activeBorrowCount" value="${borrowingCount + overdueCount + returnRequestedCount}" />
 
     <c:url var="resetBookFilterUrl" value="/borrows">
         <c:param name="action" value="list" />
@@ -119,7 +123,7 @@
                 <article class="student-kpi-card">
                     <span>Phiếu đang theo dõi</span>
                     <strong>${activeBorrowCount}</strong>
-                    <p>${overdueCount} quá hạn, ${returnedCount} phiếu đã hoàn tất.</p>
+                    <p>${overdueCount} quá hạn, ${returnRequestedCount} chờ xác nhận trả, ${returnedCount} phiếu đã hoàn tất.</p>
                 </article>
             </section>
 
@@ -356,13 +360,15 @@
                             <div class="student-head-badges">
                                 <span class="student-chip soft">${borrowingCount} đang mượn</span>
                                 <span class="student-chip warning">${overdueCount} quá hạn</span>
+                                <span class="student-chip neutral">${returnRequestedCount} chờ xác nhận trả</span>
                                 <span class="student-chip neutral">${renewableBorrowCount} có thể gia hạn</span>
                                 <span class="student-chip success">${returnedCount} đã trả</span>
                             </div>
                         </div>
                         <c:if test="${overdueCount gt 0}"><div class="student-inline-alert warn">Bạn có phiếu quá hạn. Nên gửi yêu cầu trả sớm để thư viện đối soát.</div></c:if>
+                        <c:if test="${returnRequestedCount gt 0}"><div class="student-inline-alert">Có ${returnRequestedCount} phiếu đang chờ thư viện xác nhận trả. Bạn không cần gửi lại yêu cầu cho các phiếu này.</div></c:if>
                         <c:if test="${renewableBorrowCount gt 0}"><div class="student-inline-alert success">Có ${renewableBorrowCount} phiếu đang đủ điều kiện gia hạn online. Chỉ gia hạn trong ${studentRenewalWindowDays} ngày cuối và mỗi phiếu thêm tối đa ${studentRenewalDays} ngày.</div></c:if>
-                        <c:if test="${activeBorrowCount gt 0 and overdueCount eq 0 and renewableBorrowCount eq 0}"><div class="student-inline-alert">Các phiếu hiện tại vẫn đang trong hạn. Bạn có thể gửi yêu cầu trả ngay khi không còn nhu cầu sử dụng hoặc chờ tới ${studentRenewalWindowDays} ngày cuối để gia hạn online.</div></c:if>
+                        <c:if test="${activeBorrowCount gt 0 and overdueCount eq 0 and renewableBorrowCount eq 0 and returnRequestedCount eq 0}"><div class="student-inline-alert">Các phiếu hiện tại vẫn đang trong hạn. Bạn có thể gửi yêu cầu trả ngay khi không còn nhu cầu sử dụng hoặc chờ tới ${studentRenewalWindowDays} ngày cuối để gia hạn online.</div></c:if>
                         <div class="table-scroll">
                             <table class="compact-table">
                                 <thead><tr><th>Mã phiếu mượn</th><th>Ngày mượn</th><th>Hạn trả</th><th>Ngày trả</th><th>Trạng thái</th><th>Sách</th><th>Hành động</th></tr></thead>
@@ -377,6 +383,7 @@
                                                     <c:when test="${b.status eq 'Borrowing'}"><span class="status-borrowing">Đang mượn</span></c:when>
                                                     <c:when test="${b.status eq 'Returned'}"><span class="status-returned">Đã trả</span></c:when>
                                                     <c:when test="${b.status eq 'Overdue'}"><span class="status-overdue">Quá hạn</span></c:when>
+                                                    <c:when test="${b.status eq 'ReturnRequested'}"><span class="status-pending">Chờ xác nhận trả</span></c:when>
                                                     <c:otherwise>${b.status}</c:otherwise>
                                                 </c:choose>
                                             </td>
@@ -386,10 +393,11 @@
                                                     <c:if test="${renewalDecision.eligible}">
                                                         <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form"><input type="hidden" name="action" value="renew"><input type="hidden" name="borrowID" value="${b.borrowID}"><button class="btn btn-renew" type="submit">Gia hạn</button></form>
                                                     </c:if>
-                                                    <c:if test="${b.status ne 'Returned'}">
+                                                    <c:if test="${b.status eq 'Borrowing' || b.status eq 'Overdue'}">
                                                         <form method="post" action="${pageContext.request.contextPath}/borrows" class="inline-form"><input type="hidden" name="action" value="requestReturn"><input type="hidden" name="borrowID" value="${b.borrowID}"><button class="btn btn-return" type="submit">Gửi yêu cầu trả</button></form>
                                                     </c:if>
-                                                    <c:if test="${b.status ne 'Returned' and not empty renewalDecision.message}">
+                                                    <c:if test="${b.status eq 'ReturnRequested'}"><div class="borrow-action-note muted">Yêu cầu trả đã được gửi. Vui lòng chờ thư viện xác nhận.</div></c:if>
+                                                    <c:if test="${b.status ne 'Returned' and b.status ne 'ReturnRequested' and not empty renewalDecision.message}">
                                                         <div class="borrow-action-note ${renewalDecision.eligible ? 'success' : 'muted'}"><c:out value="${renewalDecision.message}" /></div>
                                                     </c:if>
                                                 </div>

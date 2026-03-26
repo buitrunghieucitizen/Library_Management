@@ -222,6 +222,11 @@
   color: #92400e;
 }
 
+.status.return-requested {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
 .status.borrowing {
   background: #dbeafe;
   color: #1e40af;

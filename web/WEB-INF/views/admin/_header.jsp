@@ -73,7 +73,7 @@
             ws.onmessage = function (event) {
                 try {
                     var data = JSON.parse(event.data);
-                    if (data.type === 'NEW_BORROW') {
+                    if (data.type === 'NEW_BORROW' || data.type === 'NEW_RETURN_REQUEST') {
                         var current = parseInt(badge.textContent) || 0;
                         badge.textContent = current + 1;
                         badge.style.display = '';

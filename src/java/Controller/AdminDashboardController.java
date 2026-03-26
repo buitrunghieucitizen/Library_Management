@@ -97,7 +97,7 @@ public class AdminDashboardController extends HttpServlet {
         int availableCopies = sumAvailableCopies(books);
         int borrowedCopies = Math.max(0, totalCopies - availableCopies);
         int totalStudents = daoStudent.getAll().size();
-        int activeBorrows = countBorrowsByStatus(borrows, "Borrowing", "Overdue");
+        int activeBorrows = countBorrowsByStatus(borrows, "Borrowing", "Overdue", "ReturnRequested");
         int overdueBorrows = countBorrowsByStatus(borrows, "Overdue");
         int pendingOrders = countOrdersByStatus(orders, "Pending", STATUS_ORDER_WAITING, STATUS_ORDER_READY);
         int readyOrders = countOrdersByStatus(orders, "Approved", STATUS_ORDER_READY);

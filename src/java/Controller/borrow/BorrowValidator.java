@@ -142,7 +142,7 @@ public class BorrowValidator {
                 + "FROM Borrow b "
                 + "JOIN BorrowItem bi ON bi.BorrowID = b.BorrowID "
                 + "WHERE b.StudentID = ? "
-                + "AND b.Status IN ('Borrowing', 'Returned', 'Pending', 'Overdue') "
+                + "AND b.Status IN ('Borrowing', 'Returned', 'Pending', 'Overdue', 'ReturnRequested') "
                 + "AND b.BorrowDate >= DATEADD(DAY, 1-DATEPART(WEEKDAY, GETDATE()), CAST(GETDATE() AS DATE))";
         Connection con = DBConnection.getConnection();
         if (con == null) {

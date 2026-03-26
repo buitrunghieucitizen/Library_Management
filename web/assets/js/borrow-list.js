@@ -69,7 +69,7 @@
 
     document.addEventListener('adminNotification', function (event) {
         var data = event.detail || {};
-        if (data.type === 'NEW_BORROW' || data.type === 'NEW_HOLD') {
+        if (data.type === 'NEW_BORROW' || data.type === 'NEW_HOLD' || data.type === 'NEW_RETURN_REQUEST') {
             refreshPendingCount();
             if (!reloadScheduled) {
                 reloadScheduled = true;

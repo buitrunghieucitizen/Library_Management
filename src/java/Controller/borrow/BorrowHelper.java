@@ -168,6 +168,9 @@ public class BorrowHelper {
             if ("Overdue".equalsIgnoreCase(trim(status)) || today.isAfter(dueDate)) {
                 return BorrowRenewalDecision.ineligible("Phiếu đã quá hạn nên không thể gia hạn trực tuyến.");
             }
+            if ("ReturnRequested".equalsIgnoreCase(trim(status))) {
+                return BorrowRenewalDecision.ineligible("Phieu da gui yeu cau tra nen khong the gia han.");
+            }
             if ("Returned".equalsIgnoreCase(trim(status))) {
                 return BorrowRenewalDecision.ineligible("Phiếu đã hoàn tất nên không thể gia hạn.");
             }

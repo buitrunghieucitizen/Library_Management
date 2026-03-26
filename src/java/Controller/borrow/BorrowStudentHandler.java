@@ -1,6 +1,7 @@
 package Controller.borrow;
 
 import Entities.Book;
+import Entities.Borrow;
 import Entities.Orders;
 import Entities.Staff;
 import Model.DAOBook;
@@ -685,12 +686,39 @@ public class BorrowStudentHandler {
             helper.redirectWithMessageAndAnchor(req, resp, "error", "Mã phiếu mượn không hợp lệ.", "borrow-panel");
             return;
         }
-        if (!daoBorrow.existsOwnedByStudentAndNotReturned(borrowId, studentId)) {
+        Borrow borrow = daoBorrow.getById(borrowId);
+        if (borrow == null || borrow.getStudentID() != studentId) {
             helper.redirectWithMessageAndAnchor(req, resp, "error", "Không tìm thấy phiếu mượn hợp lệ để gửi yêu cầu trả.",
                     "borrow-panel");
             return;
         }
 
+        String status = helper.trim(borrow.getStatus());
+        if ("Returned".equalsIgnoreCase(status)) {
+            helper.redirectWithMessageAndAnchor(req, resp, "error",
+                    "Phiáº¿u nÃ y Ä‘Ã£ Ä‘Æ°á»£c xÃ¡c nháº­n tráº£ trÆ°á»›c Ä‘Ã³.", "borrow-panel");
+            return;
+        }
+        if ("ReturnRequested".equalsIgnoreCase(status)) {
+            helper.redirectWithMessageAndAnchor(req, resp, "msg",
+                    "Phiáº¿u #" + borrowId + " Ä‘Ã£ gá»­i yÃªu cáº§u tráº£ trÆ°á»›c Ä‘Ã³. Vui lÃ²ng chá» thÆ° viá»‡n xÃ¡c nháº­n.",
+                    "borrow-panel");
+            return;
+        }
+        if (!"Borrowing".equalsIgnoreCase(status) && !"Overdue".equalsIgnoreCase(status)) {
+            helper.redirectWithMessageAndAnchor(req, resp, "error",
+                    "Chá»‰ phiáº¿u Ä‘ang mÆ°á»£n hoáº·c quÃ¡ háº¡n má»›i cÃ³ thá»ƒ gá»­i yÃªu cáº§u tráº£.", "borrow-panel");
+            return;
+        }
+
+        if (daoBorrow.requestReturn(borrowId, studentId) == 0) {
+            helper.redirectWithMessageAndAnchor(req, resp, "error",
+                    "KhÃ´ng thá»ƒ gá»­i yÃªu cáº§u tráº£ cho phiáº¿u nÃ y. Vui lÃ²ng táº£i láº¡i trang vÃ  thá»­ láº¡i.",
+                    "borrow-panel");
+            return;
+        }
+
+        NotificationBroadcaster.notifyAdminReturnRequested(borrowId, staff.getStaffName());
         helper.redirectWithMessageAndAnchor(req, resp, "msg",
                 "Đã gửi yêu cầu trả sách. Vui lòng chờ nhân viên hoặc quản trị viên xác nhận.", "borrow-panel");
     }

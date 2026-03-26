@@ -14,6 +14,13 @@ import java.util.List;
 
 public class DAOBorrow {
 
+    public static final String STATUS_PENDING = "Pending";
+    public static final String STATUS_BORROWING = "Borrowing";
+    public static final String STATUS_OVERDUE = "Overdue";
+    public static final String STATUS_RETURNED = "Returned";
+    public static final String STATUS_REJECTED = "Rejected";
+    public static final String STATUS_RETURN_REQUESTED = "ReturnRequested";
+
     public List<Borrow> getAll() throws SQLException {
         String sql = "SELECT BorrowID, StudentID, StaffID, BorrowDate, DueDate, Status, ReturnDate FROM Borrow ORDER BY BorrowID DESC";
         List<Borrow> list = new ArrayList<>();
@@ -118,7 +125,7 @@ public class DAOBorrow {
 
     public List<Borrow> getActiveByStudentId(int studentId) throws SQLException {
         String sql = "SELECT BorrowID, StudentID, StaffID, BorrowDate, DueDate, Status, ReturnDate "
-                + "FROM Borrow WHERE StudentID = ? AND Status IN ('Borrowing', 'Overdue') "
+                + "FROM Borrow WHERE StudentID = ? AND Status IN ('Borrowing', 'Overdue', 'ReturnRequested') "
                 + "ORDER BY DueDate ASC, BorrowID DESC";
         List<Borrow> list = new ArrayList<>();
         Connection con = DBConnection.getConnection();
@@ -221,6 +228,31 @@ public class DAOBorrow {
         }
     }
 
+    public int requestReturn(int borrowId, int studentId) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            throw new SQLException("Cannot connect to database!");
+        }
+        try {
+            return requestReturn(con, borrowId, studentId);
+        } finally {
+            con.close();
+        }
+    }
+
+    public int requestReturn(Connection con, int borrowId, int studentId) throws SQLException {
+        String sql = "UPDATE Borrow SET Status = ? "
+                + "WHERE BorrowID = ? AND StudentID = ? AND Status IN (?, ?)";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, STATUS_RETURN_REQUESTED);
+            ps.setInt(2, borrowId);
+            ps.setInt(3, studentId);
+            ps.setString(4, STATUS_BORROWING);
+            ps.setString(5, STATUS_OVERDUE);
+            return ps.executeUpdate();
+        }
+    }
+
     public boolean existsOwnedByStudentAndNotReturned(int borrowId, int studentId) throws SQLException {
         String sql = "SELECT 1 FROM Borrow WHERE BorrowID = ? AND StudentID = ? AND Status <> 'Returned'";
         Connection con = DBConnection.getConnection();
@@ -308,7 +340,7 @@ public class DAOBorrow {
 
     public int insertPending(Connection con, int studentId, int staffId,
             LocalDate borrowDate, LocalDate dueDate) throws SQLException {
-        return insert(con, studentId, staffId, borrowDate, dueDate, "Pending");
+        return insert(con, studentId, staffId, borrowDate, dueDate, STATUS_PENDING);
     }
 
     public int updateStatus(Connection con, int borrowId, String newStatus, int staffId) throws SQLException {
@@ -323,7 +355,8 @@ public class DAOBorrow {
 
     public List<BorrowRow> getPendingBorrowRows() throws SQLException {
         String sql = "SELECT b.BorrowID, stu.StaffName AS StudentName, "
-                + "'Chua xu ly' AS StaffName, "
+                + "CASE WHEN b.Status = 'Pending' THEN 'Chua xu ly' "
+                + "ELSE ISNULL(approver.StaffName, '-') END AS StaffName, "
                 + "CONVERT(varchar(10), b.BorrowDate, 23) AS BorrowDate, "
                 + "CONVERT(varchar(10), b.DueDate, 23) AS DueDate, "
                 + "b.Status, "
@@ -335,7 +368,7 @@ public class DAOBorrow {
                 + "LEFT JOIN Staff approver ON approver.StaffID = b.StaffID "
                 + "LEFT JOIN BorrowItem bi ON bi.BorrowID = b.BorrowID "
                 + "LEFT JOIN Book bo ON bo.BookID = bi.BookID "
-                + "WHERE b.Status = 'Pending' "
+                + "WHERE b.Status IN ('Pending', 'ReturnRequested') "
                 + "GROUP BY b.BorrowID, stu.StaffName, approver.StaffName, "
                 + "b.BorrowDate, b.DueDate, b.Status, b.ReturnDate "
                 + "ORDER BY b.BorrowID DESC";
@@ -359,7 +392,7 @@ public class DAOBorrow {
     }
 
     public int countPending() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Borrow WHERE Status = 'Pending'";
+        String sql = "SELECT COUNT(*) FROM Borrow WHERE Status IN ('Pending', 'ReturnRequested')";
         Connection con = DBConnection.getConnection();
         if (con == null) {
             throw new SQLException("Cannot connect to database!");

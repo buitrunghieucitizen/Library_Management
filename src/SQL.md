@@ -525,7 +525,7 @@ ALTER TABLE [dbo].[Borrow]  WITH CHECK ADD  CONSTRAINT [CK_Borrow_Date] CHECK  (
 GO
 ALTER TABLE [dbo].[Borrow] CHECK CONSTRAINT [CK_Borrow_Date]
 GO
-ALTER TABLE [dbo].[Borrow]  WITH CHECK ADD  CONSTRAINT [CK_Borrow_Status] CHECK  (([Status]='Rejected' OR [Status]='Returned' OR [Status]='Overdue' OR [Status]='Borrowing' OR [Status]='Pending'))
+ALTER TABLE [dbo].[Borrow]  WITH CHECK ADD  CONSTRAINT [CK_Borrow_Status] CHECK  (([Status]='Rejected' OR [Status]='Returned' OR [Status]='Overdue' OR [Status]='Borrowing' OR [Status]='Pending' OR [Status]='ReturnRequested'))
 GO
 ALTER TABLE [dbo].[Borrow] CHECK CONSTRAINT [CK_Borrow_Status]
 GO

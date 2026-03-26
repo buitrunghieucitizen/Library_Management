@@ -147,7 +147,7 @@ public class ChatbotController extends HttpServlet {
     }
 
     private static final class ChatRequest {
-
+    
         private List<ChatRequestMessage> messages;
     }
 

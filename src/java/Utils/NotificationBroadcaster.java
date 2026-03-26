@@ -65,6 +65,11 @@ public class NotificationBroadcaster {
         sendAdmin("{\"type\":\"NEW_HOLD\",\"message\":\"" + esc(name) + " đặt giữ chỗ \\\"" + esc(book) + "\\\"\"}");
     }
 
+    public static void notifyAdminReturnRequested(int borrowId, String name) {
+        sendAdmin("{\"type\":\"NEW_RETURN_REQUEST\",\"message\":\"Phieu #" + borrowId
+                + " co yeu cau tra tu " + esc(name) + "\"}");
+    }
+
     public static void notifyStudentApproved(int sid, int bid) {
         sendStudent(sid, "{\"type\":\"BORROW_APPROVED\",\"message\":\"Phiếu mượn #" + bid + " đã được duyệt!\"}");
     }

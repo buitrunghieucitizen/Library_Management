@@ -16,7 +16,7 @@
 
     <div class="borrow-tabs" id="borrowTabs">
         <button class="borrow-tab active" data-tab="tab-pending" type="button">
-            Chờ duyệt
+            Chờ xử lý
             <span class="tab-badge danger${pendingCount gt 0 ? '' : ' is-hidden'}" id="pendingTabBadge">${pendingCount}</span>
         </button>
         <button class="borrow-tab" data-tab="tab-all" type="button">Tất cả phiếu mượn</button>
@@ -31,7 +31,7 @@
     <div class="tab-pane active" id="tab-pending">
         <c:choose>
             <c:when test="${empty pendingBorrows}">
-                <div class="empty-state borrow-empty-state">Không có yêu cầu mượn nào đang chờ duyệt.</div>
+                <div class="empty-state borrow-empty-state">Không có yêu cầu mượn hoặc trả nào đang chờ xử lý.</div>
             </c:when>
             <c:otherwise>
                 <div class="pending-grid">
@@ -39,7 +39,10 @@
                         <article class="pending-card">
                             <div class="pending-card-head">
                                 <div class="pending-card-head-left">
-                                    <span class="status pending">Chờ duyệt</span>
+                                    <c:choose>
+                                        <c:when test="${pb.status eq 'ReturnRequested'}"><span class="status return-requested">Yêu cầu trả</span></c:when>
+                                        <c:otherwise><span class="status pending">Chờ duyệt</span></c:otherwise>
+                                    </c:choose>
                                     <span class="pending-card-id">#${pb.borrowID}</span>
                                 </div>
                                 <span class="pending-card-date"><c:out value="${pb.borrowDate}" /></span>
@@ -51,7 +54,7 @@
                             </div>
 
                             <div class="pending-card-books">
-                                <div class="pending-card-books-label">Sách mượn</div>
+                                <div class="pending-card-books-label"><c:choose><c:when test="${pb.status eq 'ReturnRequested'}">Sách cần trả</c:when><c:otherwise>Sách mượn</c:otherwise></c:choose></div>
                                 <div class="pending-card-books-value"><c:out value="${pb.items}" /></div>
                             </div>
 
@@ -61,18 +64,30 @@
                             </div>
 
                             <div class="pending-card-actions">
-                                <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="pending-card-action-form"
-                                      onsubmit="return confirm('Duyệt phiếu mượn #${pb.borrowID}?');">
-                                    <input type="hidden" name="action" value="approve">
-                                    <input type="hidden" name="borrowID" value="${pb.borrowID}">
-                                    <button class="action-btn approve" type="submit">Duyệt</button>
-                                </form>
-                                <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="pending-card-action-form"
-                                      onsubmit="return confirm('Từ chối phiếu mượn #${pb.borrowID}?');">
-                                    <input type="hidden" name="action" value="reject">
-                                    <input type="hidden" name="borrowID" value="${pb.borrowID}">
-                                    <button class="action-btn reject" type="submit">Từ chối</button>
-                                </form>
+                                <c:choose>
+                                    <c:when test="${pb.status eq 'ReturnRequested'}">
+                                        <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="pending-card-action-form"
+                                              onsubmit="return confirm('Xác nhận trả phiếu #${pb.borrowID}?');">
+                                            <input type="hidden" name="action" value="return">
+                                            <input type="hidden" name="borrowID" value="${pb.borrowID}">
+                                            <button class="action-btn return-btn" type="submit">Xác nhận trả</button>
+                                        </form>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="pending-card-action-form"
+                                              onsubmit="return confirm('Duyệt phiếu mượn #${pb.borrowID}?');">
+                                            <input type="hidden" name="action" value="approve">
+                                            <input type="hidden" name="borrowID" value="${pb.borrowID}">
+                                            <button class="action-btn approve" type="submit">Duyệt</button>
+                                        </form>
+                                        <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="pending-card-action-form"
+                                              onsubmit="return confirm('Từ chối phiếu mượn #${pb.borrowID}?');">
+                                            <input type="hidden" name="action" value="reject">
+                                            <input type="hidden" name="borrowID" value="${pb.borrowID}">
+                                            <button class="action-btn reject" type="submit">Từ chối</button>
+                                        </form>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </article>
                     </c:forEach>
@@ -110,6 +125,7 @@
                                 <c:choose>
                                     <c:when test="${b.status eq 'Pending'}"><span class="status pending">Chờ duyệt</span></c:when>
                                     <c:when test="${b.status eq 'Borrowing'}"><span class="status borrowing">Đang mượn</span></c:when>
+                                    <c:when test="${b.status eq 'ReturnRequested'}"><span class="status return-requested">Chờ xác nhận trả</span></c:when>
                                     <c:when test="${b.status eq 'Returned'}"><span class="status returned">Đã trả</span></c:when>
                                     <c:when test="${b.status eq 'Overdue'}"><span class="status overdue">Quá hạn</span></c:when>
                                     <c:when test="${b.status eq 'Rejected'}"><span class="status rejected">Đã từ chối</span></c:when>
@@ -132,7 +148,7 @@
                                         <button class="action-btn reject" type="submit">Từ chối</button>
                                     </form>
                                 </c:if>
-                                <c:if test="${b.status eq 'Borrowing' || b.status eq 'Overdue'}">
+                                <c:if test="${b.status eq 'Borrowing' || b.status eq 'Overdue' || b.status eq 'ReturnRequested'}">
                                     <form method="POST" action="${pageContext.request.contextPath}/admin/borrows" class="inline-form"
                                           onsubmit="return confirm('Xác nhận trả sách phiếu #${b.borrowID}?');">
                                         <input type="hidden" name="action" value="return">

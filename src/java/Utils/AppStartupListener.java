@@ -20,7 +20,7 @@ public class AppStartupListener implements ServletContextListener {
     private static final String BORROW_STATUS_CONSTRAINT_SQL
             = "ALTER TABLE [dbo].[Borrow] WITH CHECK ADD CONSTRAINT [CK_Borrow_Status] "
             + "CHECK (([Status]='Rejected' OR [Status]='Returned' OR [Status]='Overdue' "
-            + "OR [Status]='Borrowing' OR [Status]='Pending'))";
+            + "OR [Status]='Borrowing' OR [Status]='Pending' OR [Status]='ReturnRequested'))";
     private static final int MAX_BOOK_COVER_BACKFILL = 25;
 
     @Override
@@ -69,7 +69,7 @@ public class AppStartupListener implements ServletContextListener {
                     st.executeUpdate("ALTER TABLE [dbo].[Borrow] CHECK CONSTRAINT [" + BORROW_STATUS_CONSTRAINT_NAME + "]");
                 }
                 changed = true;
-                System.out.println("[App] Ensured Borrow.Status accepts Pending/Rejected states.");
+                System.out.println("[App] Ensured Borrow.Status accepts pending and return-request states.");
             }
 
             con.commit();
@@ -226,7 +226,8 @@ public class AppStartupListener implements ServletContextListener {
                 && normalizedDefinition.contains("'REJECTED'")
                 && normalizedDefinition.contains("'BORROWING'")
                 && normalizedDefinition.contains("'OVERDUE'")
-                && normalizedDefinition.contains("'RETURNED'");
+                && normalizedDefinition.contains("'RETURNED'")
+                && normalizedDefinition.contains("'RETURNREQUESTED'");
     }
 
     private String escapeSqlIdentifier(String identifier) {
